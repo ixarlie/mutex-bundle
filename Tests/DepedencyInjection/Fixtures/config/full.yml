@@ -1,0 +1,14 @@
+ixarlie_mutex:
+    flock:
+        cache_dir: %kernel.cache_dir%
+    memcache:
+        client: %memcache_client%
+    memcached:
+        client: %memcached_client%
+    redis:
+        client: %redis_client%
+#    mysql:
+#        username: dbuser
+#        password: dbpassword
+#        host: localhost
+
