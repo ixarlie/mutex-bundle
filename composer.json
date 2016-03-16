@@ -1,0 +1,30 @@
+{
+  "name": "ixarlie/mutex-bundle",
+  "type": "symfony-bundle",
+  "description": "A Symfony bundle for Mutex implementation for PHP",
+  "keywords": ["Symfony2", "bundle", "semaphore", "mutex", "locking", "lock", "atomicity", "atom", "acquire", "release", "redis", "memcached", "sem", "flock"],
+  "homepage": "https://github.com/ixarlie/mutex-bundle",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Carlos Dominguez",
+      "email": "ixarlie@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.3.2",
+    "symfony/dependency-injection": "~2.3|3.*",
+    "symfony/monolog-bundle": "2.*",
+    "arvenil/ninja-mutex": "~0.5"
+  },
+  "autoload": {
+    "psr-0": { "IXarlie\\MutexBundle": "" }
+  },
+  "target-dir": "IXarlie\\MutexBundle",
+  "minimum-stability": "dev",
+  "extra": {
+    "branch-alias": {
+      "dev-master": "master"
+    }
+  }
+}
