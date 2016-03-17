@@ -20,12 +20,23 @@ class IXarlieMutexExtension extends Extension
     public function load(array $configs, ContainerBuilder $container)
     {
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
-        $loader->load('services.yml');
         $loader->load('lockers.yml');
 
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        // @TODO complete container with configuration
+        if (isset($config['flock'])) {
+            $container->setParameter('ixarlie_mutex.flock.cache_dir', $config['flock']['cache_dir']);
+        }
+        if (isset($config['memcache'])) {
+            $container->setParameter('ixarlie_mutex.memcache.client', $config['memcache']['client']);
+        }
+        if (isset($config['memcached'])) {
+            $container->setParameter('ixarlie_mutex.memcached.client', $config['memcached']['client']);
+        }
+        if (isset($config['redis'])) {
+            $container->setParameter('ixarlie_mutex.redis.client', $config['redis']['client']);
+        }
+        // @TODO mysql
     }
 }

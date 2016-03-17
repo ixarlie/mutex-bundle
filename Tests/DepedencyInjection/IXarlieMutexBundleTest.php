@@ -4,6 +4,8 @@ namespace IXarlie\MutexBundle\Tests\DependencyInjection;
 
 use IXarlie\MutexBundle\DependencyInjection\Compiler\LockerPass;
 use IXarlie\MutexBundle\DependencyInjection\IXarlieMutexExtension;
+use IXarlie\MutexBundle\Model\LockerManagerInterface;
+use NinjaMutex\Lock\FlockLock;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
@@ -27,21 +29,28 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
 
     public function testBundle()
     {
-        $this->markTestSkipped('@TODO');
         $container = $this->getContainer();
         $loader = new IXarlieMutexExtension();
         $loader->load(
             [
                 [
                     'flock' => [
-                        'cache_dir' => '%kernel.cache_dir'
-                    ]
+                        'cache_dir' => '%kernel.cache_dir%'
+                    ],
                 ]
             ], $container);
 
         $pass = new LockerPass();
         $pass->process($container);
 
-        // @TODO check parameters and services
+        $manager = $container->get('ixarlie_mutex.locker.flock');
+        $this->assertInstanceOf(LockerManagerInterface::class, $manager);
+
+        $refl = new \ReflectionClass($manager);
+        $prop = $refl->getProperty('locker');
+        $prop->setAccessible(true);
+
+        $locker = $prop->getValue($manager);
+        $this->assertInstanceOf(FlockLock::class, $locker);
     }
 }
