@@ -43,7 +43,7 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
         $pass = new LockerPass();
         $pass->process($container);
 
-        $manager = $container->get('ixarlie_mutex.locker.flock');
+        $manager = $container->get('ixarlie_mutex.locker_flock');
         $this->assertInstanceOf(LockerManagerInterface::class, $manager);
 
         $refl = new \ReflectionClass($manager);

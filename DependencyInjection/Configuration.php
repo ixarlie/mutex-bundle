@@ -19,7 +19,9 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder();
         $treeBuilder->root('ixarlie_mutex')
+            ->addDefaultsIfNotSet()
             ->children()
+                ->scalarNode('logger')->defaultNull()->end()
                 ->arrayNode('flock')
                     ->children()
                         ->scalarNode('cache_dir')->end()

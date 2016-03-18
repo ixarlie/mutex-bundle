@@ -2,10 +2,8 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Compiler;
 
-use IXarlie\MutexBundle\Model\LockerManager;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
 
 /**
  * Class LockerPass
@@ -19,48 +17,32 @@ class LockerPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        // @TODO want to get the logger service nicer
-        $logger = null;
-        if ($container->hasDefinition('logger')) {
-            $logger = $container->findDefinition('logger');
+        if ($container->hasParameter('ixarlie_mutex.locker_flock.cache_dir')) {
+            $locker = $container->getDefinition('ninja_mutex.locker_flock');
+            $locker->replaceArgument(0, $container->getParameter('ixarlie_mutex.locker_flock.cache_dir'));
+            $manager = $container->getDefinition('ixarlie_mutex.locker_flock');
+            $manager->replaceArgument(0, $locker);
         }
-        if ($container->hasParameter('ixarlie_mutex.flock.cache_dir')) {
-            $locker = $container->getDefinition('ninja_mutex.locker.flock');
-            $locker->replaceArgument(0, $container->getParameter('ixarlie_mutex.flock.cache_dir'));
-            $container->setDefinition(
-                'ixarlie_mutex.locker.flock',
-                new Definition(LockerManager::class, [$locker, $logger])
-            );
-        }
-        if ($container->hasParameter('ixarlie_mutex.memcache.client')) {
-            $locker = $container->getDefinition('ninja_mutex.locker.memcache');
-            $client = $container->findDefinition($container->getParameter('ixarlie_mutex.memcache.client'));
+        if ($container->hasParameter('ixarlie_mutex.locker_memcache.client')) {
+            $locker = $container->getDefinition('ninja_mutex.locker_memcache');
+            $client = $container->findDefinition($container->getParameter('ixarlie_mutex.locker_memcache.client'));
             $locker->replaceArgument(0, $client);
-
-            $container->setDefinition(
-                'ixarlie_mutex.locker.memcache',
-                new Definition(LockerManager::class, [$locker, $logger])
-            );
+            $manager = $container->getDefinition('ixarlie_mutex.locker_memcache');
+            $manager->replaceArgument(0, $locker);
         }
-        if ($container->hasParameter('ixarlie_mutex.memcached.client')) {
+        if ($container->hasParameter('ixarlie_mutex.locker_memcached.client')) {
             $locker = $container->getDefinition('ninja_mutex.locker.memcached');
-            $client = $container->findDefinition($container->getParameter('ixarlie_mutex.memcached.client'));
+            $client = $container->findDefinition($container->getParameter('ixarlie_mutex.locker_memcached.client'));
             $locker->replaceArgument(0, $client);
-
-            $container->setDefinition(
-                'ixarlie_mutex.locker.memcached',
-                new Definition(LockerManager::class, [$locker, $logger])
-            );
+            $manager = $container->getDefinition('ixarlie_mutex.locker_memcached');
+            $manager->replaceArgument(0, $locker);
         }
-        if ($container->hasParameter('ixarlie_mutex.redis.client')) {
+        if ($container->hasParameter('ixarlie_mutex.locker_redis.client')) {
             $locker = $container->getDefinition('ninja_mutex.locker.redis');
-            $client = $container->findDefinition($container->getParameter('ixarlie_mutex.redis.client'));
+            $client = $container->findDefinition($container->getParameter('ixarlie_mutex.locker_redis.client'));
             $locker->replaceArgument(0, $client);
-
-            $container->setDefinition(
-                'ixarlie_mutex.locker.redis',
-                new Definition(LockerManager::class, [$locker, $logger])
-            );
+            $manager = $container->getDefinition('ixarlie_mutex.locker_redis');
+            $manager->replaceArgument(0, $locker);
         }
         // @TODO mysql
     }

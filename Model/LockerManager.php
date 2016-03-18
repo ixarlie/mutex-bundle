@@ -35,16 +35,24 @@ class LockerManager implements LockerManagerInterface
     }
 
     /**
+     * @param string $name
+     * @return \NinjaMutex\Mutex
+     */
+    private function getOrCreateLock($name)
+    {
+        if (!$this->hasLock($name)) {
+            $mutex = new \NinjaMutex\Mutex($name, $this->locker);
+            $this->locks[$name] = $mutex;
+        }
+        return $this->locks[$name];
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function acquireLock($name, $timeout = null)
     {
-        if ($this->hasLock($name)) {
-            throw new \LogicException(sprintf('%s mutex is already registered', $name));
-        }
-        $mutex = new \NinjaMutex\Mutex($name, $this->locker);
-        $this->locks[$name] = $mutex;
-
+        $mutex = $this->getOrCreateLock($name);
         return $mutex->acquireLock($timeout);
     }
 
@@ -53,14 +61,8 @@ class LockerManager implements LockerManagerInterface
      */
     public function releaseLock($name)
     {
-        if (!$this->hasLock($name)) {
-            throw new \LogicException(sprintf('%s mutex is not registered', $name));
-        }
-        $lock = $this->locks[$name];
-        if ($lock->releaseLock()) {
-            return true;
-        }
-        return false;
+        $mutex = $this->getOrCreateLock($name);
+        return $mutex->releaseLock();
     }
 
     /**
@@ -68,11 +70,8 @@ class LockerManager implements LockerManagerInterface
      */
     public function isAcquired($name)
     {
-        if (!$this->hasLock($name)) {
-            throw new \LogicException(sprintf('%s mutex is not registered', $name));
-        }
-        $lock = $this->locks[$name];
-        return $lock->isAcquired();
+        $mutex = $this->getOrCreateLock($name);
+        return $mutex->isAcquired();
     }
 
     /**
@@ -80,11 +79,8 @@ class LockerManager implements LockerManagerInterface
      */
     public function isLocked($name)
     {
-        if (!$this->hasLock($name)) {
-            throw new \LogicException(sprintf('%s mutex is not registered', $name));
-        }
-        $lock = $this->locks[$name];
-        return $lock->isLocked();
+        $mutex = $this->getOrCreateLock($name);
+        return $mutex->isLocked();
     }
 
     /**
