@@ -23,7 +23,7 @@
   "autoload": {
     "psr-0": { "IXarlie\\MutexBundle": "" }
   },
-  "target-dir": "IXarlie\\MutexBundle",
+  "target-dir": "IXarlie/MutexBundle",
   "minimum-stability": "dev",
   "extra": {
     "branch-alias": {
