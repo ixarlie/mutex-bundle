@@ -31,23 +31,15 @@ class IXarlieMutexExtension extends Extension
         }
         if (isset($config['flock'])) {
             $container->setParameter('i_xarlie_mutex.locker_flock.cache_dir', $config['flock']['cache_dir']);
-        } else {
-            $container->getParameterBag()->remove('i_xarlie_mutex.locker_flock.cache_dir');
         }
         if (isset($config['memcache'])) {
             $container->setParameter('i_xarlie_mutex.locker_memcache.client', $config['memcache']['client']);
-        } else {
-            $container->getParameterBag()->remove('i_xarlie_mutex.locker_memcache.client');
         }
         if (isset($config['memcached'])) {
             $container->setParameter('i_xarlie_mutex.locker_memcached.client', $config['memcached']['client']);
-        } else {
-            $container->getParameterBag()->remove('i_xarlie_mutex.locker_memcached.client');
         }
         if (isset($config['redis'])) {
             $container->setParameter('i_xarlie_mutex.locker_redis.client', $config['redis']['client']);
-        } else {
-            $container->getParameterBag()->remove('i_xarlie_mutex.locker_redis.client');
         }
         // @TODO mysql
     }
