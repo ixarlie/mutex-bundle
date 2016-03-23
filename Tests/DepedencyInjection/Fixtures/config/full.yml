@@ -1,4 +1,4 @@
-ixarlie_mutex:
+i_xarlie_mutex:
     flock:
         cache_dir: %kernel.cache_dir%
     memcache:

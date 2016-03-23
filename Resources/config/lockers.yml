@@ -1,8 +1,8 @@
 parameters:
-    ixarlie_mutex.locker_flock.cache_dir: ~
-    ixarlie_mutex.locker_redis.client: ~
-    ixarlie_mutex.locker_memcache.client: ~
-    ixarlie_mutex.locker_memcached.client: ~
+    i_xarlie_mutex.locker_flock.cache_dir: ~
+    i_xarlie_mutex.locker_redis.client: ~
+    i_xarlie_mutex.locker_memcache.client: ~
+    i_xarlie_mutex.locker_memcached.client: ~
 
 services:
 
@@ -10,32 +10,32 @@ services:
         class: NinjaMutex\Lock\FlockLock
         public: false
         arguments:
-            - %ixarlie_mutex.locker_flock.cache_dir%
+            - %i_xarlie_mutex.locker_flock.cache_dir%
 
     ninja_mutex.locker_redis:
         class: NinjaMutex\Lock\PredisRedisLock
         public: false
         arguments:
-            - '%ixarlie_mutex.locker_redis.client%'
+            - '%i_xarlie_mutex.locker_redis.client%'
 
     ninja_mutex.locker_memcache:
         class: NinjaMutex\Lock\MemcacheLock
         public: false
         arguments:
-            - '%ixarlie_mutex.locker_memcache.client%'
+            - '%i_xarlie_mutex.locker_memcache.client%'
 
     ninja_mutex.locker_memcached:
         class: NinjaMutex\Lock\MemcachedLock
         public: false
         arguments:
-            - '%ixarlie_mutex.locker_memcached.client%'
+            - '%i_xarlie_mutex.locker_memcached.client%'
 
 #    ninja_mutex.locker_mysql:
 #        class: NinjaMutex\Lock\MySqlLock
 #        public: false
 #        arguments:
-#            - '%ixarlie_mutex.locker_mysql.username%'
-#            - '%ixarlie_mutex.locker_mysql.password%'
-#            - '%ixarlie_mutex.locker_mysql.host%'
-#            - '%ixarlie_mutex.locker_mysql.port%'
-#            - '%ixarlie_mutex.locker_mysql.class_name%'
+#            - '%i_xarlie_mutex.locker_mysql.username%'
+#            - '%i_xarlie_mutex.locker_mysql.password%'
+#            - '%i_xarlie_mutex.locker_mysql.host%'
+#            - '%i_xarlie_mutex.locker_mysql.port%'
+#            - '%i_xarlie_mutex.locker_mysql.class_name%'

@@ -18,7 +18,9 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         $processor = new Processor();
         $configuration = new Configuration(false);
         $options = $processor->processConfiguration($configuration, array());
-        $defaults = [];
+        $defaults = [
+            'logger' => null
+        ];
         $this->assertEquals($defaults, $options);
     }
 
@@ -42,6 +44,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
 //                'port'       => 3306,
 //                'class_name' => 'PDO',
 //            ],
+            'logger' => null
         ];
         $this->assertEquals($expected, $options);
     }
@@ -49,7 +52,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
     public function provideFullConfiguration()
     {
         $yaml = Yaml::parse(file_get_contents(__DIR__.'/Fixtures/config/full.yml'));
-        $yaml = $yaml['ixarlie_mutex'];
+        $yaml = $yaml['i_xarlie_mutex'];
         return array(
             array($yaml),
         );

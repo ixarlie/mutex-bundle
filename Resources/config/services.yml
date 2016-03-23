@@ -1,34 +1,34 @@
 parameters:
-    ixarlie_mutex.monolog: ~
+    i_xarlie_mutex.monolog: ~
 
 services:
 
-    ixarlie_mutex.locker_flock:
+    i_xarlie_mutex.locker_flock:
         class: IXarlie\MutexBundle\Model\LockerManager
         arguments:
             - ''
-            - %ixarlie_mutex.monolog%
+            - %i_xarlie_mutex.monolog%
 
-    ixarlie_mutex.locker_memcache:
+    i_xarlie_mutex.locker_memcache:
         class: IXarlie\MutexBundle\Model\LockerManager
         arguments:
             - ''
-            - %ixarlie_mutex.monolog%
+            - %i_xarlie_mutex.monolog%
 
-    ixarlie_mutex.locker_memcached:
+    i_xarlie_mutex.locker_memcached:
         class: IXarlie\MutexBundle\Model\LockerManager
         arguments:
             - ''
-            - %ixarlie_mutex.monolog%
+            - %i_xarlie_mutex.monolog%
 
-    ixarlie_mutex.locker_redis:
+    i_xarlie_mutex.locker_redis:
         class: IXarlie\MutexBundle\Model\LockerManager
         arguments:
             - ''
-            - %ixarlie_mutex.monolog%
+            - %i_xarlie_mutex.monolog%
 
-#    ixarlie_mutex.locker_mysql:
+#    i_xarlie_mutex.locker_mysql:
 #        class: IXarlie\MutexBundle\Model\LockerManager
 #        arguments:
 #            - '' # TODO complete mysql params
-#            - %ixarlie_mutex.monolog%
+#            - %i_xarlie_mutex.monolog%

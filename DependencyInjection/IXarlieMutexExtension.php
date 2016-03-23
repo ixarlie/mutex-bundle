@@ -27,27 +27,27 @@ class IXarlieMutexExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
 
         if (isset($config['logger'])) {
-            $container->setParameter('ixarlie_mutex.logger', $config['logger']);
+            $container->setParameter('i_xarlie_mutex.logger', $config['logger']);
         }
         if (isset($config['flock'])) {
-            $container->setParameter('ixarlie_mutex.locker_flock.cache_dir', $config['flock']['cache_dir']);
+            $container->setParameter('i_xarlie_mutex.locker_flock.cache_dir', $config['flock']['cache_dir']);
         } else {
-            $container->getParameterBag()->remove('ixarlie_mutex.locker_flock.cache_dir');
+            $container->getParameterBag()->remove('i_xarlie_mutex.locker_flock.cache_dir');
         }
         if (isset($config['memcache'])) {
-            $container->setParameter('ixarlie_mutex.locker_memcache.client', $config['memcache']['client']);
+            $container->setParameter('i_xarlie_mutex.locker_memcache.client', $config['memcache']['client']);
         } else {
-            $container->getParameterBag()->remove('ixarlie_mutex.locker_memcache.client');
+            $container->getParameterBag()->remove('i_xarlie_mutex.locker_memcache.client');
         }
         if (isset($config['memcached'])) {
-            $container->setParameter('ixarlie_mutex.locker_memcached.client', $config['memcached']['client']);
+            $container->setParameter('i_xarlie_mutex.locker_memcached.client', $config['memcached']['client']);
         } else {
-            $container->getParameterBag()->remove('ixarlie_mutex.locker_memcached.client');
+            $container->getParameterBag()->remove('i_xarlie_mutex.locker_memcached.client');
         }
         if (isset($config['redis'])) {
-            $container->setParameter('ixarlie_mutex.locker_redis.client', $config['redis']['client']);
+            $container->setParameter('i_xarlie_mutex.locker_redis.client', $config['redis']['client']);
         } else {
-            $container->getParameterBag()->remove('ixarlie_mutex.locker_redis.client');
+            $container->getParameterBag()->remove('i_xarlie_mutex.locker_redis.client');
         }
         // @TODO mysql
     }
