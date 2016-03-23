@@ -38,7 +38,7 @@ class LockerPass implements CompilerPassInterface
             $manager->replaceArgument(0, $locker);
         }
         if ($client = $container->getParameter('i_xarlie_mutex.locker_redis.client')) {
-            $locker = $container->getDefinition('ninja_mutex.locker.redis');
+            $locker = $container->getDefinition('ninja_mutex.locker_redis');
             $client = $container->findDefinition($client);
             $locker->replaceArgument(0, $client);
             $manager = $container->getDefinition('i_xarlie_mutex.locker_redis');
