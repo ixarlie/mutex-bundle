@@ -26,21 +26,8 @@ class IXarlieMutexExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        if (isset($config['logger'])) {
-            $container->setParameter('i_xarlie_mutex.logger', $config['logger']);
+        foreach ($config as $name => $lockConfig) {
+            $container->setParameter('i_xarlie_mutex.locker_' . $name, $lockConfig);
         }
-        if (isset($config['flock'])) {
-            $container->setParameter('i_xarlie_mutex.locker_flock.cache_dir', $config['flock']['cache_dir']);
-        }
-        if (isset($config['memcache'])) {
-            $container->setParameter('i_xarlie_mutex.locker_memcache.client', $config['memcache']['client']);
-        }
-        if (isset($config['memcached'])) {
-            $container->setParameter('i_xarlie_mutex.locker_memcached.client', $config['memcached']['client']);
-        }
-        if (isset($config['redis'])) {
-            $container->setParameter('i_xarlie_mutex.locker_redis.client', $config['redis']['client']);
-        }
-        // @TODO mysql
     }
 }

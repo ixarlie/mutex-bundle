@@ -37,6 +37,10 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
                     'flock' => [
                         'cache_dir' => '%kernel.cache_dir%'
                     ],
+                    'redis' => [
+                        'host' => '127.0.0.1',
+                        'port' => 6379
+                    ]
                 ]
             ], $container);
 

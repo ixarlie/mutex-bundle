@@ -1,8 +1,8 @@
 parameters:
-    i_xarlie_mutex.locker_flock.cache_dir: ~
-    i_xarlie_mutex.locker_redis.client: ~
-    i_xarlie_mutex.locker_memcache.client: ~
-    i_xarlie_mutex.locker_memcached.client: ~
+    i_xarlie_mutex.redis.connection.class: Redis
+    i_xarlie_mutex.predis.connection.class: Predis\Client
+    i_xarlie_mutex.memcache.connection.class: Memcache
+    i_xarlie_mutex.memcached.connection.class: Memcached
 
 services:
 
@@ -10,25 +10,31 @@ services:
         class: NinjaMutex\Lock\FlockLock
         public: false
         arguments:
-            - %i_xarlie_mutex.locker_flock.cache_dir%
+            - ''
 
-    ninja_mutex.locker_redis:
+    ninja_mutex.locker_predis:
         class: NinjaMutex\Lock\PredisRedisLock
         public: false
         arguments:
-            - '%i_xarlie_mutex.locker_redis.client%'
+            - ''
 
     ninja_mutex.locker_memcache:
         class: NinjaMutex\Lock\MemcacheLock
         public: false
         arguments:
-            - '%i_xarlie_mutex.locker_memcache.client%'
+            - ''
 
     ninja_mutex.locker_memcached:
         class: NinjaMutex\Lock\MemcachedLock
         public: false
         arguments:
-            - '%i_xarlie_mutex.locker_memcached.client%'
+            - ''
+
+    ninja_mutex.locker_redis:
+        class: IXarlie\MutexBundle\Lock\RedisLock
+        public: false
+        arguments:
+            - ''
 
 #    ninja_mutex.locker_mysql:
 #        class: NinjaMutex\Lock\MySqlLock
