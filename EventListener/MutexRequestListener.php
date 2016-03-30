@@ -8,6 +8,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
+use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Doctrine\Common\Annotations\AnnotationReader;
@@ -44,7 +45,10 @@ class MutexRequestListener implements EventSubscriberInterface
      */
     public static function getSubscribedEvents()
     {
-        return array(KernelEvents::CONTROLLER => 'onKernelController');
+        return array(
+            KernelEvents::CONTROLLER => 'onKernelController',
+            KernelEvents::TERMINATE  => 'onKernelTerminate'
+        );
     }
 
     /**
@@ -74,12 +78,17 @@ class MutexRequestListener implements EventSubscriberInterface
                 case MutexRequest::MODE_BLOCK:
                     $this->block($service, $configuration);
                     break;
-                case MutexRequest::MODE_APPLY:
-                    $this->apply($service, $configuration);
+                case MutexRequest::MODE_CHECK:
+                    $this->check($service, $configuration);
                     break;
                 default:
             }
         }
+    }
+
+    public function onKernelTerminate(PostResponseEvent $event)
+    {
+        // @TODO release locks here? __destroy methods works actually
     }
 
     /**
@@ -133,25 +142,33 @@ class MutexRequestListener implements EventSubscriberInterface
     }
 
     /**
+     * Attempt to acquire the lock.
+     *
      * @param LockerManagerInterface $service
      * @param MutexRequest           $configuration
+     *
+     * @throws ConflictHttpException
      */
     private function block(LockerManagerInterface $service, MutexRequest $configuration)
     {
-        $this->apply($service, $configuration);
+        $this->check($service, $configuration);
         $service->acquireLock($configuration->getName(), null, $configuration->getTtl());
     }
 
     /**
+     * Check if the lock is locked or not.
+     *
      * @param LockerManagerInterface $service
      * @param MutexRequest           $configuration
+     *
+     * @throws ConflictHttpException
      */
-    private function apply(LockerManagerInterface $service, MutexRequest $configuration)
+    private function check(LockerManagerInterface $service, MutexRequest $configuration)
     {
         if ($service->isLocked($configuration->getName())) {
             $message = $configuration->getMessage();
             if (!$message) {
-                $message = 'Resource is not available at this moment';
+                $message = 'Resource is not available at this moment.';
             }
             throw new ConflictHttpException($message);
         }

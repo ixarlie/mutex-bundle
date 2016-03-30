@@ -13,29 +13,37 @@ namespace IXarlie\MutexBundle\Configuration;
 class MutexRequest
 {
     const MODE_BLOCK = 'block';
-    const MODE_APPLY = 'apply';
+    const MODE_CHECK = 'check';
 
     /**
+     * Lock name
      * @var string
      */
     protected $name;
 
     /**
+     * Block mode will acquire the resource in case is not already locked.
+     * Check mode just check if the resource is released in order to be executed.
      * @var string
      */
     protected $mode = self::MODE_BLOCK;
 
     /**
+     * Custom message for ConflictHttpException
      * @var string
      */
     protected $message;
 
     /**
+     * Some lockers implements a time-to-live option.
+     * This option is ignored for non compatible lockers.
      * @var int
      */
     protected $ttl;
 
     /**
+     * Registered service to create the lock. Reduced or complete name can be used.
+     * (redis == i_xarlie_mutex.locker_redis)
      * @var string
      */
     protected $service;
@@ -65,8 +73,10 @@ class MutexRequest
      */
     public function setName($name)
     {
+        if (empty($name)) {
+            throw new \LogicException('@MutexRequest name is mandatory field');
+        }
         $this->name = $name;
-        return $this;
     }
 
     /**
@@ -85,7 +95,6 @@ class MutexRequest
     public function setMode($mode)
     {
         $this->mode = $mode;
-        return $this;
     }
 
     /**
@@ -104,7 +113,6 @@ class MutexRequest
     public function setMessage($message)
     {
         $this->message = $message;
-        return $this;
     }
 
     /**
@@ -123,7 +131,6 @@ class MutexRequest
     public function setTtl($ttl)
     {
         $this->ttl = $ttl;
-        return $this;
     }
 
     /**
@@ -141,7 +148,12 @@ class MutexRequest
      */
     public function setService($service)
     {
+        if (empty($service)) {
+            throw new \LogicException('@MutexRequest service is mandatory field');
+        }
+        if (!preg_match('/^i_xarlie_mutex.locker_/', $service)) {
+            $service = 'i_xarlie_mutex.locker_' . $service;
+        }
         $this->service = $service;
-        return $this;
     }
 }
