@@ -57,8 +57,7 @@ class MutexRequestListener implements EventSubscriberInterface
         }
 
         $configurations = $this->loadConfiguration($event);
-        /** @var MutexRequest $configuration */
-        if (!empty($configurations)) {
+        if (empty($configurations)) {
             return;
         }
 
