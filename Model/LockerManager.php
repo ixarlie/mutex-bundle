@@ -41,7 +41,15 @@ class LockerManager implements LockerManagerInterface
     private function getOrCreateLock($name)
     {
         if (!$this->hasLock($name)) {
-            $mutex = new \NinjaMutex\Mutex($name, $this->locker);
+            $locker = $this->locker;
+            switch (true) {
+                case $locker instanceof \IXarlie\MutexBundle\Lock\LockTTLInterface:
+                    $mutex = new \IXarlie\MutexBundle\Lock\MutexTTL($name, $locker);
+                    break;
+                default:
+                    $mutex = new \NinjaMutex\Mutex($name, $locker);
+                    break;
+            }
             $this->locks[$name] = $mutex;
         }
         return $this->locks[$name];
@@ -90,5 +98,19 @@ class LockerManager implements LockerManagerInterface
     public function hasLock($name)
     {
         return isset($this->locks[$name]) ? true : false;
+    }
+
+    /**
+     * @param $name
+     * @param $ttl
+     * @param null $timeout
+     */
+    public function acquireLockTTL($name, $ttl, $timeout = null)
+    {
+        $mutex = $this->getOrCreateLock($name);
+        if (!$mutex instanceof MutexTTL) {
+            throw new \LogicException('Mutex does not allow ttl option');
+        }
+        return $mutex->acquireLock($ttl, $timeout);
     }
 }

@@ -2,12 +2,14 @@
 
 namespace IXarlie\MutexBundle\Lock;
 
+use NinjaMutex\Lock\LockInterface;
+
 /**
  * Interface LockTTLInterface
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-interface LockTTLInterface
+interface LockTTLInterface extends LockInterface
 {
     /**
      * @param  string   $name
