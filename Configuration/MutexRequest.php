@@ -8,11 +8,12 @@ namespace IXarlie\MutexBundle\Configuration;
  * @author Carlos Dominguez <ixarlie@gmail.com>
  *
  * @Annotation
+ * @Target({"CLASS", "METHOD"})
  */
 class MutexRequest
 {
     const MODE_BLOCK = 'block';
-    const MODE_POLL  = 'poll';
+    const MODE_APPLY = 'apply';
 
     /**
      * @var string

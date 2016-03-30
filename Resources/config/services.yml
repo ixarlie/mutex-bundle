@@ -1,0 +1,10 @@
+parameters:
+    i_xarlie_mutex.controller.listener.class: IXarlie\MutexBundle\EventListener\MutexRequestListener
+
+services:
+    i_xarlie_mutex.controller.listener:
+        class: '%i_xarlie_mutex.controller.listener.class%'
+        arguments:
+            - '@service_container'
+        tags:
+            - { name: kernel.event_subscriber }
