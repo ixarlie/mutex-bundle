@@ -101,16 +101,17 @@ class LockerManager implements LockerManagerInterface
     }
 
     /**
-     * @param $name
-     * @param $ttl
+     * @param string $name
+     * @param int    $ttl
      * @param null $timeout
      */
     public function acquireLockTTL($name, $ttl, $timeout = null)
     {
         $mutex = $this->getOrCreateLock($name);
-        if (!$mutex instanceof MutexTTL) {
-            throw new \LogicException('Mutex does not allow ttl option');
+        // if mutex does not have ttl capabilities, acquire without ttl
+        if (!$mutex instanceof \IXarlie\MutexBundle\Lock\MutexTTL) {
+            return $mutex->acquireLock($timeout);
         }
-        return $mutex->acquireLock($ttl, $timeout);
+        return $mutex->acquireLockTTL($ttl, $timeout);
     }
 }
