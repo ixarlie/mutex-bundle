@@ -2,14 +2,12 @@
 
 namespace IXarlie\MutexBundle\Lock;
 
-use NinjaMutex\Lock\LockAbstract;
-
 /**
  * Class RedisLock
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class RedisLock extends LockAbstract
+class RedisLock extends LockTTLAbstract
 {
     /**
      * @var \Redis
@@ -31,7 +29,15 @@ class RedisLock extends LockAbstract
      */
     protected function getLock($name, $blocking)
     {
-        if (!$this->redis->set($name, serialize($this->getLockInformation()))) {
+        return $this->getLockTTL($name, 0, $blocking);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function getLockTTL($name, $ttl, $blocking)
+    {
+        if (!$this->redis->set($name, serialize($this->getLockInformation()), $ttl)) {
             return false;
         }
 
