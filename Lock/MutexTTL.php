@@ -26,7 +26,7 @@ class MutexTTL extends Mutex
      * @param  int|null $timeout
      * @return bool
      */
-    public function acquireLock($ttl, $timeout = null)
+    public function acquireLockTTL($ttl, $timeout = null)
     {
         if ($this->counter > 0 ||
             $this->lockImplementor->acquireLockTTL($this->name, $ttl, $timeout)) {
