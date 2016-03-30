@@ -4,7 +4,6 @@ namespace IXarlie\MutexBundle\Lock;
 
 use NinjaMutex\Lock\LockAbstract;
 use NinjaMutex\Lock\LockExpirationInterface;
-use NinjaMutex\UnrecoverableMutexException;
 
 /**
  * Class RedisLock
@@ -76,6 +75,12 @@ class RedisLock extends LockAbstract implements LockExpirationInterface
      */
     public function releaseLock($name)
     {
+        // if lock has ttl, just clear. Redis will release the lock when time expires
+        if (isset($this->locks[$name]) && isset($this->ttl[$name])) {
+            $this->clearLock($name);
+
+            return true;
+        }
         if (isset($this->locks[$name]) && $this->redis->del($name)) {
             $this->clearLock($name);
 
@@ -105,26 +110,5 @@ class RedisLock extends LockAbstract implements LockExpirationInterface
         unset($this->locks[$name]);
         unset($this->ttl[$name]);
         return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function __destruct()
-    {
-        foreach ($this->locks as $name => $v) {
-            // Redis will remove the lock when time expires, clearing lock
-            if (isset($this->ttl[$name])) {
-                $this->clearLock($name);
-            } else {
-                $released = $this->releaseLock($name);
-                if (!$released) {
-                    throw new UnrecoverableMutexException(sprintf(
-                        'Cannot release lock in __destruct(): %s',
-                        $name
-                    ));
-                }
-            }
-        }
     }
 }
