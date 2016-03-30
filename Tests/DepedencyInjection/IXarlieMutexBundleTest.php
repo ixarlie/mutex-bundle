@@ -2,10 +2,13 @@
 
 namespace IXarlie\MutexBundle\Tests\DependencyInjection;
 
-use IXarlie\MutexBundle\DependencyInjection\Compiler\LockerPass;
 use IXarlie\MutexBundle\DependencyInjection\IXarlieMutexExtension;
+use IXarlie\MutexBundle\Lock\RedisLock;
 use IXarlie\MutexBundle\Model\LockerManagerInterface;
 use NinjaMutex\Lock\FlockLock;
+use NinjaMutex\Lock\MemcachedLock;
+use NinjaMutex\Lock\MemcacheLock;
+use NinjaMutex\Lock\PredisRedisLock;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
@@ -27,34 +30,64 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
         )));
     }
 
-    public function testBundle()
+    /**
+     * @dataProvider bundleConfigurations
+     */
+    public function testBundle($className, $type, $config)
     {
+        $serviceId     = 'i_xarlie_mutex.locker_' . $type;
+
         $container = $this->getContainer();
         $loader = new IXarlieMutexExtension();
-        $loader->load(
+        $loader->load([
+            [$type => $config]
+        ], $container);
+
+        try {
+            $manager = $container->get($serviceId);
+            $this->assertInstanceOf(LockerManagerInterface::class, $manager);
+
+            $refl = new \ReflectionClass($manager);
+            $prop = $refl->getProperty('locker');
+            $prop->setAccessible(true);
+
+            $locker = $prop->getValue($manager);
+            $this->assertInstanceOf($className, $locker);
+        } catch (\Exception $e) {
+            // Some test can fail due to missing libraries
+            $this->markTestSkipped($e->getMessage());
+        }
+    }
+
+    public function bundleConfigurations()
+    {
+        return [
             [
-                [
-                    'flock' => [
-                        'cache_dir' => '%kernel.cache_dir%'
-                    ],
-                    'redis' => [
-                        'host' => '127.0.0.1',
-                        'port' => 6379
-                    ]
-                ]
-            ], $container);
+                'class'  => FlockLock::class,
+                'type'   => 'flock',
+                'config' => ['cache_dir' => '%kernel.cache_dir%']
+            ],
+            [
+                'class'  => RedisLock::class,
+                'type'   => 'redis',
+                'config' => ['host' => '127.0.0.1', 'port' => 6379]
+            ],
+            [
+                'class'  => PredisRedisLock::class,
+                'type'   => 'predis',
+                'config' => ['host' => '127.0.0.1', 'port' => 6379]
+            ],
+            [
+                'class'  => MemcacheLock::class,
+                'type'   => 'memcache',
+                'config' => ['host' => '127.0.0.1', 'port' => 6379]
+            ],
+            [
+                'class'  => MemcachedLock::class,
+                'type'   => 'memcached',
+                'config' => ['host' => '127.0.0.1', 'port' => 6379]
+            ],
 
-        $pass = new LockerPass();
-        $pass->process($container);
-
-        $manager = $container->get('i_xarlie_mutex.locker_flock');
-        $this->assertInstanceOf(LockerManagerInterface::class, $manager);
-
-        $refl = new \ReflectionClass($manager);
-        $prop = $refl->getProperty('locker');
-        $prop->setAccessible(true);
-
-        $locker = $prop->getValue($manager);
-        $this->assertInstanceOf(FlockLock::class, $locker);
+        ];
     }
 }
