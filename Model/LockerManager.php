@@ -2,6 +2,8 @@
 
 namespace IXarlie\MutexBundle\Model;
 
+use NinjaMutex\Lock\LockExpirationInterface;
+
 /**
  * Class LockerManager
  *
@@ -41,15 +43,7 @@ class LockerManager implements LockerManagerInterface
     private function getOrCreateLock($name)
     {
         if (!$this->hasLock($name)) {
-            $locker = $this->locker;
-            switch (true) {
-                case $locker instanceof \IXarlie\MutexBundle\Lock\LockTTLInterface:
-                    $mutex = new \IXarlie\MutexBundle\Lock\MutexTTL($name, $locker);
-                    break;
-                default:
-                    $mutex = new \NinjaMutex\Mutex($name, $locker);
-                    break;
-            }
+            $mutex = new \NinjaMutex\Mutex($name, $this->locker);
             $this->locks[$name] = $mutex;
         }
         return $this->locks[$name];
@@ -58,9 +52,12 @@ class LockerManager implements LockerManagerInterface
     /**
      * {@inheritdoc}
      */
-    public function acquireLock($name, $timeout = null)
+    public function acquireLock($name, $timeout = null, $ttl = 0)
     {
         $mutex = $this->getOrCreateLock($name);
+        if ($this->locker instanceof LockExpirationInterface) {
+            $this->locker->setExpiration($ttl);
+        }
         return $mutex->acquireLock($timeout);
     }
 
@@ -98,20 +95,5 @@ class LockerManager implements LockerManagerInterface
     public function hasLock($name)
     {
         return isset($this->locks[$name]) ? true : false;
-    }
-
-    /**
-     * @param string $name
-     * @param int    $ttl
-     * @param null $timeout
-     */
-    public function acquireLockTTL($name, $ttl, $timeout = null)
-    {
-        $mutex = $this->getOrCreateLock($name);
-        // if mutex does not have ttl capabilities, acquire without ttl
-        if (!$mutex instanceof \IXarlie\MutexBundle\Lock\MutexTTL) {
-            return $mutex->acquireLock($timeout);
-        }
-        return $mutex->acquireLockTTL($ttl, $timeout);
     }
 }

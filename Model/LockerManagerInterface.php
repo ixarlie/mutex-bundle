@@ -12,9 +12,10 @@ interface LockerManagerInterface
     /**
      * @param string   $name
      * @param int|null $timeout
+     * @param int      $ttl
      * @return bool
      */
-    public function acquireLock($name, $timeout = null);
+    public function acquireLock($name, $timeout = null, $ttl = 0);
 
     /**
      * @param string $name
