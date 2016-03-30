@@ -38,5 +38,11 @@ class MutexTTL extends Mutex
         return false;
     }
 
-
+    /**
+     * We overwrite this method because the lock implementor service must be in charge to release the lock
+     * when the time to live expired.
+     */
+    public function __destruct()
+    {
+    }
 }

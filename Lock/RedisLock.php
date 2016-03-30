@@ -29,7 +29,11 @@ class RedisLock extends LockTTLAbstract
      */
     protected function getLock($name, $blocking)
     {
-        return $this->getLockTTL($name, 0, $blocking);
+        if (!$this->redis->set($name, serialize($this->getLockInformation()))) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -37,7 +41,7 @@ class RedisLock extends LockTTLAbstract
      */
     protected function getLockTTL($name, $ttl, $blocking)
     {
-        if (!$this->redis->set($name, serialize($this->getLockInformation()), $ttl)) {
+        if (!$this->redis->setex($name, $ttl, serialize($this->getLockInformation()))) {
             return false;
         }
 
