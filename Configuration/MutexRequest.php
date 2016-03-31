@@ -29,12 +29,6 @@ class MutexRequest
     protected $mode = self::MODE_BLOCK;
 
     /**
-     * Custom message for ConflictHttpException
-     * @var string
-     */
-    protected $message;
-
-    /**
      * Some lockers implements a time-to-live option.
      * This option is ignored for non compatible lockers.
      * @var int
@@ -47,6 +41,18 @@ class MutexRequest
      * @var string
      */
     protected $service;
+
+    /**
+     * HTTP Code to throw if resource is locked.
+     * @var int
+     */
+    protected $httpCode = 409;
+
+    /**
+     * Custom message for HTTP exception
+     * @var string
+     */
+    protected $message;
 
     public function __construct(array $values)
     {
@@ -95,6 +101,24 @@ class MutexRequest
     public function setMode($mode)
     {
         $this->mode = $mode;
+    }
+
+    /**
+     * @return int
+     */
+    public function getHttpCode()
+    {
+        return $this->httpCode;
+    }
+
+    /**
+     * @param int $httpCode
+     *
+     * return MutexRequest
+     */
+    public function setHttpCode($httpCode)
+    {
+        $this->httpCode = $httpCode;
     }
 
     /**

@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\PostResponseEvent;
-use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Util\ClassUtils;
@@ -53,6 +53,8 @@ class MutexRequestListener implements EventSubscriberInterface
 
     /**
      * @param FilterControllerEvent $event
+     *
+     * @throws HttpException
      */
     public function onKernelController(FilterControllerEvent $event)
     {
@@ -147,7 +149,7 @@ class MutexRequestListener implements EventSubscriberInterface
      * @param LockerManagerInterface $service
      * @param MutexRequest           $configuration
      *
-     * @throws ConflictHttpException
+     * @throws HttpException
      */
     private function block(LockerManagerInterface $service, MutexRequest $configuration)
     {
@@ -161,16 +163,17 @@ class MutexRequestListener implements EventSubscriberInterface
      * @param LockerManagerInterface $service
      * @param MutexRequest           $configuration
      *
-     * @throws ConflictHttpException
+     * @throws HttpException
      */
     private function check(LockerManagerInterface $service, MutexRequest $configuration)
     {
-        if ($service->isLocked($configuration->getName())) {
-            $message = $configuration->getMessage();
-            if (!$message) {
-                $message = 'Resource is not available at this moment.';
-            }
-            throw new ConflictHttpException($message);
+        if (!$service->isLocked($configuration->getName())) {
+            return;
         }
+        $message = $configuration->getMessage();
+        if (!$message) {
+            $message = 'Resource is not available at this moment.';
+        }
+        throw new HttpException($configuration->getHttpCode(), $message);
     }
 }
