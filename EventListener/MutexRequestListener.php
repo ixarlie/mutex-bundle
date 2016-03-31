@@ -13,6 +13,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Util\ClassUtils;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
  * Class MutexRequestListener
@@ -74,6 +75,11 @@ class MutexRequestListener implements EventSubscriberInterface
                     'To use the @MutexRequest tag, you need to register a valid locker provider. %s is not registered',
                     $configuration->getService()
                 ));
+            }
+
+            if ($configuration->isUserIsolation()) {
+                $name = sprintf('%s_%s', $configuration->getName(), $this->getIsolatedName());
+                $configuration->setName($name);
             }
 
             switch ($configuration->getMode()) {
@@ -139,6 +145,21 @@ class MutexRequestListener implements EventSubscriberInterface
         try {
             return $this->container->get($configuration->getService());
         } catch (ServiceNotFoundException $e) {
+        }
+        return;
+    }
+
+    /**
+     * Returns a unique hash for user
+     *
+     * @return string
+     */
+    private function getIsolatedName()
+    {
+        /** @var TokenStorageInterface $tokenStorage */
+        $tokenStorage = $this->container->get('security.token_storage');
+        if ($token = $tokenStorage->getToken()) {
+            return md5($token->serialize());
         }
         return;
     }

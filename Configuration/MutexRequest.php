@@ -54,6 +54,12 @@ class MutexRequest
      */
     protected $message;
 
+    /**
+     * Append user information to the lock to have isolated locks
+     * @var bool
+     */
+    protected $userIsolation = false;
+
     public function __construct(array $values)
     {
         foreach ($values as $k => $v) {
@@ -180,4 +186,23 @@ class MutexRequest
         }
         $this->service = $service;
     }
+
+    /**
+     * @return boolean
+     */
+    public function isUserIsolation()
+    {
+        return $this->userIsolation;
+    }
+
+    /**
+     * @param boolean $userIsolation
+     *
+     * return MutexRequest
+     */
+    public function setUserIsolation($userIsolation)
+    {
+        $this->userIsolation = $userIsolation;
+    }
+
 }
