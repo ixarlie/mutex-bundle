@@ -89,7 +89,14 @@ class MutexRequestListener implements EventSubscriberInterface
                 case MutexRequest::MODE_CHECK:
                     $this->check($service, $configuration);
                     break;
+                case MutexRequest::MODE_QUEUE:
+                    $this->queue($service, $configuration);
+                    break;
+                case MutexRequest::MODE_FORCE:
+                    $this->force($service, $configuration);
+                    break;
                 default:
+                    break;
             }
         }
     }
@@ -196,5 +203,26 @@ class MutexRequestListener implements EventSubscriberInterface
             $message = 'Resource is not available at this moment.';
         }
         throw new HttpException($configuration->getHttpCode(), $message);
+    }
+
+    /**
+     * @param LockerManagerInterface $service
+     * @param MutexRequest $configuration
+     */
+    private function queue(LockerManagerInterface $service, MutexRequest $configuration)
+    {
+        $service->acquireLock($configuration->getName(), null, $configuration->getTtl());
+    }
+
+    /**
+     * @param LockerManagerInterface $service
+     * @param MutexRequest $configuration
+     */
+    private function force(LockerManagerInterface $service, MutexRequest $configuration)
+    {
+        if ($service->isLocked($configuration->getName())) {
+            $service->releaseLock($configuration->getName());
+        }
+        $service->acquireLock($configuration->getName(), null, $configuration->getTtl());
     }
 }

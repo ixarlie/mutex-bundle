@@ -12,8 +12,25 @@ namespace IXarlie\MutexBundle\Configuration;
  */
 class MutexRequest
 {
+    /**
+     * Attempt to acquire the mutex, in case is locked an exception is thrown.
+     * @var string
+     */
     const MODE_BLOCK = 'block';
+    /**
+     * Just check if the mutex is released in order to be executed, but do not acquire it.
+     * @var string
+     */
     const MODE_CHECK = 'check';
+    /**
+     * Attempt to acquire the mutex, in case is locked, the request wait until the mutex is released.
+     * @var string
+     */
+    const MODE_QUEUE = 'queue';
+    /**
+     * Release any locked mutex, then acquire it
+     */
+    const MODE_FORCE = 'force';
 
     /**
      * Lock name
@@ -22,8 +39,7 @@ class MutexRequest
     protected $name;
 
     /**
-     * Block mode will acquire the resource in case is not already locked.
-     * Check mode just check if the resource is released in order to be executed.
+     * One of the available modes.
      * @var string
      */
     protected $mode = self::MODE_BLOCK;
