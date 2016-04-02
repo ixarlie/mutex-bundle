@@ -21,7 +21,7 @@ Library repository https://github.com/arvenil/ninja-mutex
 
 ```sh
 
-composer require ixalrie/mutex-bundle ^0.1
+composer require ixarlie/mutex-bundle ^0.1
 
 ```
 
@@ -179,6 +179,10 @@ See parameter `i_xarlie_mutex.http_exception.code`
 Message for the `HttpException`. Not required. Default value `Resource is not available at this moment.`
 
 See parameter `i_xarlie_mutex.http_exception.message`
+
+##### messageDomain
+
+Domain to translate the message. Not required.
 
 ##### userIsolation
 
