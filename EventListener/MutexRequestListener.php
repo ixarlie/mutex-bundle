@@ -249,7 +249,7 @@ class MutexRequestListener implements EventSubscriberInterface
     {
         $name = $configuration->getName();
         if (null === $name || '' === $name) {
-            $configuration->setName(sprintf('%s_%s', $className, $methodName));
+            $configuration->setName(sprintf('%s_%s', preg_replace('|[\/\\\\]|', '_', $className), $methodName));
         }
 
         if ($configuration->isUserIsolation()) {
