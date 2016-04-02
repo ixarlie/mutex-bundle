@@ -1,6 +1,6 @@
 <?php
 
-namespace IXarlie\MutexBundle\Model;
+namespace IXarlie\MutexBundle\Manager;
 
 /**
  * Interface LockerManagerInterface

@@ -17,8 +17,22 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
     {
         $processor = new Processor();
         $configuration = new Configuration(false);
-        $options = $processor->processConfiguration($configuration, array());
-        $defaults = [];
+        $options = $processor->processConfiguration(
+            $configuration,
+            [
+                'ixarlie_mutex' => [
+                    'default' => 'none'
+                ]
+            ]
+        );
+        $defaults = [
+            'default' => 'none',
+            'flock'     => [],
+            'memcache'  => [],
+            'memcached' => [],
+            'redis'     => [],
+            'predis'    => [],
+        ];
         $this->assertEquals($defaults, $options);
     }
 
@@ -31,20 +45,29 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         $configuration = new Configuration(false);
         $options = $processor->processConfiguration($configuration, array($config));
         $expected = [
+            'default' => 'flock_default',
             'flock'     => [
-                'cache_dir' => '%kernel.cache_dir%',
-                'logger'    => null
+                'default' => [
+                    'cache_dir' => '%kernel.cache_dir%',
+                    'logger'    => null
+                ]
             ],
             'redis'     => [
-                'host'      => 'localhost',
-                'port'      => 6379,
-                'logger'    => null
+                'default' => [
+                    'host'      => 'localhost',
+                    'port'      => 6379,
+                    'logger'    => null
+                ]
             ],
             'predis'     => [
-                'host'      => 'localhost',
-                'port'      => 6379,
-                'logger'    => null
+                'default' => [
+                    'host'      => 'localhost',
+                    'port'      => 6379,
+                    'logger'    => null
+                ]
             ],
+            'memcache'  => [],
+            'memcached' => []
         ];
         $this->assertEquals($expected, $options);
     }

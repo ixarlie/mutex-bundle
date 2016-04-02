@@ -2,6 +2,7 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
 /**
@@ -14,11 +15,7 @@ class RedisDefinition extends LockDefinition
     /**
      * {@inheritdoc}
      */
-    public function configure(
-        array $config,
-        \Symfony\Component\DependencyInjection\Definition $service,
-        \Symfony\Component\DependencyInjection\ContainerBuilder $container
-    ) {
+    public function configure(array $config, Definition $service, ContainerBuilder $container) {
         $connClass = '%i_xarlie_mutex.redis.connection.class%';
         $connDef   = new Definition($connClass);
         $connParams = [

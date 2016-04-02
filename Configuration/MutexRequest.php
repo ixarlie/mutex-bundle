@@ -18,7 +18,7 @@ class MutexRequest
      */
     const MODE_BLOCK = 'block';
     /**
-     * Just check if the mutex is released in order to be executed, but do not acquire it.
+     * Check status of the mutex, in case is locked an exception is thrown. (do not attempt to acquire the mutex)
      * @var string
      */
     const MODE_CHECK = 'check';
@@ -28,12 +28,12 @@ class MutexRequest
      */
     const MODE_QUEUE = 'queue';
     /**
-     * Release any locked mutex, then acquire it
+     * Release any locked mutex, then acquire it.
      */
     const MODE_FORCE = 'force';
 
     /**
-     * Lock name
+     * Lock name. If you don't specify one the name will be ControllerName_methodName.
      * @var string
      */
     protected $name;
@@ -42,7 +42,7 @@ class MutexRequest
      * One of the available modes.
      * @var string
      */
-    protected $mode = self::MODE_BLOCK;
+    protected $mode;
 
     /**
      * Some lockers implements a time-to-live option.
@@ -53,6 +53,7 @@ class MutexRequest
 
     /**
      * Registered service to create the lock. Reduced or complete name can be used.
+     * If you don't specify a value, the default locker will be used.
      * (redis == i_xarlie_mutex.locker_redis)
      * @var string
      */
@@ -62,7 +63,7 @@ class MutexRequest
      * HTTP Code to throw if resource is locked.
      * @var int
      */
-    protected $httpCode = 409;
+    protected $httpCode;
 
     /**
      * Custom message for HTTP exception
@@ -101,9 +102,6 @@ class MutexRequest
      */
     public function setName($name)
     {
-        if (empty($name)) {
-            throw new \LogicException('@MutexRequest name is mandatory field');
-        }
         $this->name = $name;
     }
 
@@ -194,12 +192,6 @@ class MutexRequest
      */
     public function setService($service)
     {
-        if (empty($service)) {
-            throw new \LogicException('@MutexRequest service is mandatory field');
-        }
-        if (!preg_match('/^i_xarlie_mutex.locker_/', $service)) {
-            $service = 'i_xarlie_mutex.locker_' . $service;
-        }
         $this->service = $service;
     }
 
@@ -220,5 +212,4 @@ class MutexRequest
     {
         $this->userIsolation = $userIsolation;
     }
-
 }

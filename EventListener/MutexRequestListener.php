@@ -3,7 +3,7 @@
 namespace IXarlie\MutexBundle\EventListener;
 
 use IXarlie\MutexBundle\Configuration\MutexRequest;
-use IXarlie\MutexBundle\Model\LockerManagerInterface;
+use IXarlie\MutexBundle\Manager\LockerManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -63,23 +63,27 @@ class MutexRequestListener implements EventSubscriberInterface
             return;
         }
 
-        $configurations = $this->loadConfiguration($event);
+        $controller = $event->getController();
+        $className  = class_exists('Doctrine\Common\Util\ClassUtils') ?
+            ClassUtils::getClass($controller[0]) :
+            get_class($controller[0])
+        ;
+        $methodName = $controller[1];
+
+        $configurations = $this->loadConfiguration($className, $methodName);
         if (empty($configurations)) {
             return;
         }
 
         foreach ($configurations as $configuration) {
+            $this->applyDefaults($configuration, $className, $methodName);
+
             $service = $this->getMutexService($configuration);
             if (null === $service) {
                 throw new \LogicException(sprintf(
                     'To use the @MutexRequest tag, you need to register a valid locker provider. %s is not registered',
                     $configuration->getService()
                 ));
-            }
-
-            if ($configuration->isUserIsolation()) {
-                $name = sprintf('%s_%s', $configuration->getName(), $this->getIsolatedName());
-                $configuration->setName($name);
             }
 
             switch ($configuration->getMode()) {
@@ -107,21 +111,24 @@ class MutexRequestListener implements EventSubscriberInterface
     }
 
     /**
-     * @param FilterControllerEvent $event
+     * @param string $className
+     * @param string $methodName
      * @return MutexRequest[]
      */
-    private function loadConfiguration(FilterControllerEvent $event)
+    private function loadConfiguration($className, $methodName)
     {
-        $controller = $event->getController();
-        $className  = class_exists('Doctrine\Common\Util\ClassUtils') ?
-            ClassUtils::getClass($controller[0]) :
-            get_class($controller[0])
-        ;
         $object = new \ReflectionClass($className);
-        $method = $object->getMethod($controller[1]);
+        $method = $object->getMethod($methodName);
 
-        $classConfigurations  = $this->getConfigurations($this->reader->getClassAnnotations($object));
-        $methodConfigurations = $this->getConfigurations($this->reader->getMethodAnnotations($method));
+        $classConfigurations  = $this->getConfigurations(
+            $this->reader->getClassAnnotations($object),
+            $className
+        );
+        $methodConfigurations = $this->getConfigurations(
+            $this->reader->getMethodAnnotations($method),
+            $className,
+            $methodName
+        );
 
         $configurations = array_merge($classConfigurations, $methodConfigurations);
 
@@ -132,11 +139,27 @@ class MutexRequestListener implements EventSubscriberInterface
      * @param array $annotations
      * @return MutexRequest[]
      */
-    private function getConfigurations(array $annotations)
+    private function getConfigurations(array $annotations, $className, $methodName = null)
     {
         $configurations = [];
         foreach ($annotations as $configuration) {
             if ($configuration instanceof MutexRequest) {
+
+                $mode = $configuration->getMode();
+                if (null === $mode || '' === $mode) {
+                    $message = "@MutexRequest mode option is required in $className";
+                    if ($methodName) {
+                        $message = $message . "::$methodName";
+                    }
+                    throw new \LogicException($message);
+                } elseif (!defined('\IXarlie\MutexBundle\Configuration\MutexRequest::MODE_' . strtoupper($mode))) {
+                    $message = "@MutexRequest \"$mode\" is not a valid mode option in $className";
+                    if ($methodName) {
+                        $message = $message . "::$methodName";
+                    }
+                    throw new \LogicException($message);
+                }
+
                 $configurations[] = $configuration;
             }
         }
@@ -172,6 +195,40 @@ class MutexRequestListener implements EventSubscriberInterface
     }
 
     /**
+     * @param MutexRequest $configuration
+     * @param string       $className
+     * @param string       $methodName
+     */
+    private function applyDefaults(MutexRequest $configuration, $className, $methodName)
+    {
+        $name = $configuration->getName();
+        if (null === $name || '' === $name) {
+            $configuration->setName(sprintf('%s_%s', $className, $methodName));
+        }
+
+        if ($configuration->isUserIsolation()) {
+            $name = sprintf('%s_%s', $configuration->getName(), $this->getIsolatedName());
+            $configuration->setName($name);
+        }
+
+        $service = $configuration->getService();
+        if (null === $service || '' === $service) {
+            $configuration->setService('i_xarlie_mutex.locker');
+        } elseif (!preg_match('i_xarlie_mutex.locker_', $service)) {
+            $configuration->setService('i_xarlie_mutex.locker_' . $service);
+        }
+
+        $message = $configuration->getMessage();
+        if (null === $message || '' === $message) {
+            $configuration->setMessage($this->container->getParameter('i_xarlie_mutex.http_exception.message'));
+        }
+        $httpCode = $configuration->getHttpCode();
+        if (null === $httpCode || '' === $httpCode) {
+            $configuration->setHttpCode($this->container->getParameter('i_xarlie_mutex.http_exception.code'));
+        }
+    }
+
+    /**
      * Attempt to acquire the lock.
      *
      * @param LockerManagerInterface $service
@@ -198,11 +255,7 @@ class MutexRequestListener implements EventSubscriberInterface
         if (!$service->isLocked($configuration->getName())) {
             return;
         }
-        $message = $configuration->getMessage();
-        if (!$message) {
-            $message = 'Resource is not available at this moment.';
-        }
-        throw new HttpException($configuration->getHttpCode(), $message);
+        throw new HttpException($configuration->getHttpCode(), $configuration->getMessage());
     }
 
     /**

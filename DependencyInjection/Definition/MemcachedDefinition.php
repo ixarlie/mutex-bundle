@@ -17,7 +17,6 @@ class MemcachedDefinition extends LockDefinition
      */
     public function configure(array $config, Definition $service, ContainerBuilder $container)
     {
-        // redis class
         $connClass = '%i_xarlie_mutex.memcached.connection.class%';
         $connDef   = new Definition($connClass);
         $connParams = [

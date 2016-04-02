@@ -4,7 +4,7 @@ namespace IXarlie\MutexBundle\Tests\DependencyInjection;
 
 use IXarlie\MutexBundle\DependencyInjection\IXarlieMutexExtension;
 use IXarlie\MutexBundle\Lock\RedisLock;
-use IXarlie\MutexBundle\Model\LockerManagerInterface;
+use IXarlie\MutexBundle\Manager\LockerManagerInterface;
 use NinjaMutex\Lock\FlockLock;
 use NinjaMutex\Lock\MemcachedLock;
 use NinjaMutex\Lock\MemcacheLock;
@@ -22,11 +22,11 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
     private function getContainer()
     {
         return new ContainerBuilder(new ParameterBag(array(
-            'kernel.debug'       => false,
-            'kernel.bundles'     => [],
-            'kernel.cache_dir'   => sys_get_temp_dir(),
+            'kernel.debug' => false,
+            'kernel.bundles' => [],
+            'kernel.cache_dir' => sys_get_temp_dir(),
             'kernel.environment' => 'test',
-            'kernel.root_dir'    => __DIR__.'/../../' // src dir
+            'kernel.root_dir' => __DIR__ . '/../../' // src dir
         )));
     }
 
@@ -35,12 +35,15 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
      */
     public function testBundle($className, $type, $config)
     {
-        $serviceId     = 'i_xarlie_mutex.locker_' . $type;
+        $serviceId = 'i_xarlie_mutex.locker_' . $type . '.mylocker';
 
         $container = $this->getContainer();
         $loader = new IXarlieMutexExtension();
         $loader->load([
-            [$type => $config]
+            [
+                'default' => $type . '.mylocker',
+                $type => $config
+            ]
         ], $container);
 
         try {
@@ -53,10 +56,34 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
 
             $locker = $prop->getValue($manager);
             $this->assertInstanceOf($className, $locker);
-        } catch (\Exception $e) {
+
+            // test alias
+            $alias = $container->get('i_xarlie_mutex.locker');
+            $this->assertEquals($manager, $alias);
+        } catch (\ReflectionException $e) {
             // Some test can fail due to missing libraries
             $this->markTestSkipped($e->getMessage());
         }
+    }
+
+    /**
+     * @expectedException \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
+     * @expectedExceptionMessage The service "i_xarlie_mutex.locker" has a dependency on a non-existent service "i_xarlie_mutex.locker_flock.foo"
+     */
+    public function testInvalidDefault()
+    {
+        $container = $this->getContainer();
+        $loader = new IXarlieMutexExtension();
+        $loader->load([
+            [
+                'default' => 'flock.foo',
+                'flock' => [
+                    'mylocker' => [
+                        'cache_dir' => '%kernel.cache_dir'
+                    ]
+                ]
+            ]
+        ], $container);
     }
 
     public function bundleConfigurations()
@@ -65,27 +92,37 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
             [
                 'class'  => FlockLock::class,
                 'type'   => 'flock',
-                'config' => ['cache_dir' => '%kernel.cache_dir%']
+                'config' => [
+                    'mylocker' => ['cache_dir' => '%kernel.cache_dir%']
+                ]
             ],
             [
                 'class'  => RedisLock::class,
                 'type'   => 'redis',
-                'config' => ['host' => '127.0.0.1', 'port' => 6379]
+                'config' => [
+                    'mylocker' => ['host' => '127.0.0.1', 'port' => 6379]
+                ]
             ],
             [
                 'class'  => PredisRedisLock::class,
                 'type'   => 'predis',
-                'config' => ['host' => '127.0.0.1', 'port' => 6379]
+                'config' => [
+                    'mylocker' => ['host' => '127.0.0.1', 'port' => 6379]
+                ]
             ],
             [
                 'class'  => MemcacheLock::class,
                 'type'   => 'memcache',
-                'config' => ['host' => '127.0.0.1', 'port' => 6379]
+                'config' => [
+                    'mylocker' => ['host' => '127.0.0.1', 'port' => 6379]
+                ]
             ],
             [
                 'class'  => MemcachedLock::class,
                 'type'   => 'memcached',
-                'config' => ['host' => '127.0.0.1', 'port' => 6379]
+                'config' => [
+                    'mylocker' => ['host' => '127.0.0.1', 'port' => 6379]
+                ]
             ],
 
         ];

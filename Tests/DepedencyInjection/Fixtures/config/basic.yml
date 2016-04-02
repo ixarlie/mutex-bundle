@@ -1,9 +1,13 @@
 i_xarlie_mutex:
+    default: 'flock_default'
     flock:
-        cache_dir: '%kernel.cache_dir%'
+        default:
+            cache_dir: '%kernel.cache_dir%'
     redis:
-        host: localhost
-        port: 6379
+        default:
+            host: localhost
+            port: 6379
     predis:
-        host: localhost
-        port: 6379
+        default:
+            host: localhost
+            port: 6379
