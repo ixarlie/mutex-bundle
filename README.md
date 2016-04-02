@@ -21,7 +21,7 @@ Library repository https://github.com/arvenil/ninja-mutex
 
 ```sh
 
-composer require ixalrie/mutex-bundle ^0.1
+composer require ixarlie/mutex-bundle ^0.1
 
 ```
 
