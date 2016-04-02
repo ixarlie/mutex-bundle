@@ -21,7 +21,7 @@ Library repository https://github.com/arvenil/ninja-mutex
 
 ```sh
 
-composer require ixalrie/mutex-bundle ~1.1
+composer require ixalrie/mutex-bundle ^0.1
 
 ```
 
@@ -170,12 +170,14 @@ class MyController extends Controller
 
 ##### httpCode
 
-In `block` and `check` modes an `HttpException` can be thrown. Not required. Default value 409
+In `block` and `check` modes an `HttpException` can be thrown. Not required. Default value 409.
+
 See parameter `i_xarlie_mutex.http_exception.code`
 
 ##### message
 
 Message for the `HttpException`. Not required. Default value `Resource is not available at this moment.`
+
 See parameter `i_xarlie_mutex.http_exception.message`
 
 ##### userIsolation
@@ -187,8 +189,8 @@ Examples:
 Two different users requesting same route, a unique hash user will be appended to the name.
 Hash is generated from the serialized user's token information.
  
-User1: hash1 -> foo_hash1
-User2: hash2 -> foo_hash2
+* User1: hash1 -> foo_hash1
+* User2: hash2 -> foo_hash2
 
 ```php
 class MyController extends Controller
