@@ -72,6 +72,12 @@ class MutexRequest
     protected $message;
 
     /**
+     * Domain to translate the message
+     * @var string
+     */
+    protected $messageDomain;
+
+    /**
      * Append user information to the lock to have isolated locks
      * @var bool
      */
@@ -211,5 +217,21 @@ class MutexRequest
     public function setUserIsolation($userIsolation)
     {
         $this->userIsolation = $userIsolation;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMessageDomain()
+    {
+        return $this->messageDomain;
+    }
+
+    /**
+     * @param string $messageDomain
+     */
+    public function setMessageDomain($messageDomain)
+    {
+        $this->messageDomain = $messageDomain;
     }
 }

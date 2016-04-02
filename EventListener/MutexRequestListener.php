@@ -14,6 +14,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Util\ClassUtils;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Translation\TranslatorInterface;
 
 /**
  * Class MutexRequestListener
@@ -33,12 +34,16 @@ class MutexRequestListener implements EventSubscriberInterface
     private $reader;
 
     /**
+     * @var TranslatorInterface
+     */
+    private $translator;
+
+    /**
      * @param ContainerInterface $container
      */
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
-        $this->reader    = $container->get('annotation_reader');
     }
 
     /**
@@ -113,22 +118,17 @@ class MutexRequestListener implements EventSubscriberInterface
     /**
      * @param string $className
      * @param string $methodName
+     *
      * @return MutexRequest[]
      */
     private function loadConfiguration($className, $methodName)
     {
+        $reader = $this->getAnnotationReader();
         $object = new \ReflectionClass($className);
         $method = $object->getMethod($methodName);
 
-        $classConfigurations  = $this->getConfigurations(
-            $this->reader->getClassAnnotations($object),
-            $className
-        );
-        $methodConfigurations = $this->getConfigurations(
-            $this->reader->getMethodAnnotations($method),
-            $className,
-            $methodName
-        );
+        $classConfigurations  = $this->getConfigurations($reader->getClassAnnotations($object), $className);
+        $methodConfigurations = $this->getConfigurations($reader->getMethodAnnotations($method), $className, $methodName);
 
         $configurations = array_merge($classConfigurations, $methodConfigurations);
 
@@ -137,6 +137,9 @@ class MutexRequestListener implements EventSubscriberInterface
 
     /**
      * @param array $annotations
+     * @param string $className
+     * @param string $methodName
+     *
      * @return MutexRequest[]
      */
     private function getConfigurations(array $annotations, $className, $methodName = null)
@@ -168,6 +171,7 @@ class MutexRequestListener implements EventSubscriberInterface
 
     /**
      * @param MutexRequest $configuration
+     *
      * @return LockerManagerInterface|null
      */
     private function getMutexService(MutexRequest $configuration)
@@ -180,7 +184,49 @@ class MutexRequestListener implements EventSubscriberInterface
     }
 
     /**
-     * Returns a unique hash for user
+     * @return AnnotationReader
+     */
+    private function getAnnotationReader()
+    {
+        if (!$this->reader) {
+            if (!$this->container->has('annotation_reader')) {
+                throw new \LogicException(sprintf('Service annotation_reader is required for use @MutexRequest'));
+            }
+            $this->reader = $this->container->get('annotation_reader');
+        }
+        return $this->reader;
+    }
+
+    /**
+     * @return TranslatorInterface
+     */
+    private function getTranslator()
+    {
+        if (!$this->translator && $this->container->has('translator')) {
+            $this->translator = $this->container->get('translator');
+        }
+        return $this->translator;
+    }
+
+    /**
+     * Get a translated configuration message.
+     *
+     * @param MutexRequest $configuration
+     *
+     * @return string
+     */
+    private function getTranslatedMessage(MutexRequest $configuration)
+    {
+        $translator = $this->getTranslator();
+        if ($translator) {
+            return $translator->trans($configuration->getMessage(), [], $configuration->getMessageDomain());
+        } else {
+            return $configuration->getMessage();
+        }
+    }
+
+    /**
+     * Returns a unique hash for user.
      *
      * @return string
      */
@@ -255,7 +301,7 @@ class MutexRequestListener implements EventSubscriberInterface
         if (!$service->isLocked($configuration->getName())) {
             return;
         }
-        throw new HttpException($configuration->getHttpCode(), $configuration->getMessage());
+        throw new HttpException($configuration->getHttpCode(), $this->getTranslatedMessage($configuration));
     }
 
     /**
