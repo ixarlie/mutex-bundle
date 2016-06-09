@@ -7,7 +7,9 @@ use IXarlie\MutexBundle\Manager\LockerManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -53,7 +55,8 @@ class MutexRequestListener implements EventSubscriberInterface
     {
         return array(
             KernelEvents::CONTROLLER => 'onKernelController',
-            KernelEvents::TERMINATE  => 'onKernelTerminate'
+            KernelEvents::TERMINATE  => 'onKernelTerminate',
+            KernelEvents::EXCEPTION  => 'onKernelException',
         );
     }
 
@@ -80,6 +83,7 @@ class MutexRequestListener implements EventSubscriberInterface
             return;
         }
 
+        $attributes = [];
         foreach ($configurations as $configuration) {
             $this->applyDefaults($configuration, $className, $methodName);
 
@@ -94,25 +98,60 @@ class MutexRequestListener implements EventSubscriberInterface
             switch ($configuration->getMode()) {
                 case MutexRequest::MODE_BLOCK:
                     $this->block($service, $configuration);
+                    $attributes[] = $configuration;
                     break;
                 case MutexRequest::MODE_CHECK:
                     $this->check($service, $configuration);
                     break;
                 case MutexRequest::MODE_QUEUE:
                     $this->queue($service, $configuration);
+                    $attributes[] = $configuration;
                     break;
                 case MutexRequest::MODE_FORCE:
                     $this->force($service, $configuration);
+                    $attributes[] = $configuration;
                     break;
                 default:
                     break;
             }
         }
+        $request = $event->getRequest();
+        $request->attributes->set('mutex_requests', $attributes);
     }
 
     public function onKernelTerminate(PostResponseEvent $event)
     {
-        // @TODO release locks here? __destroy methods works actually
+        $this->releaseLocks($event->getRequest());
+    }
+
+    public function onKernelException(GetResponseForExceptionEvent $event)
+    {
+        $this->releaseLocks($event->getRequest());
+    }
+
+    /**
+     * @param Request $request
+     */
+    private function releaseLocks(Request $request)
+    {
+        $configurations = $request->attributes->get('mutex_requests');
+        if (!$configurations) {
+            return;
+        }
+        /** @var MutexRequest $configuration */
+        foreach ($configurations as $configuration) {
+            $service = $this->getMutexService($configuration);
+            if (null === $service) {
+                throw new \LogicException(sprintf(
+                    'To use the @MutexRequest tag, you need to register a valid locker provider. %s is not registered',
+                    $configuration->getService()
+                ));
+            }
+
+            $service->releaseLock($configuration->getName());
+
+            $request->attributes->remove('mutex_requests');
+        }
     }
 
     /**
