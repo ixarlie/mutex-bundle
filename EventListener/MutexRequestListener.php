@@ -149,9 +149,9 @@ class MutexRequestListener implements EventSubscriberInterface
             }
 
             $service->releaseLock($configuration->getName());
-
-            $request->attributes->remove('mutex_requests');
         }
+
+        $request->attributes->remove('mutex_requests');
     }
 
     /**
