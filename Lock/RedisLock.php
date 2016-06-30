@@ -75,12 +75,6 @@ class RedisLock extends LockAbstract implements LockExpirationInterface
      */
     public function releaseLock($name)
     {
-        // if lock has ttl, just clear. Redis will release the lock when time expires
-        if (isset($this->locks[$name]) && isset($this->ttl[$name])) {
-            $this->clearLock($name);
-
-            return true;
-        }
         if (isset($this->locks[$name]) && $this->redis->del($name)) {
             $this->clearLock($name);
 
