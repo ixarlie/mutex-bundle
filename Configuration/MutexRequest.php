@@ -33,7 +33,8 @@ class MutexRequest
     const MODE_FORCE = 'force';
 
     /**
-     * Lock name. If you don't specify one the name will be ControllerName_methodName.
+     * Lock name. If you don't specify one the name will be the resource controller path.
+     * If your controller relative path is "/resource/1/update", then this will be the name for the locker.  
      * @var string
      */
     protected $name;
