@@ -9,7 +9,6 @@ use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -55,8 +54,7 @@ class MutexRequestListener implements EventSubscriberInterface
     {
         return array(
             KernelEvents::CONTROLLER => 'onKernelController',
-            KernelEvents::TERMINATE  => 'onKernelTerminate',
-            KernelEvents::EXCEPTION  => 'onKernelException',
+            KernelEvents::TERMINATE  => 'onKernelTerminate'
         );
     }
 
@@ -84,8 +82,9 @@ class MutexRequestListener implements EventSubscriberInterface
         }
 
         $attributes = [];
+        $request    = $event->getRequest();
         foreach ($configurations as $configuration) {
-            $this->applyDefaults($configuration, $className, $methodName);
+            $this->applyDefaults($configuration, $request, $className, $methodName);
 
             $service = $this->getMutexService($configuration);
             if (null === $service) {
@@ -115,16 +114,14 @@ class MutexRequestListener implements EventSubscriberInterface
                     break;
             }
         }
-        $request = $event->getRequest();
+
         $request->attributes->set('mutex_requests', $attributes);
     }
 
+    /**
+     * @param PostResponseEvent $event
+     */
     public function onKernelTerminate(PostResponseEvent $event)
-    {
-        $this->releaseLocks($event->getRequest());
-    }
-
-    public function onKernelException(GetResponseForExceptionEvent $event)
     {
         $this->releaseLocks($event->getRequest());
     }
@@ -281,14 +278,21 @@ class MutexRequestListener implements EventSubscriberInterface
 
     /**
      * @param MutexRequest $configuration
+     * @param Request      $request
      * @param string       $className
      * @param string       $methodName
      */
-    private function applyDefaults(MutexRequest $configuration, $className, $methodName)
+    private function applyDefaults(MutexRequest $configuration, Request $request, $className, $methodName)
     {
         $name = $configuration->getName();
         if (null === $name || '' === $name) {
-            $configuration->setName(sprintf('%s_%s', preg_replace('|[\/\\\\]|', '_', $className), $methodName));
+            $name = sprintf(
+                '%s_%s_%s',
+                preg_replace('|[\/\\\\]|', '_', $className),
+                $methodName,
+                str_replace('/', '_', $request->getPathInfo())
+            );
+            $configuration->setName($name);
         }
 
         if ($configuration->isUserIsolation()) {
