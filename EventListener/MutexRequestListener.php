@@ -84,7 +84,7 @@ class MutexRequestListener implements EventSubscriberInterface
         $attributes = [];
         $request    = $event->getRequest();
         foreach ($configurations as $configuration) {
-            $this->applyDefaults($configuration, $request);
+            $this->applyDefaults($configuration, $request, $className, $methodName);
 
             $service = $this->getMutexService($configuration);
             if (null === $service) {
@@ -279,13 +279,20 @@ class MutexRequestListener implements EventSubscriberInterface
     /**
      * @param MutexRequest $configuration
      * @param Request      $request
+     * @param string       $className
+     * @param string       $methodName
      */
-    private function applyDefaults(MutexRequest $configuration, Request $request)
+    private function applyDefaults(MutexRequest $configuration, Request $request, $className, $methodName)
     {
         $name = $configuration->getName();
         if (null === $name || '' === $name) {
-            $pathInfo = $request->getPathInfo();
-            $configuration->setName(str_replace('/', '_', $pathInfo));
+            $name = sprintf(
+                '%s_%s_%s',
+                preg_replace('|[\/\\\\]|', '_', $className),
+                $methodName,
+                str_replace('/', '_', $request->getPathInfo())
+            );
+            $configuration->setName($name);
         }
 
         if ($configuration->isUserIsolation()) {
