@@ -93,15 +93,17 @@ parameters:
 
 ##### name
 
-Lock's name. Not required. Default value ControllerName_methodName
+Lock's name. Not required. Default value is the requested relative path (i.e.: _resource_1_update)
+Note: slashes are replaced with underscores.
 
 Examples:
 
 ```php
-// name is not in the options, so default value is MyController_importantAction
+// name is not in the options, so default value is _resource_1_important (1 is the example value for {id} placeholder)
 class MyController extends Controller
 {
     /**
+     * @Route(name="important_action", path="/resource/{id}/important")
      * @MutexRequest(mode="queue")
      */
     public function importantAction()

@@ -9,7 +9,6 @@ use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -285,7 +284,8 @@ class MutexRequestListener implements EventSubscriberInterface
     {
         $name = $configuration->getName();
         if (null === $name || '' === $name) {
-            $configuration->setName($request->getPathInfo());
+            $pathInfo = $request->getPathInfo();
+            $configuration->setName(str_replace('/', '_', $pathInfo));
         }
 
         if ($configuration->isUserIsolation()) {

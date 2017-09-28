@@ -34,7 +34,8 @@ class MutexRequest
 
     /**
      * Lock name. If you don't specify one the name will be the resource controller path.
-     * If your controller relative path is "/resource/1/update", then this will be the name for the locker.  
+     * If your controller relative path is "/resource/1/update", then the name for the locked will be that path
+     * replacing slashes for underscore.
      * @var string
      */
     protected $name;
