@@ -99,7 +99,8 @@ Note: slashes are replaced with underscores.
 Examples:
 
 ```php
-// name is not in the options, so default value is _resource_1_important (1 is the example value for {id} placeholder)
+// name is not in the options, so default value is MyController_importantAction__resource_1_important
+// (1 is the example value for {id} placeholder)
 class MyController extends Controller
 {
     /**
