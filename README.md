@@ -53,6 +53,7 @@ i_xarlie_mutex:
     # true for be able get a hash for the current token user
     user_isolation: ~
     # the max time queue listener will wait for a mutex, as default max_execution_time configuration is taken
+    # remember that is max_execution_time = 0, for the queue means it should not have to wait
     queue_timeout: ~
     # the max times queue listener will try for acquiring the mutex
     queue_max_try: ~
