@@ -37,15 +37,25 @@ class MutexRequestListener implements EventSubscriberInterface
     private $httpExceptionMessage;
 
     /**
-     * It stores a relation between locker hash name and configuration
-     * @var array
+     * @var int
      */
-    private $lockerMapping = [];
+    private $httpExceptionCode;
 
     /**
      * @var int
      */
-    private $httpExceptionCode;
+    private $maxQueueTimeout;
+
+    /**
+     * @var int
+     */
+    private $maxQueueTry;
+
+    /**
+     * It stores a relation between locker hash name and configuration
+     * @var array
+     */
+    private $lockerMapping = [];
 
     /**
      * @var TranslatorInterface
@@ -111,6 +121,22 @@ class MutexRequestListener implements EventSubscriberInterface
     {
         $this->httpExceptionCode    = $code;
         $this->httpExceptionMessage = $message;
+    }
+
+    /**
+     * @param int $maxQueueTimeout
+     */
+    public function setMaxQueueTimeout($maxQueueTimeout)
+    {
+        $this->maxQueueTimeout = $maxQueueTimeout;
+    }
+
+    /**
+     * @param int $maxQueueTry
+     */
+    public function setMaxQueueTry($maxQueueTry)
+    {
+        $this->maxQueueTry = $maxQueueTry;
     }
 
     /**
@@ -410,7 +436,17 @@ class MutexRequestListener implements EventSubscriberInterface
      */
     private function queue(LockerManagerInterface $service, MutexRequest $configuration)
     {
-        $service->acquireLock($configuration->getName(), null, $configuration->getTtl());
+        $max   = $this->maxQueueTry ?: 3;
+        $tries = 0;
+        do {
+            $result = $service->acquireLock($configuration->getName(), $this->getMaxTimeout(), $configuration->getTtl());
+            $tries++;
+        } while(false === $result && $tries < $max);
+        
+        // In case after the maximum tries, we cannot acquire the mutex, then throw a http exception
+        if (false === $result) {
+            throw new HttpException($configuration->getHttpCode(), $this->getTranslatedMessage($configuration));
+        }
     }
 
     /**
@@ -423,5 +459,16 @@ class MutexRequestListener implements EventSubscriberInterface
             $service->releaseLock($configuration->getName());
         }
         $service->acquireLock($configuration->getName(), null, $configuration->getTtl());
+    }
+
+    /**
+     * Do not set a timeout could produces an endless blocking between two requests.
+     * We limit this time to the php max_execution_time.
+     *
+     * @return int
+     */
+    private function getMaxTimeout()
+    {
+        return ($this->maxQueueTimeout ?: intval(ini_get('max_execution_time'))) * 1000; // in ms
     }
 }

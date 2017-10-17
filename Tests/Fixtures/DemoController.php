@@ -14,41 +14,41 @@ class DemoController
 {
     /**
      * @MutexRequest(mode="queue")
-     * @param int $value
+     *
      * @return Response
      */
-    public function queueAction($value = 1)
+    public function queueAction()
     {
-        return new Response('It works! ' . $value);
+        return new Response('It works!');
     }
 
     /**
      * @MutexRequest(mode="block")
-     * @param int $value
+     *
      * @return Response
      */
-    public function blockAction($value = 1)
+    public function blockAction()
     {
-        return new Response('It works! ' . $value);
+        return new Response('It works!');
     }
 
     /**
      * @MutexRequest(mode="check")
-     * @param int $value
+     *
      * @return Response
      */
-    public function checkAction($value = 1)
+    public function checkAction()
     {
-        return new Response('It works! ' . $value);
+        return new Response('It works!');
     }
 
     /**
      * @MutexRequest(mode="force")
-     * @param int $value
+     *
      * @return Response
      */
-    public function forceAction($value = 1)
+    public function forceAction()
     {
-        return new Response('It works! ' . $value);
+        return new Response('It works!');
     }
 }

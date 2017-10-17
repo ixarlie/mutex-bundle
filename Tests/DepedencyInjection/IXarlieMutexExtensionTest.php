@@ -25,11 +25,38 @@ class IXarlieMutexExtensionTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertInstanceOf(ExtensionInterface::class, new IXarlieMutexExtension());
     }
+    
+    public function testPlainConfiguration()
+    {
+        $container = $this->getContainer();
+        $loader    = new IXarlieMutexExtension();
+        $loader->load([
+            [
+                'default'        => 'flock.mylocker',
+                'flock' => [
+                    'mylocker' => [
+                        'cache_dir' => '/tmp'
+                    ]
+                ],
+                'request_listener' => [
+                    'queue_timeout'  => 30,
+                    'queue_max_try'  => 5,
+                    'translator'     => true,
+                    'user_isolation' => true,
+                    'http_exception' => [
+                        'message'    => 'You shall not pass!',
+                        'code'       => 409
+                    ]
+                ]
+            ]
+        ], $container);
+        $this->assertTrue(true);
+    }
 
     /**
      * @dataProvider bundleConfigurations
      */
-    public function testBundle($className, $type, $config, $dependencyClass = null)
+    public function testLockerConfiguration($className, $type, $config, $dependencyClass = null)
     {
         if ($dependencyClass && !class_exists($dependencyClass)) {
             $this->markTestSkipped($dependencyClass . ' is not installed/configured');

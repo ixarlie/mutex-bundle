@@ -18,6 +18,13 @@ class ArrayLock extends LockAbstract
      */
     protected function getLock($name, $blocking)
     {
+        $content = serialize($this->getLockInformation());
+        if (isset($this->locks[$name])) {
+            return false;
+        }
+
+        $this->locks[$name] = $content;
+        
         return true;
     }
 

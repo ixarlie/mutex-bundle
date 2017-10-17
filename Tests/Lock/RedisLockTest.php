@@ -24,7 +24,7 @@ class RedisLockTest extends \PHPUnit_Framework_TestCase
         $refClass = new \ReflectionClass(RedisLock::class);
         $instance = $refClass->newInstanceWithoutConstructor();
         
-        $refProp  = $refClass->getProperty('redis');
+        $refProp  = $refClass->getProperty('client');
         $refProp->setAccessible(true);
         $refProp->setValue($instance, new RedisDouble());
         
@@ -47,7 +47,7 @@ class RedisLockTest extends \PHPUnit_Framework_TestCase
     private function getRedisClient(RedisLock $lock)
     {
         $refClass = new \ReflectionClass(RedisLock::class);
-        $refProp  = $refClass->getProperty('redis');
+        $refProp  = $refClass->getProperty('client');
         $refProp->setAccessible(true);
         return $refProp->getValue($lock);
     }
@@ -113,8 +113,8 @@ class RedisLockTest extends \PHPUnit_Framework_TestCase
         $redis = $this->getRedisClient($lock);
         $name  = 'resource';
         
-        // Expiration in 10 seconds
-        $lock->setExpiration(10);
+        // Expiration in 5 seconds
+        $lock->setExpiration(5);
 
         $this->assertFalse($lock->isLocked($name));
         $this->assertTrue($lock->acquireLock($name));
@@ -122,7 +122,7 @@ class RedisLockTest extends \PHPUnit_Framework_TestCase
         
         // Check expiration time. As we are not using real redis we have to simulate this behaviour in a loop
         while ($redis->ttl($name) > 0) {
-            $redis->refreshExpiration($name);
+            $redis->refreshExpiration($lock, $name);
         }
 
         $this->assertFalse($lock->isLocked($name));

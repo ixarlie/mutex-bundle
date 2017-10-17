@@ -4,6 +4,7 @@ namespace IXarlie\MutexBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 /**
  * Class Configuration
@@ -100,13 +101,42 @@ class Configuration implements ConfigurationInterface
 //                        ->end()
 //                    ->end()
 //                ->end()
-                ->booleanNode('translator')->end()
-                ->booleanNode('user_isolation')->end()
-                ->arrayNode('http_exception')
-                    ->addDefaultsIfNotSet()
+                ->arrayNode('request_listener')
                     ->children()
-                        ->scalarNode('message')->defaultValue('Resource is not available at this moment')->end()
-                        ->integerNode('code')->defaultValue(409)->end()
+                        ->integerNode('queue_max_try')
+                            ->defaultValue(3)
+                            ->validate()
+                            ->always()
+                            ->then(function ($v) {
+                                $v = (int) $v;
+                                if ($v < 0) {
+                                    throw new InvalidConfigurationException('Value cannot be less than zero in queue_max_try');
+                                }
+                                return $v;
+                            })
+                            ->end()                
+                        ->end()
+                        ->integerNode('queue_timeout')
+                            ->validate()
+                            ->always()
+                            ->then(function ($v) {
+                                $v = (int) $v;
+                                if ($v < 0) {
+                                    throw new InvalidConfigurationException('Value cannot be less than zero in queue_timeout');
+                                }
+                                return $v;
+                            })
+                            ->end()
+                        ->end()
+                        ->booleanNode('translator')->end()
+                        ->booleanNode('user_isolation')->end()
+                        ->arrayNode('http_exception')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->scalarNode('message')->defaultValue('Resource is not available at this moment')->end()
+                                ->integerNode('code')->defaultValue(409)->end()
+                            ->end()
+                        ->end()
                     ->end()
                 ->end()
             ->end()

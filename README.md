@@ -46,13 +46,15 @@ Full configuration options:
 i_xarlie_mutex:
     # specify a default locker service is mandatory
     default: redis.default
-    # if you want activate symfony's translator and if your project has it, then messages will be translated.
-    translator: true|false|~
-    # if you want use userIsolation option, you should enable this configuration to inject symfony's token storage.
-    user_isolation: true|false|~
-    http_exception: # optional
-        message: 'This is the default block message'
-        code: 409
+    request_listener:
+        # if you want activate symfony's translator and if your project has it, then messages will be translated.
+        translator: true|false|~
+        # if you want use userIsolation option, you should enable this configuration to inject symfony's token storage.
+        user_isolation: true|false|~
+        queue_timeout: ~ # timeout in seconds the queue waits, if not max_execution_time configuration is taken
+        http_exception: # optional
+            message: 'This is the default block message'
+            code: 409
     # you can have several lockers configurations for each type
     flock:
         default:
@@ -87,9 +89,6 @@ parameters:
     ninja_mutex.locker_memcache_class: NinjaMutex\Lock\MemcacheLock
     ninja_mutex.locker_memcached_class: NinjaMutex\Lock\MemcachedLock
     ninja_mutex.locker_redis_class: IXarlie\MutexBundle\Lock\RedisLock
-    
-    i_xarlie_mutex.http_exception.message: 'Resource is not available at this moment.'
-    i_xarlie_mutex.http_exception.code: 409
 ```
 
 ## Annotations

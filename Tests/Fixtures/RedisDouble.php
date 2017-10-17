@@ -2,6 +2,8 @@
 
 namespace IXarlie\MutexBundle\Tests\Fixtures;
 
+use IXarlie\MutexBundle\Lock\RedisLock;
+
 /**
  * Class RedisDouble
  *
@@ -56,7 +58,7 @@ class RedisDouble
      * This method simulates a "real" expiration count down
      * @param string $name
      */
-    public function refreshExpiration($name = null)
+    public function refreshExpiration(RedisLock $lock, $name = null)
     {
         if (null !== $name && isset($this->expiration[$name])) {
             $expiration = [$name => $this->expiration[$name]];
@@ -67,6 +69,7 @@ class RedisDouble
             $current = time();
             $remain  = $remain - ($current - $start);
             if ($remain < 1) {
+                $lock->releaseLock($name);
                 unset($this->cache[$name]);
                 unset($this->expiration[$name]);
             } else {

@@ -44,7 +44,7 @@ class IXarlieMutexExtension extends Extension
     private function loadLockProviders(array $rootConfig, ContainerBuilder $container)
     {
         $providers = [];
-        unset($rootConfig['default']);
+        unset($rootConfig['default'], $rootConfig['request_listener']);
         foreach ($rootConfig as $type => $declarations) {
             foreach ($declarations as $name => $config) {
                 $definition = $this->getDefinitionLoader($type, $container);
@@ -111,19 +111,32 @@ class IXarlieMutexExtension extends Extension
         if (!$container->hasDefinition('i_xarlie_mutex.controller.listener')) {
             return;
         }
-        
+
         $definition = $container->getDefinition('i_xarlie_mutex.controller.listener');
-        
-        $definition->addMethodCall(
-            'setHttpExceptionOptions',
-            [$config['http_exception']['message'], $config['http_exception']['code']]
-        );
 
         foreach ($providers as $providerId => $provider) {
             $definition->addMethodCall('addLockerManager', [new Reference($providerId)]);
         }
         $definition->addMethodCall('addLockerManager', [new Reference('i_xarlie_mutex.locker')]);
 
+        if (!isset($config['request_listener'])) {
+            return;
+        }
+
+        $config = $config['request_listener'];
+        $definition->addMethodCall(
+            'setHttpExceptionOptions',
+            [$config['http_exception']['message'], $config['http_exception']['code']]
+        );
+
+        if (isset($config['queue_timeout'])) {
+            $definition->addMethodCall('setMaxQueueTimeout', [(int) $config['queue_timeout']]);
+        }
+
+        if (isset($config['queue_max_try'])) {
+            $definition->addMethodCall('setMaxQueueTry', [(int) $config['queue_max_try']]);
+        }
+        
         if (isset($config['translator']) &&
             true === $config['translator'] &&
             $container->hasDefinition('translator')
