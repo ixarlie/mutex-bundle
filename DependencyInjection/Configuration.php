@@ -102,6 +102,13 @@ class Configuration implements ConfigurationInterface
 //                ->end()
                 ->booleanNode('translator')->end()
                 ->booleanNode('user_isolation')->end()
+                ->arrayNode('http_exception')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('message')->defaultValue('Resource is not available at this moment')->end()
+                        ->integerNode('code')->defaultValue(409)->end()
+                    ->end()
+                ->end()
             ->end()
         ;
 

@@ -46,6 +46,13 @@ Full configuration options:
 i_xarlie_mutex:
     # specify a default locker service is mandatory
     default: redis.default
+    # if you want activate symfony's translator and if your project has it, then messages will be translated.
+    translator: true|false|~
+    # if you want use userIsolation option, you should enable this configuration to inject symfony's token storage.
+    user_isolation: true|false|~
+    http_exception: # optional
+        message: 'This is the default block message'
+        code: 409
     # you can have several lockers configurations for each type
     flock:
         default:

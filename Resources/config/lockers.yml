@@ -1,14 +1,14 @@
 parameters:
-    i_xarlie_mutex.lock_manager_class: IXarlie\MutexBundle\Manager\LockerManager
+  i_xarlie_mutex.lock_manager_class: IXarlie\MutexBundle\Manager\LockerManager
 
-    i_xarlie_mutex.redis.connection.class: Redis
-    i_xarlie_mutex.predis.connection.class: Predis\Client
-    i_xarlie_mutex.memcache.connection.class: Memcache
-    i_xarlie_mutex.memcached.connection.class: Memcached
+  i_xarlie_mutex.redis.connection.class: Redis
+  i_xarlie_mutex.predis.connection.class: Predis\Client
+  i_xarlie_mutex.memcache.connection.class: Memcache
+  i_xarlie_mutex.memcached.connection.class: Memcached
 
-    ninja_mutex.locker_flock_class: NinjaMutex\Lock\FlockLock
-    ninja_mutex.locker_predis_class: NinjaMutex\Lock\PredisRedisLock
-    ninja_mutex.locker_memcache_class: NinjaMutex\Lock\MemcacheLock
-    ninja_mutex.locker_memcached_class: NinjaMutex\Lock\MemcachedLock
-    ninja_mutex.locker_redis_class: IXarlie\MutexBundle\Lock\RedisLock
-#    ninja_mutex.locker_mysql_class: NinjaMutex\Lock\MySqlLock
+  ninja_mutex.locker_flock_class: NinjaMutex\Lock\FlockLock
+  ninja_mutex.locker_predis_class: NinjaMutex\Lock\PredisRedisLock
+  ninja_mutex.locker_memcache_class: NinjaMutex\Lock\MemcacheLock
+  ninja_mutex.locker_memcached_class: NinjaMutex\Lock\MemcachedLock
+  ninja_mutex.locker_redis_class: IXarlie\MutexBundle\Lock\RedisLock
+#  ninja_mutex.locker_mysql_class: NinjaMutex\Lock\MySqlLock

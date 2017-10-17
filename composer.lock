@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "e80d54f6e0cf8d471ac1752be565593c",
+    "content-hash": "d430f8cc7f880d83b6dd72e1c6844bc1",
     "packages": [
         {
             "name": "arvenil/ninja-mutex",
-            "version": "0.5.1",
+            "version": "0.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/arvenil/ninja-mutex.git",
-                "reference": "9726729fe27ff02acd9887e85c150d353a073a2e"
+                "reference": "8c0f5d10f8fb1481b9d98488dbbe2bf84c2e1a25"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/arvenil/ninja-mutex/zipball/9726729fe27ff02acd9887e85c150d353a073a2e",
-                "reference": "9726729fe27ff02acd9887e85c150d353a073a2e",
+                "url": "https://api.github.com/repos/arvenil/ninja-mutex/zipball/8c0f5d10f8fb1481b9d98488dbbe2bf84c2e1a25",
+                "reference": "8c0f5d10f8fb1481b9d98488dbbe2bf84c2e1a25",
                 "shasum": ""
             },
             "require": {
@@ -28,6 +28,7 @@
                 "ext-memcache": "*",
                 "ext-memcached": "*",
                 "ext-pdo_mysql": "*",
+                "ext-redis": "*",
                 "mikey179/vfsstream": "1.4.* || 1.5.*",
                 "predis/predis": "1.0.*",
                 "scrutinizer/ocular": "1.1.*"
@@ -66,7 +67,7 @@
                 "mysql",
                 "redis"
             ],
-            "time": "2015-09-10T15:12:42+00:00"
+            "time": "2016-05-31T13:47:32+00:00"
         },
         {
             "name": "doctrine/annotations",
@@ -204,7 +205,7 @@
                 "cache",
                 "caching"
             ],
-            "time": "2017-07-22 12:49:21"
+            "time": "2017-07-22T12:49:21+00:00"
         },
         {
             "name": "doctrine/collections",
@@ -344,7 +345,7 @@
                 "persistence",
                 "spl"
             ],
-            "time": "2017-07-22 08:35:55"
+            "time": "2017-07-22T08:35:55+00:00"
         },
         {
             "name": "doctrine/inflector",
@@ -411,7 +412,7 @@
                 "singularize",
                 "string"
             ],
-            "time": "2015-11-06 14:35:42"
+            "time": "2015-11-06T14:35:42+00:00"
         },
         {
             "name": "doctrine/lexer",
@@ -465,7 +466,7 @@
                 "lexer",
                 "parser"
             ],
-            "time": "2017-07-24 09:37:08"
+            "time": "2017-07-24T09:37:08+00:00"
         },
         {
             "name": "symfony/dependency-injection",
@@ -524,7 +525,7 @@
             ],
             "description": "Symfony DependencyInjection Component",
             "homepage": "https://symfony.com",
-            "time": "2016-03-10 15:36:01"
+            "time": "2016-03-10T15:36:01+00:00"
         }
     ],
     "packages-dev": [
@@ -604,7 +605,7 @@
                 "logging",
                 "psr-3"
             ],
-            "time": "2016-03-13 16:20:24"
+            "time": "2016-03-13T16:20:24+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -665,7 +666,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2014-09-02 10:13:14"
+            "time": "2014-09-02T10:13:14+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -712,7 +713,7 @@
                 "filesystem",
                 "iterator"
             ],
-            "time": "2015-06-21 13:08:43"
+            "time": "2015-06-21T13:08:43+00:00"
         },
         {
             "name": "phpunit/php-text-template",
@@ -917,7 +918,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2014-10-17 09:04:17"
+            "time": "2014-10-17T09:04:17+00:00"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
@@ -974,62 +975,7 @@
                 "mock",
                 "xunit"
             ],
-            "time": "2014-02-16 12:43:56"
-        },
-        {
-            "name": "predis/predis",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/nrk/predis.git",
-                "reference": "d72f0678bade78af953605622760fe262d82eb58"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/nrk/predis/zipball/d72f0678bade78af953605622760fe262d82eb58",
-                "reference": "d72f0678bade78af953605622760fe262d82eb58",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.9"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "~4.8"
-            },
-            "suggest": {
-                "ext-curl": "Allows access to Webdis when paired with phpiredis",
-                "ext-phpiredis": "Allows faster serialization and deserialization of the Redis protocol"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.0-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Predis\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Daniele Alessandri",
-                    "email": "suppakilla@gmail.com",
-                    "homepage": "http://clorophilla.net"
-                }
-            ],
-            "description": "Flexible and feature-complete Redis client for PHP and HHVM",
-            "homepage": "http://github.com/nrk/predis",
-            "keywords": [
-                "nosql",
-                "predis",
-                "redis"
-            ],
-            "time": "2017-07-12T14:44:10+00:00"
+            "time": "2014-02-16T12:43:56+00:00"
         },
         {
             "name": "psr/log",
@@ -1076,7 +1022,7 @@
                 "psr",
                 "psr-3"
             ],
-            "time": "2016-01-06 21:40:42"
+            "time": "2016-01-06T21:40:42+00:00"
         },
         {
             "name": "symfony/config",
@@ -1129,7 +1075,7 @@
             ],
             "description": "Symfony Config Component",
             "homepage": "https://symfony.com",
-            "time": "2016-03-04 07:56:56"
+            "time": "2016-03-04T07:56:56+00:00"
         },
         {
             "name": "symfony/debug",
@@ -1186,7 +1132,7 @@
             ],
             "description": "Symfony Debug Component",
             "homepage": "https://symfony.com",
-            "time": "2016-03-10 11:16:56"
+            "time": "2016-03-10T11:16:56+00:00"
         },
         {
             "name": "symfony/event-dispatcher",
@@ -1246,7 +1192,7 @@
             ],
             "description": "Symfony EventDispatcher Component",
             "homepage": "https://symfony.com",
-            "time": "2016-03-10 11:16:56"
+            "time": "2016-03-10T11:16:56+00:00"
         },
         {
             "name": "symfony/filesystem",
@@ -1295,7 +1241,7 @@
             ],
             "description": "Symfony Filesystem Component",
             "homepage": "https://symfony.com",
-            "time": "2016-03-16 16:22:05"
+            "time": "2016-03-16T16:22:05+00:00"
         },
         {
             "name": "symfony/http-foundation",
@@ -1348,7 +1294,7 @@
             ],
             "description": "Symfony HttpFoundation Component",
             "homepage": "https://symfony.com",
-            "time": "2016-03-16 15:33:49"
+            "time": "2016-03-16T15:33:49+00:00"
         },
         {
             "name": "symfony/http-kernel",
@@ -1430,7 +1376,7 @@
             ],
             "description": "Symfony HttpKernel Component",
             "homepage": "https://symfony.com",
-            "time": "2016-03-16 16:22:05"
+            "time": "2016-03-16T16:22:05+00:00"
         },
         {
             "name": "symfony/monolog-bridge",
@@ -1490,7 +1436,7 @@
             ],
             "description": "Symfony Monolog Bridge",
             "homepage": "https://symfony.com",
-            "time": "2016-03-04 07:56:56"
+            "time": "2016-03-04T07:56:56+00:00"
         },
         {
             "name": "symfony/monolog-bundle",
@@ -1609,7 +1555,7 @@
                 "portable",
                 "shim"
             ],
-            "time": "2016-01-20 09:13:37"
+            "time": "2016-01-20T09:13:37+00:00"
         },
         {
             "name": "symfony/yaml",
@@ -1658,14 +1604,12 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "time": "2016-03-04 07:54:35"
+            "time": "2016-03-04T07:54:35+00:00"
         }
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "predis/predis": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

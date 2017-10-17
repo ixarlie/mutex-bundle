@@ -2,21 +2,16 @@
 
 namespace IXarlie\MutexBundle\Lock;
 
-use NinjaMutex\Lock\LockAbstract;
 use NinjaMutex\Lock\LockExpirationInterface;
+use NinjaMutex\Lock\PhpRedisLock;
 
 /**
  * Class RedisLock
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class RedisLock extends LockAbstract implements LockExpirationInterface
+class RedisLock extends PhpRedisLock implements LockExpirationInterface
 {
-    /**
-     * @var \Redis
-     */
-    private $redis;
-
     /**
      * @var int
      */
@@ -27,16 +22,6 @@ class RedisLock extends LockAbstract implements LockExpirationInterface
      * @var array
      */
     private $ttl = [];
-
-    /**
-     * @param \Redis $redis
-     */
-    public function __construct(\Redis $redis)
-    {
-        parent::__construct();
-
-        $this->redis = $redis;
-    }
 
     /**
      * {@inheritdoc}
@@ -56,12 +41,12 @@ class RedisLock extends LockAbstract implements LockExpirationInterface
     {
         $content = serialize($this->getLockInformation());
         if ($this->expiration > 0) {
-            if (!$this->redis->setex($name, $this->expiration, $content)) {
+            if (!$this->client->setex($name, $this->expiration, $content)) {
                 return false;
             }
             $this->ttl[$name] = $this->expiration;
         } else {
-            if (!$this->redis->setnx($name, $content)) {
+            if (!$this->client->setnx($name, $content)) {
                 return false;
             }
             unset($this->ttl[$name]);
@@ -74,21 +59,10 @@ class RedisLock extends LockAbstract implements LockExpirationInterface
      */
     public function releaseLock($name)
     {
-        if (isset($this->locks[$name]) && $this->redis->del($name)) {
+        $result = parent::releaseLock($name);
+        if ($result) {
             $this->clearLock($name);
-
-            return true;
         }
-
-        return false;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isLocked($name)
-    {
-        return false !== $this->redis->get($name);
     }
 
     /**

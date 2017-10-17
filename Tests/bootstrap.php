@@ -1,7 +1,11 @@
 <?php
 
-if (!is_file($autoloadFile = __DIR__.'/../vendor/autoload.php')) {
-    throw new \LogicException('Run "composer install --dev" to create autoloader.');
-}
 
-require $autoloadFile;
+$file = __DIR__.'/../vendor/autoload.php';
+if (!file_exists($file)) {
+    throw new RuntimeException('Install dependencies to run test suite.');
+}
+require_once $file;
+
+// Register annotations
+require_once __DIR__ . '/../Configuration/MutexRequest.php';

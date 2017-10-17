@@ -4,7 +4,6 @@ namespace IXarlie\MutexBundle\EventListener;
 
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use IXarlie\MutexBundle\Manager\LockerManagerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
@@ -23,11 +22,6 @@ use Symfony\Component\Translation\TranslatorInterface;
 class MutexRequestListener implements EventSubscriberInterface
 {
     /**
-     * @var ContainerInterface
-     */
-    private $container;
-
-    /**
      * @var AnnotationReader
      */
     private $reader;
@@ -35,7 +29,23 @@ class MutexRequestListener implements EventSubscriberInterface
     /**
      * @var LockerManagerInterface[]
      */
-    private $lockers;
+    private $managers;
+
+    /**
+     * @var string
+     */
+    private $httpExceptionMessage;
+
+    /**
+     * It stores a relation between locker hash name and configuration
+     * @var array
+     */
+    private $lockerMapping = [];
+
+    /**
+     * @var int
+     */
+    private $httpExceptionCode;
 
     /**
      * @var TranslatorInterface
@@ -60,12 +70,21 @@ class MutexRequestListener implements EventSubscriberInterface
     }
 
     /**
+     * MutexRequestListener constructor.
+     * @param AnnotationReader $reader
+     */
+    public function __construct(AnnotationReader $reader)
+    {
+        $this->reader = $reader;
+    }
+
+    /**
      * @param string                 $name
      * @param LockerManagerInterface $locker
      */
-    public function addLocker($name, LockerManagerInterface $locker)
+    public function addLockerManager($name, LockerManagerInterface $locker)
     {
-        $this->lockers[$name] = $locker;
+        $this->managers[$name] = $locker;
     }
 
     /**
@@ -82,6 +101,37 @@ class MutexRequestListener implements EventSubscriberInterface
     public function setTokenStorage($tokenStorage)
     {
         $this->tokenStorage = $tokenStorage;
+    }
+
+    /**
+     * @param string $message
+     * @param int    $code
+     */
+    public function setHttpExceptionOptions($message, $code)
+    {
+        $this->httpExceptionCode    = $code;
+        $this->httpExceptionMessage = $message;
+    }
+
+    /**
+     * @param string $path          The request uri path
+     * @param string $className     The controller name
+     * @param string $methodName    The method name
+     * @param string $userHash      The user hash
+     *
+     * @return string
+     */
+    public static function generateLockName($className, $methodName, $path, $userHash = '')
+    {
+        $name = sprintf(
+            '%s_%s_%s_%s',
+            preg_replace('|[\/\\\\]|', '_', $className),
+            $methodName,
+            str_replace('/', '_', $path),
+            $userHash
+        );
+        // Use a hash in order that file lockers could work properly.
+        return md5($name);
     }
 
     /**
@@ -139,6 +189,15 @@ class MutexRequestListener implements EventSubscriberInterface
                 default:
                     break;
             }
+            
+            $this->lockerMapping[$configuration->getName()] = sprintf(
+                '%s->%s::%s@%s%s',
+                $configuration->getService(),
+                $className,
+                $methodName,
+                $request->getPathInfo(),
+                $configuration->isUserIsolation() ? '+user' : ''
+            );
         }
 
         $request->attributes->set('mutex_requests', $attributes);
@@ -185,12 +244,11 @@ class MutexRequestListener implements EventSubscriberInterface
      */
     private function loadConfiguration($className, $methodName)
     {
-        $reader = $this->getAnnotationReader();
         $object = new \ReflectionClass($className);
         $method = $object->getMethod($methodName);
 
-        $classConfigurations  = $this->getConfigurations($reader->getClassAnnotations($object), $className);
-        $methodConfigurations = $this->getConfigurations($reader->getMethodAnnotations($method), $className, $methodName);
+        $classConfigurations  = $this->getConfigurations($this->reader->getClassAnnotations($object), $className);
+        $methodConfigurations = $this->getConfigurations($this->reader->getMethodAnnotations($method), $className, $methodName);
 
         $configurations = array_merge($classConfigurations, $methodConfigurations);
 
@@ -239,25 +297,11 @@ class MutexRequestListener implements EventSubscriberInterface
     private function getMutexService(MutexRequest $configuration)
     {
         $id = $configuration->getService();
-        if (!isset($this->lockers[$id])) {
-            throw new \RuntimeException(sprintf('Lock "%s" does not seem to exist.'));
+        if (!isset($this->managers[$id])) {
+            throw new \RuntimeException(sprintf('Lock "%s" does not seem to exist.', $id));
         }
 
-        return $this->lockers[$id];
-    }
-
-    /**
-     * @return AnnotationReader
-     */
-    private function getAnnotationReader()
-    {
-        if (!$this->reader) {
-            if (!$this->container->has('annotation_reader')) {
-                throw new \LogicException(sprintf('Service annotation_reader is required for use @MutexRequest'));
-            }
-            $this->reader = $this->container->get('annotation_reader');
-        }
-        return $this->reader;
+        return $this->managers[$id];
     }
 
     /**
@@ -301,19 +345,15 @@ class MutexRequestListener implements EventSubscriberInterface
      */
     private function applyDefaults(MutexRequest $configuration, Request $request, $className, $methodName)
     {
-        $name = $configuration->getName();
+        $userHash = $configuration->isUserIsolation() ? $this->getIsolatedName() : '';
+        $name     = $configuration->getName();
         if (null === $name || '' === $name) {
-            $name = sprintf(
-                '%s_%s_%s',
-                preg_replace('|[\/\\\\]|', '_', $className),
+            $name     = self::generateLockName(
+                $className,
                 $methodName,
-                str_replace('/', '_', $request->getPathInfo())
+                $request->getPathInfo(),
+                $userHash
             );
-            $configuration->setName($name);
-        }
-
-        if ($configuration->isUserIsolation()) {
-            $name = sprintf('%s_%s', $configuration->getName(), $this->getIsolatedName());
             $configuration->setName($name);
         }
 
@@ -326,11 +366,11 @@ class MutexRequestListener implements EventSubscriberInterface
 
         $message = $configuration->getMessage();
         if (null === $message || '' === $message) {
-            $configuration->setMessage($this->container->getParameter('i_xarlie_mutex.http_exception.message'));
+            $configuration->setMessage($this->httpExceptionMessage);
         }
         $httpCode = $configuration->getHttpCode();
         if (null === $httpCode || '' === $httpCode) {
-            $configuration->setHttpCode($this->container->getParameter('i_xarlie_mutex.http_exception.code'));
+            $configuration->setHttpCode($this->httpExceptionCode);
         }
     }
 

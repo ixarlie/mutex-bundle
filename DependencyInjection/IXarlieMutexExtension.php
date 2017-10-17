@@ -114,10 +114,15 @@ class IXarlieMutexExtension extends Extension
         
         $definition = $container->getDefinition('i_xarlie_mutex.controller.listener');
         
+        $definition->addMethodCall(
+            'setHttpExceptionOptions',
+            [$config['http_exception']['message'], $config['http_exception']['code']]
+        );
+
         foreach ($providers as $providerId => $provider) {
-            $definition->addMethodCall('addLocker', [new Reference($providerId)]);
+            $definition->addMethodCall('addLockerManager', [new Reference($providerId)]);
         }
-        $definition->addMethodCall('addLocker', [new Reference('i_xarlie_mutex.locker')]);
+        $definition->addMethodCall('addLockerManager', [new Reference('i_xarlie_mutex.locker')]);
 
         if (isset($config['translator']) &&
             true === $config['translator'] &&
