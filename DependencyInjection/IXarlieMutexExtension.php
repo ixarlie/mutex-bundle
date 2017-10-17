@@ -115,9 +115,9 @@ class IXarlieMutexExtension extends Extension
         $definition = $container->getDefinition('i_xarlie_mutex.controller.listener');
 
         foreach ($providers as $providerId => $provider) {
-            $definition->addMethodCall('addLockerManager', [new Reference($providerId)]);
+            $definition->addMethodCall('addLockerManager', [$providerId, new Reference($providerId)]);
         }
-        $definition->addMethodCall('addLockerManager', [new Reference('i_xarlie_mutex.locker')]);
+        $definition->addMethodCall('addLockerManager', ['i_xarlie_mutex.locker', new Reference('i_xarlie_mutex.locker')]);
 
         if (!isset($config['request_listener'])) {
             return;
