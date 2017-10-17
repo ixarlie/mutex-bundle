@@ -4,7 +4,7 @@ namespace IXarlie\MutexBundle\Tests\Manager;
 
 use IXarlie\MutexBundle\Manager\LockerManager;
 use IXarlie\MutexBundle\Manager\LockerManagerInterface;
-use NinjaMutex\Lock\FlockLock;
+use IXarlie\MutexBundle\Tests\Fixtures\ArrayLock;
 
 /**
  * Class LockerManagerTest
@@ -13,15 +13,12 @@ use NinjaMutex\Lock\FlockLock;
  */
 class LockerManagerTest extends \PHPUnit_Framework_TestCase
 {
-    const TMP_DIR = __DIR__ . '/../Fixtures/tmp';
-
     public function testLockerManager()
     {
-        // Use flock locker to test the manager because is the easiest implementation.
-        $flock   = new FlockLock(self::TMP_DIR);
-        $manager = new LockerManager($flock);
+        $lock    = new ArrayLock();
+        $manager = new LockerManager($lock);
 
-        $this->assertInstanceOf(LockerManagerInterface::class, new LockerManager($flock));
+        $this->assertInstanceOf(LockerManagerInterface::class, new LockerManager($lock));
         
         $lockName = 'resource';
         
@@ -32,16 +29,12 @@ class LockerManagerTest extends \PHPUnit_Framework_TestCase
         // Check is not locked either
         $this->assertFalse($manager->isLocked($lockName));
         
-        $manager->acquireLock($lockName); // flock does not support ttl expiration
+        $manager->acquireLock($lockName); // lock does not support ttl expiration
 
         $this->assertTrue($manager->hasLock($lockName));
         $this->assertTrue($manager->isAcquired($lockName));
         $this->assertTrue($manager->isLocked($lockName));
 
-        // As this is a flock we could check that the file exists
-        $this->assertFileExists(self::TMP_DIR.'/'.$lockName.'.lock');
-        
-        // Release lock does not removed the flock, just use flock php function
         $manager->releaseLock($lockName);
         
         // Manager still keeps the mutex lock although it was released
@@ -49,15 +42,11 @@ class LockerManagerTest extends \PHPUnit_Framework_TestCase
         // The lock is not acquired after release
         $this->assertFalse($manager->isAcquired($lockName));
         $this->assertFalse($manager->isLocked($lockName));
-        
-        // destroy lock file
-        unlink(self::TMP_DIR.'/'.$lockName.'.lock');
     }
     
     public function testMultipleAcquire()
     {
-        // Use flock locker to test the manager because is the easiest implementation.
-        $flock   = new FlockLock(self::TMP_DIR);
+        $flock   = new ArrayLock();
         $manager = new LockerManager($flock);
         $this->assertInstanceOf(LockerManagerInterface::class, new LockerManager($flock));
 
@@ -77,7 +66,6 @@ class LockerManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($manager->hasLock($lockName));
         $this->assertTrue($manager->isAcquired($lockName));
         $this->assertTrue($manager->isLocked($lockName));
-        $this->assertFileExists(self::TMP_DIR.'/'.$lockName.'.lock');
         
         $counter = 0;
         while ($manager->isLocked($lockName)) {
@@ -89,8 +77,5 @@ class LockerManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($size, $counter);
         $this->assertTrue($manager->hasLock($lockName));
         $this->assertFalse($manager->isAcquired($lockName));
-
-        // destroy lock file
-        unlink(self::TMP_DIR.'/'.$lockName.'.lock');
     }
 }
