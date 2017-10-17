@@ -2,6 +2,7 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection;
 
+use Doctrine\Common\Annotations\AnnotationReader;
 use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
@@ -23,6 +24,7 @@ class IXarlieMutexExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container)
     {
+        // Get base definition of services and lockers
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('lockers.yml');
         $loader->load('services.yml');
@@ -31,74 +33,79 @@ class IXarlieMutexExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
 
         $providers = $this->loadLockProviders($config, $container);
-        $this->loadDefault($config['default'], $container);
         $this->loadRequestListener($config, $providers, $container);
+    }
+
+    /**
+     * @param string $type
+     * @param string $name
+     *
+     * @return string
+     */
+    public static function getLockerManagerId($type = null, $name = null)
+    {
+        $base = 'i_xarlie_mutex.locker';
+        if ($type) {
+            $base .= '_' . $type;
+        }
+        if ($name) {
+            $base .= '.' . $name;
+        }
+        return $base;
     }
 
     /**
      * @param array            $rootConfig
      * @param ContainerBuilder $container
      *
-     * @return Definition[]
+     * @return array    List of locker managers id to be registered in the request listener
      */
     private function loadLockProviders(array $rootConfig, ContainerBuilder $container)
     {
         $providers = [];
+        $default   = $rootConfig['default'];
         unset($rootConfig['default'], $rootConfig['request_listener']);
         foreach ($rootConfig as $type => $declarations) {
             foreach ($declarations as $name => $config) {
-                $definition = $this->getDefinitionLoader($type, $container);
-                if ($definition) {
-                    $service = $this->getDefinitionService($name, $type, $container);
+                if ($definition = $this->getDefinitionLoader($type)) {
+                    
+                    // Register lock manager and configure its locker using its decorator definition
+                    $serviceId    = self::getLockerManagerId($type, $name);
+                    $service      = $container->setDefinition(
+                        $serviceId,
+                        new Definition('%i_xarlie_mutex.lock_manager_class%')
+                    );
                     $definition->configure($config, $service, $container);
-                    $providers['i_xarlie_mutex.locker_' . $type . '.' . $name] = $definition;
+
+                    $providers[] = $serviceId;
                 }
             }
         }
+
+        $aliasId   = self::getLockerManagerId();
+        $serviceId = self::getLockerManagerId($default);
+        if (!$container->hasDefinition($serviceId)) {
+            throw new ServiceNotFoundException($serviceId, $aliasId);
+        }
+        $container->setAlias($aliasId, $serviceId);
+        $providers[] = $aliasId;
+        
+        
         return $providers;
     }
 
     /**
-     * @param string           $type
-     * @param ContainerBuilder $container
+     * @param string $type
+     *
      * @return LockDefinition
      */
-    private function getDefinitionLoader($type, ContainerBuilder $container)
+    private function getDefinitionLoader($type)
     {
         $class = sprintf('%s\Definition\%s', __NAMESPACE__, ucfirst($type) . 'Definition');
         if (class_exists($class)) {
             return new $class($type);
         }
         return null;
-    }
-
-    /**
-     * @param string           $name
-     * @param string           $type
-     * @param ContainerBuilder $container
-     * @return Definition
-     */
-    private function getDefinitionService($name, $type, ContainerBuilder $container)
-    {
-        $serviceId    = 'i_xarlie_mutex.locker_' . $type . '.' . $name;
-        $managerClass = '%i_xarlie_mutex.lock_manager_class%';
-
-        return $container->setDefinition($serviceId, new Definition($managerClass));
-    }
-
-    /**
-     * @param string           $default
-     * @param ContainerBuilder $container
-     */
-    private function loadDefault($default, ContainerBuilder $container)
-    {
-        $aliasId   = 'i_xarlie_mutex.locker';
-        $serviceId = 'i_xarlie_mutex.locker_' . $default;
-        if ($container->hasDefinition($serviceId)) {
-            $container->setAlias($aliasId, $serviceId);
-        } else {
-            throw new ServiceNotFoundException($serviceId, $aliasId);
-        }
     }
 
     /**
@@ -114,11 +121,19 @@ class IXarlieMutexExtension extends Extension
 
         $definition = $container->getDefinition('i_xarlie_mutex.controller.listener');
 
-        foreach ($providers as $providerId => $provider) {
+        // If there is no annotation_reader service, create the service
+        if (!$container->has('annotation_reader')) {
+            $reader = new Definition(AnnotationReader::class);
+            $container->setDefinition('annotation_reader', $reader);
+            $definition->replaceArgument(0, $reader);
+        }
+
+        // Register as many locker were registered in the configuration
+        foreach ($providers as $providerId) {
             $definition->addMethodCall('addLockerManager', [$providerId, new Reference($providerId)]);
         }
-        $definition->addMethodCall('addLockerManager', ['i_xarlie_mutex.locker', new Reference('i_xarlie_mutex.locker')]);
 
+        // Configure listener with bundle configuration
         if (!isset($config['request_listener'])) {
             return;
         }

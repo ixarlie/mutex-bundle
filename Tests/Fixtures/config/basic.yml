@@ -1,5 +1,5 @@
 i_xarlie_mutex:
-  default: 'flock_default'
+  default: 'flock.default'
   flock:
     default:
       cache_dir: '%kernel.cache_dir%'

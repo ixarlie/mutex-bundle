@@ -53,7 +53,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         $configuration = new Configuration();
         $options = $processor->processConfiguration($configuration, array($config));
         $expected = [
-            'default' => 'flock_default',
+            'default' => 'flock.default',
             'flock'     => [
                 'default' => [
                     'cache_dir' => '%kernel.cache_dir%',

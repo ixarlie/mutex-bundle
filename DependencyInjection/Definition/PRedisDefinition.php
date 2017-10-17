@@ -15,11 +15,19 @@ class PRedisDefinition extends LockDefinition
     /**
      * {@inheritdoc}
      */
-    public function configure(array $config, Definition $service, ContainerBuilder $container)
+    protected function getLocker(array $config, ContainerBuilder $container)
     {
-        $connClass = '%i_xarlie_mutex.predis.connection.class%';
-        $connDef   = new Definition($connClass);
-        // parse connection configuration
+        $locker = new Definition('%ninja_mutex.locker_predis_class%');
+
+        return $locker;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function getClient(array $config, ContainerBuilder $container)
+    {
+        $client = new Definition('%i_xarlie_mutex.predis.connection.class%');
         $parameters = $options = null;
         if (isset($config['connection']['uri'])) {
             $parameters = $config['connection']['uri'];
@@ -29,14 +37,8 @@ class PRedisDefinition extends LockDefinition
         if (isset($config['options'])) {
             $options = $config['options'];
         }
-        $connDef->setArguments([$parameters, $options]);
-        $connDef->setPublic(false);
-
-        $lockerClass = '%ninja_mutex.locker_predis_class%';
-        $lockerDef   = new Definition($lockerClass);
-        $lockerDef->addArgument($connDef);
-
-        $service->addArgument($lockerDef);
-        $this->addLoggerService($config, $service, $container);
+        $client->setArguments([$parameters, $options]);
+        
+        return $client;
     }
 }

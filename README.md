@@ -81,8 +81,10 @@ i_xarlie_mutex:
       port: '%redis_port%'
   predis:
     default:
-      host: '%predis_host%'
-      port: '%predis_port%'
+      connection:
+        host: '%predis_host%'
+        port: '%predis_port%'
+      options: ~
 ```
 
 To use your own classes, there are some parameters to do it:

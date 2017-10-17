@@ -15,22 +15,21 @@ class MemcachedDefinition extends LockDefinition
     /**
      * {@inheritdoc}
      */
-    public function configure(array $config, Definition $service, ContainerBuilder $container)
+    protected function getLocker(array $config, ContainerBuilder $container)
     {
-        $connClass = '%i_xarlie_mutex.memcached.connection.class%';
-        $connDef   = new Definition($connClass);
-        $connParams = [
-            $config['host'],
-            $config['port']
-        ];
-        $connDef->setPublic(false);
-        $connDef->addMethodCall('addServer', $connParams);
+        $locker = new Definition('%ninja_mutex.locker_memcached_class%');
+        
+        return $locker;
+    }
 
-        $lockerClass = '%ninja_mutex.locker_memcached_class%';
-        $lockerDef   = new Definition($lockerClass);
-        $lockerDef->addArgument($connDef);
-
-        $service->addArgument($lockerDef);
-        $this->addLoggerService($config, $service, $container);
+    /**
+     * {@inheritdoc}
+     */
+    protected function getClient(array $config, ContainerBuilder $container)
+    {
+        $client = new Definition('%i_xarlie_mutex.memcached.connection.class%');
+        $client->addMethodCall('addServer', [$config['host'], $config['port']]);
+        
+        return $client;
     }
 }
