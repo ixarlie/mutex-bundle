@@ -195,13 +195,13 @@ class MyController extends Controller
 
 In `queue`, `block` and `check` modes an `HttpException` can be thrown. Not required. Default value 409.
 
-See parameter `i_xarlie_mutex.http_exception.code`
+See configuration option `request_listner.http_exception.code`
 
 ##### message
 
 Message for the `HttpException`. Not required. Default value `Resource is not available at this moment.`
 
-See parameter `i_xarlie_mutex.http_exception.message`
+See configuration option `request_listner.http_exception.message`
 
 ##### messageDomain
 

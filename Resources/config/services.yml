@@ -1,7 +1,5 @@
 parameters:
   i_xarlie_mutex.controller.listener.class: IXarlie\MutexBundle\EventListener\MutexRequestListener
-  i_xarlie_mutex.http_exception.message: 'Resource is not available at this moment.'
-  i_xarlie_mutex.http_exception.code: 409
 
 services:
   i_xarlie_mutex.controller.listener:

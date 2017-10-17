@@ -33,7 +33,7 @@ class MutexRequest
     const MODE_FORCE = 'force';
 
     /**
-     * Lock name. If you don't specify one the name will be ControllerName_methodName__path
+     * Lock name. If you don't specify one the name will be a generated hash using request information
      * @var string
      */
     protected $name;
