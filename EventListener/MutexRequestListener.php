@@ -10,7 +10,7 @@ use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Annotations\Reader as AnnotationsReader;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Translation\TranslatorInterface;
 
@@ -22,7 +22,7 @@ use Symfony\Component\Translation\TranslatorInterface;
 class MutexRequestListener implements EventSubscriberInterface
 {
     /**
-     * @var AnnotationReader
+     * @var AnnotationsReader
      */
     private $reader;
 
@@ -81,9 +81,9 @@ class MutexRequestListener implements EventSubscriberInterface
 
     /**
      * MutexRequestListener constructor.
-     * @param AnnotationReader $reader
+     * @param AnnotationsReader $reader
      */
-    public function __construct(AnnotationReader $reader)
+    public function __construct(AnnotationsReader $reader)
     {
         $this->reader = $reader;
     }
