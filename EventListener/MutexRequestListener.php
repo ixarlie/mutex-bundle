@@ -436,10 +436,11 @@ class MutexRequestListener implements EventSubscriberInterface
      */
     private function queue(LockerManagerInterface $service, MutexRequest $configuration)
     {
-        $max   = $this->maxQueueTry ?: 3;
-        $tries = 0;
+        $tries   = 0;
+        $max     = $this->maxQueueTry ?: 3;
+        $timeout = $this->maxQueueTimeout * 1000;
         do {
-            $result = $service->acquireLock($configuration->getName(), $this->getMaxTimeout(), $configuration->getTtl());
+            $result = $service->acquireLock($configuration->getName(), $timeout, $configuration->getTtl());
             $tries++;
         } while(false === $result && $tries < $max);
         
@@ -459,16 +460,5 @@ class MutexRequestListener implements EventSubscriberInterface
             $service->releaseLock($configuration->getName());
         }
         $service->acquireLock($configuration->getName(), null, $configuration->getTtl());
-    }
-
-    /**
-     * Do not set a timeout could produces an endless blocking between two requests.
-     * We limit this time to the php max_execution_time.
-     *
-     * @return int
-     */
-    private function getMaxTimeout()
-    {
-        return ($this->maxQueueTimeout ?: intval(ini_get('max_execution_time'))) * 1000; // in ms
     }
 }

@@ -102,6 +102,7 @@ class Configuration implements ConfigurationInterface
 //                    ->end()
 //                ->end()
                 ->arrayNode('request_listener')
+                    ->addDefaultsIfNotSet()
                     ->children()
                         ->integerNode('queue_max_try')
                             ->defaultValue(3)
@@ -117,6 +118,7 @@ class Configuration implements ConfigurationInterface
                             ->end()                
                         ->end()
                         ->integerNode('queue_timeout')
+                            ->defaultValue((int) ini_get('max_execution_time'))
                             ->validate()
                             ->always()
                             ->then(function ($v) {
