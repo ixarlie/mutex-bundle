@@ -13,7 +13,7 @@ use NinjaMutex\Lock\FlockLock;
  */
 class LockerManagerTest extends \PHPUnit_Framework_TestCase
 {
-    const TMP_DIR = __DIR__ . '/../Fixtures/tmp/';
+    const TMP_DIR = __DIR__ . '/../Fixtures/tmp';
 
     public function testLockerManager()
     {
@@ -39,7 +39,7 @@ class LockerManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($manager->isLocked($lockName));
 
         // As this is a flock we could check that the file exists
-        $this->assertFileExists(self::TMP_DIR.$lockName.'.lock');
+        $this->assertFileExists(self::TMP_DIR.'/'.$lockName.'.lock');
         
         // Release lock does not removed the flock, just use flock php function
         $manager->releaseLock($lockName);
@@ -51,7 +51,7 @@ class LockerManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($manager->isLocked($lockName));
         
         // destroy lock file
-        unlink(self::TMP_DIR.$lockName.'.lock');
+        unlink(self::TMP_DIR.'/'.$lockName.'.lock');
     }
     
     public function testMultipleAcquire()
@@ -77,7 +77,7 @@ class LockerManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($manager->hasLock($lockName));
         $this->assertTrue($manager->isAcquired($lockName));
         $this->assertTrue($manager->isLocked($lockName));
-        $this->assertFileExists(self::TMP_DIR.$lockName.'.lock');
+        $this->assertFileExists(self::TMP_DIR.'/'.$lockName.'.lock');
         
         $counter = 0;
         while ($manager->isLocked($lockName)) {
@@ -91,6 +91,6 @@ class LockerManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($manager->isAcquired($lockName));
 
         // destroy lock file
-        unlink(self::TMP_DIR.$lockName.'.lock');
+        unlink(self::TMP_DIR.'/'.$lockName.'.lock');
     }
 }
