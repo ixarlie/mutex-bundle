@@ -10,7 +10,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class Configuration implements ConfigurationInterface
+class   Configuration implements ConfigurationInterface
 {
     /**
      * {@inheritdoc}
@@ -57,6 +57,8 @@ class Configuration implements ConfigurationInterface
                         ->children()
                             ->scalarNode('host')->end()
                             ->scalarNode('port')->end()
+                            ->scalarNode('password')->end()
+                            ->scalarNode('database')->end()
                             ->scalarNode('logger')->defaultNull()->end()
                         ->end()
                     ->end()
@@ -65,8 +67,22 @@ class Configuration implements ConfigurationInterface
                     ->useAttributeAsKey('name')
                     ->prototype('array')
                         ->children()
-                            ->scalarNode('host')->end()
-                            ->scalarNode('port')->end()
+                            ->arrayNode('connection')
+                                ->beforeNormalization()
+                                ->ifString()
+                                ->then(function ($v) {
+                                    return ['uri' => $v];
+                                })->end()
+                                ->prototype('scalar')->end()
+                            ->end()
+                            ->arrayNode('options')
+                                ->beforeNormalization()
+                                ->ifString()
+                                ->then(function ($v) {
+                                    return ['options' => $v];
+                                })->end()
+                                ->prototype('scalar')->end()
+                            ->end()
                             ->scalarNode('logger')->defaultNull()->end()
                         ->end()
                     ->end()

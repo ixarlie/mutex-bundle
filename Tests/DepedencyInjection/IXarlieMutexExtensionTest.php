@@ -5,40 +5,40 @@ namespace IXarlie\MutexBundle\Tests\DependencyInjection;
 use IXarlie\MutexBundle\DependencyInjection\IXarlieMutexExtension;
 use IXarlie\MutexBundle\Lock\RedisLock;
 use IXarlie\MutexBundle\Manager\LockerManagerInterface;
+use IXarlie\MutexBundle\Tests\Util\UtilTestTrait;
 use NinjaMutex\Lock\FlockLock;
 use NinjaMutex\Lock\MemcachedLock;
 use NinjaMutex\Lock\MemcacheLock;
 use NinjaMutex\Lock\PredisRedisLock;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
+use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 
 /**
- * Class IXarlieMutexBundleTest
+ * Class IXarlieMutexExtensionTest
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
+class IXarlieMutexExtensionTest extends \PHPUnit_Framework_TestCase
 {
-    private function getContainer()
+    use UtilTestTrait;
+    
+    public function testInstance()
     {
-        return new ContainerBuilder(new ParameterBag(array(
-            'kernel.debug' => false,
-            'kernel.bundles' => [],
-            'kernel.cache_dir' => sys_get_temp_dir(),
-            'kernel.environment' => 'test',
-            'kernel.root_dir' => __DIR__ . '/../../' // src dir
-        )));
+        $this->assertInstanceOf(ExtensionInterface::class, new IXarlieMutexExtension());
     }
 
     /**
      * @dataProvider bundleConfigurations
      */
-    public function testBundle($className, $type, $config)
+    public function testBundle($className, $type, $config, $dependencyClass = null)
     {
+        if ($dependencyClass && !class_exists($dependencyClass)) {
+            $this->markTestSkipped($dependencyClass . ' is not installed/configured');
+        }
+
         $serviceId = 'i_xarlie_mutex.locker_' . $type . '.mylocker';
 
         $container = $this->getContainer();
-        $loader = new IXarlieMutexExtension();
+        $loader    = new IXarlieMutexExtension();
         $loader->load([
             [
                 'default' => $type . '.mylocker',
@@ -46,24 +46,19 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
             ]
         ], $container);
 
-        try {
-            $manager = $container->get($serviceId);
-            $this->assertInstanceOf(LockerManagerInterface::class, $manager);
+        $manager = $container->get($serviceId);
+        $this->assertInstanceOf(LockerManagerInterface::class, $manager);
 
-            $refl = new \ReflectionClass($manager);
-            $prop = $refl->getProperty('locker');
-            $prop->setAccessible(true);
+        $refl = new \ReflectionClass($manager);
+        $prop = $refl->getProperty('locker');
+        $prop->setAccessible(true);
 
-            $locker = $prop->getValue($manager);
-            $this->assertInstanceOf($className, $locker);
+        $locker = $prop->getValue($manager);
+        $this->assertInstanceOf($className, $locker);
 
-            // test alias
-            $alias = $container->get('i_xarlie_mutex.locker');
-            $this->assertEquals($manager, $alias);
-        } catch (\ReflectionException $e) {
-            // Some test can fail due to missing libraries
-            $this->markTestSkipped($e->getMessage());
-        }
+        // test alias
+        $alias = $container->get('i_xarlie_mutex.locker');
+        $this->assertEquals($manager, $alias);
     }
 
     /**
@@ -101,28 +96,32 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
                 'type'   => 'redis',
                 'config' => [
                     'mylocker' => ['host' => '127.0.0.1', 'port' => 6379]
-                ]
+                ],
+                '\Redis'
             ],
             [
                 'class'  => PredisRedisLock::class,
                 'type'   => 'predis',
                 'config' => [
-                    'mylocker' => ['host' => '127.0.0.1', 'port' => 6379]
-                ]
+                    'mylocker' => ['connection' => 'tcp://127.0.0.1:6379']
+                ],
+                '\Predis\Client'
             ],
             [
                 'class'  => MemcacheLock::class,
                 'type'   => 'memcache',
                 'config' => [
                     'mylocker' => ['host' => '127.0.0.1', 'port' => 6379]
-                ]
+                ],
+                '\Memcache'
             ],
             [
                 'class'  => MemcachedLock::class,
                 'type'   => 'memcached',
                 'config' => [
                     'mylocker' => ['host' => '127.0.0.1', 'port' => 6379]
-                ]
+                ],
+                '\Memcached'
             ],
 
         ];

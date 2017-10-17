@@ -19,7 +19,17 @@ class PRedisDefinition extends LockDefinition
     {
         $connClass = '%i_xarlie_mutex.predis.connection.class%';
         $connDef   = new Definition($connClass);
-        $connDef->setArguments($config);
+        // parse connection configuration
+        $parameters = $options = null;
+        if (isset($config['connection']['uri'])) {
+            $parameters = $config['connection']['uri'];
+        } elseif (is_array($config['connection'])) {
+            $parameters = $config['connection'];
+        }
+        if (isset($config['options'])) {
+            $options = $config['options'];
+        }
+        $connDef->setArguments([$parameters, $options]);
         $connDef->setPublic(false);
 
         $lockerClass = '%ninja_mutex.locker_predis_class%';

@@ -16,7 +16,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
     public function testDefaults()
     {
         $processor = new Processor();
-        $configuration = new Configuration(false);
+        $configuration = new Configuration();
         $options = $processor->processConfiguration(
             $configuration,
             [
@@ -42,7 +42,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
     public function testFullConfiguration($config)
     {
         $processor = new Processor();
-        $configuration = new Configuration(false);
+        $configuration = new Configuration();
         $options = $processor->processConfiguration($configuration, array($config));
         $expected = [
             'default' => 'flock_default',
@@ -61,8 +61,11 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             ],
             'predis'     => [
                 'default' => [
-                    'host'      => 'localhost',
-                    'port'      => 6379,
+                    'connection' => [
+                        'host'      => 'localhost',
+                        'port'      => 6379,    
+                    ],
+                    'options'   => [],
                     'logger'    => null
                 ]
             ],
@@ -74,7 +77,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
 
     public function provideFullConfiguration()
     {
-        $yaml = Yaml::parse(file_get_contents(__DIR__ . '/Fixtures/config/basic.yml'));
+        $yaml = Yaml::parse(file_get_contents(__DIR__ . '/../Fixtures/config/basic.yml'));
         $yaml = $yaml['i_xarlie_mutex'];
         return array(
             array($yaml),

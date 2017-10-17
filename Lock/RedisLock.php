@@ -26,7 +26,7 @@ class RedisLock extends LockAbstract implements LockExpirationInterface
      * Stores what ttl was set for a lock
      * @var array
      */
-    private $ttl;
+    private $ttl = [];
 
     /**
      * @param \Redis $redis
@@ -36,7 +36,6 @@ class RedisLock extends LockAbstract implements LockExpirationInterface
         parent::__construct();
 
         $this->redis = $redis;
-        $this->ttl   = [];
     }
 
     /**
