@@ -5,7 +5,6 @@ namespace IXarlie\MutexBundle\EventListener;
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use IXarlie\MutexBundle\Manager\LockerManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
@@ -13,7 +12,6 @@ use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Util\ClassUtils;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Translation\TranslatorInterface;
 
@@ -35,17 +33,20 @@ class MutexRequestListener implements EventSubscriberInterface
     private $reader;
 
     /**
+     * @var LockerManagerInterface[]
+     */
+    private $lockers;
+
+    /**
      * @var TranslatorInterface
      */
     private $translator;
 
     /**
-     * @param ContainerInterface $container
+     * @var TokenStorageInterface
+
      */
-    public function __construct(ContainerInterface $container)
-    {
-        $this->container = $container;
-    }
+    private $tokenStorage;
 
     /**
      * {@inheritdoc}
@@ -56,6 +57,31 @@ class MutexRequestListener implements EventSubscriberInterface
             KernelEvents::CONTROLLER => 'onKernelController',
             KernelEvents::TERMINATE  => 'onKernelTerminate'
         );
+    }
+
+    /**
+     * @param string                 $name
+     * @param LockerManagerInterface $locker
+     */
+    public function addLocker($name, LockerManagerInterface $locker)
+    {
+        $this->lockers[$name] = $locker;
+    }
+
+    /**
+     * @param TranslatorInterface $translator
+     */
+    public function setTranslator($translator)
+    {
+        $this->translator = $translator;
+    }
+
+    /**
+     * @param TokenStorageInterface $tokenStorage
+     */
+    public function setTokenStorage($tokenStorage)
+    {
+        $this->tokenStorage = $tokenStorage;
     }
 
     /**
@@ -71,7 +97,7 @@ class MutexRequestListener implements EventSubscriberInterface
 
         $controller = $event->getController();
         $className  = class_exists('Doctrine\Common\Util\ClassUtils') ?
-            ClassUtils::getClass($controller[0]) :
+            \Doctrine\Common\Util\ClassUtils::getClass($controller[0]) :
             get_class($controller[0])
         ;
         $methodName = $controller[1];
@@ -212,11 +238,12 @@ class MutexRequestListener implements EventSubscriberInterface
      */
     private function getMutexService(MutexRequest $configuration)
     {
-        try {
-            return $this->container->get($configuration->getService());
-        } catch (ServiceNotFoundException $e) {
+        $id = $configuration->getService();
+        if (!isset($this->lockers[$id])) {
+            throw new \RuntimeException(sprintf('Lock "%s" does not seem to exist.'));
         }
-        return;
+
+        return $this->lockers[$id];
     }
 
     /**
@@ -234,17 +261,6 @@ class MutexRequestListener implements EventSubscriberInterface
     }
 
     /**
-     * @return TranslatorInterface
-     */
-    private function getTranslator()
-    {
-        if (!$this->translator && $this->container->has('translator')) {
-            $this->translator = $this->container->get('translator');
-        }
-        return $this->translator;
-    }
-
-    /**
      * Get a translated configuration message.
      *
      * @param MutexRequest $configuration
@@ -253,12 +269,11 @@ class MutexRequestListener implements EventSubscriberInterface
      */
     private function getTranslatedMessage(MutexRequest $configuration)
     {
-        $translator = $this->getTranslator();
-        if ($translator) {
-            return $translator->trans($configuration->getMessage(), [], $configuration->getMessageDomain());
-        } else {
+        if (null === $this->translator) {
             return $configuration->getMessage();
         }
+
+        return $this->translator->trans($configuration->getMessage(), [], $configuration->getMessageDomain());
     }
 
     /**
@@ -268,12 +283,14 @@ class MutexRequestListener implements EventSubscriberInterface
      */
     private function getIsolatedName()
     {
-        /** @var TokenStorageInterface $tokenStorage */
-        $tokenStorage = $this->container->get('security.token_storage');
-        if ($token = $tokenStorage->getToken()) {
+        if (null === $this->tokenStorage) {
+            throw new \RuntimeException('You attempted to use user isolation. Did you forget configure user_isolation?');
+        }
+        if ($token = $this->tokenStorage->getToken()) {
             return md5($token->serialize());
         }
-        return;
+
+        return null;
     }
 
     /**

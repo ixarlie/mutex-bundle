@@ -46,9 +46,9 @@ class LockerManagerTest extends \PHPUnit_Framework_TestCase
     
     public function testMultipleAcquire()
     {
-        $flock   = new ArrayLock();
-        $manager = new LockerManager($flock);
-        $this->assertInstanceOf(LockerManagerInterface::class, new LockerManager($flock));
+        $lock    = new ArrayLock();
+        $manager = new LockerManager($lock);
+        $this->assertInstanceOf(LockerManagerInterface::class, new LockerManager($lock));
 
         $lockName = 'resource';
 

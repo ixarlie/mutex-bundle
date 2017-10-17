@@ -100,6 +100,8 @@ class Configuration implements ConfigurationInterface
 //                        ->end()
 //                    ->end()
 //                ->end()
+                ->booleanNode('translator')->end()
+                ->booleanNode('user_isolation')->end()
             ->end()
         ;
 
