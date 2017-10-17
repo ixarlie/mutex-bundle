@@ -38,16 +38,16 @@ class IXarlieMutexExtensionTest extends \PHPUnit_Framework_TestCase
                         'cache_dir' => '/tmp'
                     ]
                 ],
-//                'request_listener' => [
-//                    'queue_timeout'  => 30,
-//                    'queue_max_try'  => 5,
-//                    'translator'     => true,
-//                    'user_isolation' => true,
-//                    'http_exception' => [
-//                        'message'    => 'You shall not pass!',
-//                        'code'       => 409
-//                    ]
-//                ]
+                'request_listener' => [
+                    'queue_timeout'  => 30,
+                    'queue_max_try'  => 5,
+                    'translator'     => true,
+                    'user_isolation' => true,
+                    'http_exception' => [
+                        'message'    => 'You shall not pass!',
+                        'code'       => 409
+                    ]
+                ]
             ]
         ], $container);
         $this->assertTrue(true);

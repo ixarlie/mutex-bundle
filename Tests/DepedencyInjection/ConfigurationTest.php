@@ -32,6 +32,14 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             'memcached' => [],
             'redis'     => [],
             'predis'    => [],
+            'request_listener' => [
+                'queue_max_try' => 3,
+                'queue_timeout' => (int) ini_get('max_execution_time'),
+                'http_exception' => [
+                    'message' => 'Resource is not available at this moment',
+                    'code' => 409
+                ]
+            ]
         ];
         $this->assertEquals($defaults, $options);
     }
@@ -70,7 +78,15 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 ]
             ],
             'memcache'  => [],
-            'memcached' => []
+            'memcached' => [],
+            'request_listener' => [
+                'queue_max_try' => 3,
+                'queue_timeout' => (int) ini_get('max_execution_time'),
+                'http_exception' => [
+                    'message' => 'Resource is not available at this moment',
+                    'code' => 409
+                ]
+            ]
         ];
         $this->assertEquals($expected, $options);
     }
