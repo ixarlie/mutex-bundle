@@ -56,7 +56,8 @@ class RedisDouble
 
     /**
      * This method simulates a "real" expiration count down
-     * @param string $name
+     * @param RedisLock $lock
+     * @param string    $name
      */
     public function refreshExpiration(RedisLock $lock, $name = null)
     {

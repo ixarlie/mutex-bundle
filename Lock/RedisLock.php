@@ -51,6 +51,7 @@ class RedisLock extends PhpRedisLock implements LockExpirationInterface
             }
             unset($this->ttl[$name]);
         }
+
         return true;
     }
 
@@ -63,6 +64,8 @@ class RedisLock extends PhpRedisLock implements LockExpirationInterface
         if ($result) {
             $this->clearLock($name);
         }
+
+        return $result;
     }
 
     /**
@@ -76,6 +79,7 @@ class RedisLock extends PhpRedisLock implements LockExpirationInterface
 
         unset($this->locks[$name]);
         unset($this->ttl[$name]);
+
         return true;
     }
 }

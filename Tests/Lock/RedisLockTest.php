@@ -68,7 +68,7 @@ class RedisLockTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($lock->acquireLock($name));
         $this->assertTrue($lock->isLocked($name));
         
-        $lock->releaseLock($name);
+        $this->assertTrue($lock->releaseLock($name));
         $this->assertFalse($lock->isLocked($name));
     }
     
@@ -82,7 +82,7 @@ class RedisLockTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($lock->isLocked($name));
         $this->assertFalse($lock->acquireLock($name, 2000)); // wait 2 seconds, after that the acquire fails
 
-        $lock->releaseLock($name);
+        $this->assertTrue($lock->releaseLock($name));
         $this->assertFalse($lock->isLocked($name));
     }
     
@@ -100,7 +100,7 @@ class RedisLockTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($lock->isLocked($name));
 
         // As the locker was cleared, then releaseLock does not have any effect.
-        $lock->releaseLock($name);
+        $this->assertFalse($lock->releaseLock($name));
         $this->assertTrue($lock->isLocked($name));
         
         // In a real scenario, Redis will keep the lock infinitely, so you should be very careful.

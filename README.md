@@ -2,6 +2,8 @@ IXarlie Mutex Bundle
 ===========================
 
 [![Build Status](https://travis-ci.org/ixarlie/mutex-bundle.svg?branch=master)](https://travis-ci.org/ixarlie/mutex-bundle)
+[![Maintainability](https://api.codeclimate.com/v1/badges/308f7d2e318ae6ff22e4/maintainability)](https://codeclimate.com/github/ixarlie/mutex-bundle/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/308f7d2e318ae6ff22e4/test_coverage)](https://codeclimate.com/github/ixarlie/mutex-bundle/test_coverage)
 
 Integrates arvenil/ninja-mutex library into Symfony2.
 
