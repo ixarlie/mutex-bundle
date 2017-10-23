@@ -40,7 +40,7 @@ class MutexRequestListenerPass implements CompilerPassInterface
                 continue;
             }
             
-            if (!$container->has((string) $value[0])) {
+            if (!$container->hasDefinition((string) $value[0])) {
                 $definition->removeMethodCall($method);
             }
         }

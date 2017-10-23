@@ -88,7 +88,7 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
     {
         $container = $this->getContainer();
         // Add a double translator
-        $container->set('translator', new Definition(Translator::class));
+        $container->setDefinition('translator', new Definition(Translator::class));
         $bundle = new IXarlieMutexBundle();
 
         $this->prepareContainer($container, $bundle, [
@@ -112,7 +112,7 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
     {
         $container = $this->getContainer();
         // Add a double token storage
-        $container->set('security.token_storage', new Definition(TokenStorage::class));
+        $container->setDefinition('security.token_storage', new Definition(TokenStorage::class));
         $bundle = new IXarlieMutexBundle();
 
         $this->prepareContainer($container, $bundle, [
