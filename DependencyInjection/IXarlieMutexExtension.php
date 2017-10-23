@@ -2,7 +2,6 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
 use IXarlie\MutexBundle\EventListener\MutexRequestListener;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -121,13 +120,7 @@ class IXarlieMutexExtension extends Extension
         }
         
         $definition = new Definition(MutexRequestListener::class);
-
-        // If there is no annotation_reader service, create the service
-        if (!$container->has('annotation_reader')) {
-            $reader = new Definition(AnnotationReader::class);
-            $container->setDefinition('annotation_reader', $reader);
-            $definition->addArgument($reader);
-        }
+        $definition->addArgument(new Reference('annotation_reader'));
 
         // Register as many lockers were registered in the configuration
         foreach ($providers as $providerId) {
@@ -154,17 +147,11 @@ class IXarlieMutexExtension extends Extension
             $definition->addMethodCall('setMaxQueueTry', [(int) $config['queue_max_try']]);
         }
 
-        if (isset($config['translator']) &&
-            true === $config['translator'] &&
-            $container->hasDefinition('translator')
-        ) {
+        if (isset($config['translator']) && true === $config['translator']) {
             $definition->addMethodCall('setTranslator', [new Reference('translator')]);
         }
 
-        if (isset($config['user_isolation']) &&
-            true === $config['user_isolation'] &&
-            $container->hasDefinition('security.token_storage')
-        ) {
+        if (isset($config['user_isolation']) && true === $config['user_isolation']) {
             $definition->addMethodCall('setTokenStorage', [new Reference('security.token_storage')]);
         }
 
