@@ -50,16 +50,20 @@ i_xarlie_mutex:
   default: redis.default
   # configure some aspects of request listener
   request_listener:
-    # true for enable message translation
+    # if you want disable the default listener set this value to false.
+    enabled: ~
+    # a priority value for the listener, the highest the soonest (not required, default: 255)
+    priority: ~
+    # true for enable message translation (default: false)
     translator: ~
-    # true for be able get a hash for the current token user
+    # true for be able get a hash for the current token user (default: false)
     user_isolation: ~
     # the max time queue listener will wait for a mutex, as default max_execution_time configuration is taken
     # remember that is max_execution_time = 0, for the queue means it should not have to wait
     queue_timeout: ~
-    # the max times queue listener will try for acquiring the mutex
+    # the max times queue listener will try for acquiring the mutex (default: 3)
     queue_max_try: ~
-    # optional http configuration for default message and code 
+    # optional http configuration for default message and code
     http_exception:
       message: 'This is the default block message'
       code: 409
@@ -156,6 +160,7 @@ Required option.
 | force | Release any locked mutex, then acquire it. |
 
 **Queue Notes**
+
 It is very important when using `queue` option to have well configured the queue options in the `request_listener`.
 - `queue_timeout` (default: x): Set a number of seconds the listener will wait for the mutex.
 - `queue_max_try` (default: 3): Set the max number of attempts the listener will try to acquire the mutex.

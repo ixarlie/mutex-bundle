@@ -4,6 +4,7 @@ namespace IXarlie\MutexBundle\DependencyInjection;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
+use IXarlie\MutexBundle\EventListener\MutexRequestListener;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Definition;
@@ -27,7 +28,6 @@ class IXarlieMutexExtension extends Extension
         // Get base definition of services and lockers
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('lockers.yml');
-        $loader->load('services.yml');
 
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
@@ -70,8 +70,8 @@ class IXarlieMutexExtension extends Extension
                 if ($definition = $this->getDefinitionLoader($type)) {
                     
                     // Register lock manager and configure its locker using its decorator definition
-                    $serviceId    = self::getLockerManagerId($type, $name);
-                    $service      = $container->setDefinition(
+                    $serviceId = self::getLockerManagerId($type, $name);
+                    $service   = $container->setDefinition(
                         $serviceId,
                         new Definition('%i_xarlie_mutex.lock_manager_class%')
                     );
@@ -115,20 +115,21 @@ class IXarlieMutexExtension extends Extension
      */
     private function loadRequestListener(array $config, array $providers, ContainerBuilder $container)
     {
-        if (!$container->hasDefinition('i_xarlie_mutex.controller.listener')) {
+        if (isset($config['request_listener']['enabled']) && false === $config['request_listener']['enabled']) {
+            // Default listener was disabled.
             return;
         }
-
-        $definition = $container->getDefinition('i_xarlie_mutex.controller.listener');
+        
+        $definition = new Definition(MutexRequestListener::class);
 
         // If there is no annotation_reader service, create the service
         if (!$container->has('annotation_reader')) {
             $reader = new Definition(AnnotationReader::class);
             $container->setDefinition('annotation_reader', $reader);
-            $definition->replaceArgument(0, $reader);
+            $definition->addArgument($reader);
         }
 
-        // Register as many locker were registered in the configuration
+        // Register as many lockers were registered in the configuration
         foreach ($providers as $providerId) {
             $definition->addMethodCall('addLockerManager', [$providerId, new Reference($providerId)]);
         }
@@ -139,6 +140,7 @@ class IXarlieMutexExtension extends Extension
         }
 
         $config = $config['request_listener'];
+
         $definition->addMethodCall(
             'setHttpExceptionOptions',
             [$config['http_exception']['message'], $config['http_exception']['code']]
@@ -151,7 +153,7 @@ class IXarlieMutexExtension extends Extension
         if (isset($config['queue_max_try'])) {
             $definition->addMethodCall('setMaxQueueTry', [(int) $config['queue_max_try']]);
         }
-        
+
         if (isset($config['translator']) &&
             true === $config['translator'] &&
             $container->hasDefinition('translator')
@@ -165,5 +167,10 @@ class IXarlieMutexExtension extends Extension
         ) {
             $definition->addMethodCall('setTokenStorage', [new Reference('security.token_storage')]);
         }
+
+        // Register listener as soon as possible, default priority 255
+        $definition->addTag('kernel.event_subscriber', ['priority' => $config['priority']]);
+        
+        $container->setDefinition('i_xarlie_mutex.controller.listener', $definition);
     }
 }
