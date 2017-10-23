@@ -104,6 +104,8 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('request_listener')
                     ->addDefaultsIfNotSet()
                     ->children()
+                        ->booleanNode('enabled')->defaultValue(true)->end()
+                        ->integerNode('priority')->defaultValue(255)->end()
                         ->integerNode('queue_max_try')
                             ->defaultValue(3)
                             ->validate()
