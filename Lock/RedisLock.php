@@ -39,6 +39,12 @@ class RedisLock extends PhpRedisLock implements LockExpirationInterface
      */
     protected function getLock($name, $blocking)
     {
+        if (false !== $this->client->get($name)) {
+            if ($this->expiration > 0) {
+                $this->ttl[$name] = $this->client->ttl($name);
+            }
+            return false;
+        }
         $content = serialize($this->getLockInformation());
         if ($this->expiration > 0) {
             if (!$this->client->setex($name, $this->expiration, $content)) {
