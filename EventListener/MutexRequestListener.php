@@ -151,7 +151,7 @@ class MutexRequestListener implements EventSubscriberInterface
             $userHash
         );
         // Use a hash in order that file lockers could work properly.
-        return md5($name);
+        return 'ix_mutex_' . md5($name);
     }
 
     /**
