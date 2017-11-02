@@ -161,6 +161,10 @@ class MutexRequestListener implements EventSubscriberInterface
      */
     public function onKernelController(FilterControllerEvent $event)
     {
+        if (false === $event->isMasterRequest()) {
+            return;
+        }
+        
         if (!is_array($controller = $event->getController())) {
             return;
         }
