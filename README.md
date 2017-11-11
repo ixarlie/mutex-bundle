@@ -151,6 +151,7 @@ class MyController extends Controller
         // ...
     }
 }
+```
 
 ```php
 class MyController extends Controller
