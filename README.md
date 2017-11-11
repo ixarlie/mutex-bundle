@@ -52,6 +52,8 @@ i_xarlie_mutex:
   request_listener:
     # if you want disable the default listener set this value to false.
     enabled: ~
+    # allow to use request placeholders to be replaced in the annotation name property (not required, default: false)
+    request_placeholder: false
     # a priority value for the listener, the highest the soonest (not required, default: 255)
     priority: ~
     # true for enable message translation (default: false)
@@ -117,6 +119,9 @@ parameters:
 
 Lock's name. Not required. Default value is a hash combination of controller, method, path (and/or user hash)
 
+You can use request placeholders (you need enable `request_placeholder`). For example: resource_{id}, {id} will be
+replaced for the request placeholder value. If there is no placeholder in the request and exception is thrown. 
+
 Examples:
 
 ```php
@@ -141,6 +146,19 @@ class MyController extends Controller
  */
 class MyController extends Controller
 {
+    public function importantAction()
+    {
+        // ...
+    }
+}
+
+```php
+class MyController extends Controller
+{
+    /**
+     * @MutexRequest(name="resource_{id}")
+     * @Request(name="resource_edit", path="/resource/{id}/edit")
+     */ 
     public function importantAction()
     {
         // ...

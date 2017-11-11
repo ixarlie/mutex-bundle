@@ -145,6 +145,46 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->assertMutexCounters($manager, $hashLocker, 1);
     }
     
+    public function testReplacePlaceholders()
+    {
+        $request = new Request();
+        $request->attributes->set('_route_params', [
+            'id'    => 1,
+            'color' => 'red'
+        ]);
+
+        $name = 'resource_{id}_{color}';
+        $name = MutexRequestListener::replacePlaceholders($request, $name);
+        
+        $this->assertEquals('resource_1_red', $name);
+    }
+    
+    public function testReplaceNoPlaceholder()
+    {
+        $request = new Request();
+        $request->attributes->set('_route_params', [
+            'id'    => 1,
+            'color' => 'red'
+        ]);
+
+        $name = 'resource';
+        $name = MutexRequestListener::replacePlaceholders($request, $name);
+
+        $this->assertEquals('resource', $name);
+    }
+
+    /**
+     * @expectedException \RuntimeException
+     */
+    public function testReplaceMissingPlaceholder()
+    {
+        $request = new Request();
+        $request->attributes->set('_route_params', ['id' => 1]);
+
+        $name = 'resource_{id}_{color}';
+        MutexRequestListener::replacePlaceholders($request, $name);
+    }
+    
     private function assertMutexCounters(LockerManagerInterface $manager, $name, $counter)
     {
         $refClass = new \ReflectionClass(LockerManager::class);
