@@ -155,6 +155,10 @@ class IXarlieMutexExtension extends Extension
             $definition->addMethodCall('setTokenStorage', [new Reference('security.token_storage')]);
         }
 
+        if (isset($config['request_placeholder']) && true === $config['request_placeholder']) {
+            $definition->addMethodCall('setRequestPlaceholder', [true]);
+        }
+
         // Register listener as soon as possible, default priority 255
         $definition->addTag('kernel.event_subscriber', ['priority' => $config['priority']]);
         

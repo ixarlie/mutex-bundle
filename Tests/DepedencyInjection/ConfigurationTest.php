@@ -40,7 +40,8 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                     'message' => 'Resource is not available at this moment',
                     'code' => 409
                 ],
-                'priority' => 255
+                'priority' => 255,
+                'request_placeholder' => false
             ]
         ];
         $this->assertEquals($defaults, $options);
@@ -89,7 +90,8 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                     'message' => 'Resource is not available at this moment',
                     'code' => 409
                 ],
-                'priority' => 255
+                'priority' => 255,
+                'request_placeholder' => false
             ]
         ];
         $this->assertEquals($expected, $options);

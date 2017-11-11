@@ -52,6 +52,11 @@ class MutexRequestListener implements EventSubscriberInterface
     private $maxQueueTry;
 
     /**
+     * @var bool
+     */
+    private $requestPlaceholder = false;
+
+    /**
      * @var TranslatorInterface
      */
     private $translator;
@@ -89,6 +94,14 @@ class MutexRequestListener implements EventSubscriberInterface
     public function addLockerManager($name, LockerManagerInterface $locker)
     {
         $this->managers[$name] = $locker;
+    }
+
+    /**
+     * @param bool $requestPlaceholder
+     */
+    public function setRequestPlaceholder($requestPlaceholder)
+    {
+        $this->requestPlaceholder = $requestPlaceholder;
     }
 
     /**
@@ -152,6 +165,26 @@ class MutexRequestListener implements EventSubscriberInterface
         );
         // Use a hash in order that file lockers could work properly.
         return 'ix_mutex_' . md5($name);
+    }
+
+    /**
+     * @param Request $request
+     * @param string  $name
+     *
+     * @return string
+     */
+    public static function replacePlaceholders(Request $request, $name)
+    {
+        preg_match_all('|\{([^\{\}]+)\}|', $name, $matches);
+        $routeParams = $request->attributes->get('_route_params', []);
+        foreach ($matches[1] as $i => $match) {
+            if (!array_key_exists($match, $routeParams)) {
+                throw new \RuntimeException(sprintf('Cannot find placeholder %s in request', $match));
+            }
+            $name = str_replace($matches[0][$i], $routeParams[$match], $name);
+        }
+        
+        return $name;
     }
 
     /**
@@ -316,13 +349,15 @@ class MutexRequestListener implements EventSubscriberInterface
         $userHash = $configuration->isUserIsolation() ? $this->getIsolatedName() : '';
         $name     = $configuration->getName();
         if (null === $name || '' === $name) {
-            $name     = self::generateLockName(
+            $name = self::generateLockName(
                 $className,
                 $methodName,
                 $request->getPathInfo(),
                 $userHash
             );
             $configuration->setName($name);
+        } elseif ($this->requestPlaceholder) {
+            $configuration->setName(self::replacePlaceholders($request, $name));
         }
 
         $service = $configuration->getService();
