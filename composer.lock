@@ -1,74 +1,11 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d430f8cc7f880d83b6dd72e1c6844bc1",
+    "content-hash": "be76ebe77566498ad0364d599e9ae926",
     "packages": [
-        {
-            "name": "arvenil/ninja-mutex",
-            "version": "0.6.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/arvenil/ninja-mutex.git",
-                "reference": "8c0f5d10f8fb1481b9d98488dbbe2bf84c2e1a25"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/arvenil/ninja-mutex/zipball/8c0f5d10f8fb1481b9d98488dbbe2bf84c2e1a25",
-                "reference": "8c0f5d10f8fb1481b9d98488dbbe2bf84c2e1a25",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.0"
-            },
-            "require-dev": {
-                "codeclimate/php-test-reporter": "0.1.*",
-                "ext-memcache": "*",
-                "ext-memcached": "*",
-                "ext-pdo_mysql": "*",
-                "ext-redis": "*",
-                "mikey179/vfsstream": "1.4.* || 1.5.*",
-                "predis/predis": "1.0.*",
-                "scrutinizer/ocular": "1.1.*"
-            },
-            "suggest": {
-                "ext-memcache": "Create mutex using memcache extension",
-                "ext-memcached": "Create mutex using memcached extension",
-                "ext-pdo_mysql": "Create mutex using MySql",
-                "predis/predis": "Create mutex using Predis (client library for Redis)"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-0": {
-                    "NinjaMutex": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Kamil Dziedzic",
-                    "email": "arvenil@klecza.pl"
-                }
-            ],
-            "description": "Simple to use mutex implementation that can use flock, memcache, memcached, mysql or redis for locking",
-            "homepage": "https://github.com/arvenil/ninja-mutex",
-            "keywords": [
-                "flock",
-                "lock",
-                "locking",
-                "memcache",
-                "memcached",
-                "mutex",
-                "mysql",
-                "redis"
-            ],
-            "time": "2016-05-31T13:47:32+00:00"
-        },
         {
             "name": "doctrine/annotations",
             "version": "v1.4.0",
@@ -469,6 +406,53 @@
             "time": "2017-07-24T09:37:08+00:00"
         },
         {
+            "name": "psr/log",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/log.git",
+                "reference": "d8e60a5619fff77f9669da8997697443ef1a1d7e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/d8e60a5619fff77f9669da8997697443ef1a1d7e",
+                "reference": "d8e60a5619fff77f9669da8997697443ef1a1d7e",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Log\\": "Psr/Log/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "http://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for logging libraries",
+            "homepage": "https://github.com/php-fig/log",
+            "keywords": [
+                "log",
+                "psr",
+                "psr-3"
+            ],
+            "time": "2016-01-06T21:40:42+00:00"
+        },
+        {
             "name": "symfony/dependency-injection",
             "version": "dev-master",
             "source": {
@@ -526,6 +510,68 @@
             "description": "Symfony DependencyInjection Component",
             "homepage": "https://symfony.com",
             "time": "2016-03-10T15:36:01+00:00"
+        },
+        {
+            "name": "symfony/lock",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/lock.git",
+                "reference": "2c8a1c5cf30df979d987996113954f03b0837465"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/lock/zipball/2c8a1c5cf30df979d987996113954f03b0837465",
+                "reference": "2c8a1c5cf30df979d987996113954f03b0837465",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.1.3",
+                "psr/log": "~1.0"
+            },
+            "require-dev": {
+                "doctrine/dbal": "~2.4",
+                "predis/predis": "~1.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "4.2-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Lock\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                },
+                {
+                    "name": "Jérémy Derussé",
+                    "email": "jeremy@derusse.com"
+                }
+            ],
+            "description": "Symfony Lock Component",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "cas",
+                "flock",
+                "locking",
+                "mutex",
+                "redlock",
+                "semaphore"
+            ],
+            "time": "2018-09-04T16:55:13+00:00"
         }
     ],
     "packages-dev": [
@@ -976,53 +1022,6 @@
                 "xunit"
             ],
             "time": "2014-02-16T12:43:56+00:00"
-        },
-        {
-            "name": "psr/log",
-            "version": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/php-fig/log.git",
-                "reference": "d8e60a5619fff77f9669da8997697443ef1a1d7e"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/d8e60a5619fff77f9669da8997697443ef1a1d7e",
-                "reference": "d8e60a5619fff77f9669da8997697443ef1a1d7e",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.0.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Psr\\Log\\": "Psr/Log/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "PHP-FIG",
-                    "homepage": "http://www.php-fig.org/"
-                }
-            ],
-            "description": "Common interface for logging libraries",
-            "homepage": "https://github.com/php-fig/log",
-            "keywords": [
-                "log",
-                "psr",
-                "psr-3"
-            ],
-            "time": "2016-01-06T21:40:42+00:00"
         },
         {
             "name": "symfony/config",
