@@ -8,6 +8,7 @@ use IXarlie\MutexBundle\Tests\Fixtures\Translator;
 use IXarlie\MutexBundle\Tests\Util\UtilTestTrait;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Class IXarlieMutexBundleTest
@@ -23,7 +24,7 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
         $bundle = new IXarlieMutexBundle();
         $this->assertInstanceOf(Bundle::class, $bundle);
     }
-    
+
     public function testBootBundle()
     {
         $container = $this->getContainer();
@@ -48,10 +49,10 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
             'memcached' => ['default' => ['host' => 'localhost', 'port' => 6379]],
         ];
         $this->prepareContainer($container, $bundle, $config);
-        
+
         // Container does not have translator nor user_isolation
         $definition = $container->getDefinition('i_xarlie_mutex.controller.listener');
-        
+
         // calls methods
         $this->assertFalse($definition->hasMethodCall('setTranslator'));
         $this->assertFalse($definition->hasMethodCall('setTokenStorage'));
@@ -76,14 +77,29 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
                 $this->assertArrayHasKey($params[2], $config[$params[1]]);
             }
         }
-        
+
         // priority tag
-        $this->assertNotNull($tag = $definition->getTag('kernel.event_subscriber'));
-        $this->assertCount(1, $tag);
-        $this->assertArrayHasKey('priority', $tag[0]);
-        $this->assertEquals($tag[0]['priority'], $config['request_listener']['priority']);
+        $this->assertNotNull($tag = $definition->getTag('kernel.event_listener'));
+        $this->assertCount(2, $tag);
+        $tags = [
+            [
+                'event'    => KernelEvents::CONTROLLER,
+                'method'   => 'onKernelController',
+                'priority' => $config['request_listener']['priority'],
+            ],
+            [
+                'event'  => KernelEvents::TERMINATE,
+                'method' => 'onKernelTerminate',
+            ]
+        ];
+        foreach ($tags as $i => $params) {
+            foreach ($params as $key => $value) {
+                $this->assertArrayHasKey($key, $tag[$i]);
+                $this->assertEquals($value, $tag[$i][$key]);
+            }
+        }
     }
-    
+
     public function testCompileWithTranslator()
     {
         $container = $this->getContainer();
@@ -107,7 +123,7 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($definition->hasMethodCall('setTranslator'));
         $this->assertFalse($definition->hasMethodCall('setTokenStorage'));
     }
-    
+
     public function testCompileWithSecurityToken()
     {
         $container = $this->getContainer();

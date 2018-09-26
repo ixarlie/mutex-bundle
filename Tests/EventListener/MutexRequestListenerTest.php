@@ -9,7 +9,6 @@ use IXarlie\MutexBundle\EventListener\MutexRequestListener;
 use IXarlie\MutexBundle\Manager\LockerManager;
 use IXarlie\MutexBundle\Tests\Fixtures\ArrayLock;
 use IXarlie\MutexBundle\Tests\Util\UtilTestTrait;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\HttpKernel;
@@ -18,15 +17,9 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
 {
     use UtilTestTrait;
-    
+
     const DEFAULT_LOCKER = 'i_xarlie_mutex.locker';
-    
-    public function testInstance()
-    {
-        $listener = $this->getListener();
-        $this->assertInstanceOf(EventSubscriberInterface::class, $listener);
-    }
-    
+
     private function setUpListener(MutexRequestListener $listener, LockerManager $manager)
     {
         $listener->addLockerManager(self::DEFAULT_LOCKER, $manager);
@@ -38,7 +31,7 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
      * It's recommended set a timeout in case the other request take so long, also if it was not specified the listener
      * will attempt a number of tries. After all of this if the new process cannot acquire the mutex a http exception
      * is thrown.
-     * 
+     *
      * @expectedException \Symfony\Component\HttpKernel\Exception\HttpException
      */
     public function testQueueController()
@@ -55,7 +48,7 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($manager1->isLocked($hashLocker1));
         $this->assertTrue($locker->isLocked($hashLocker1));
         $this->assertMutexCounters($manager1, $hashLocker1, 1);
-        
+
         // Mutex will be locked until the controller finish or the process ends.
         // In an a real scenario we need a second locker manager but we keep the same locker instance.
         // Figure out our ArrayCache is a shared place to store mutex.
@@ -110,7 +103,7 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($manager->isLocked($hashLocker));
         $this->assertFalse($locker->isLocked($hashLocker));
         $this->assertMutexCounters($manager, $hashLocker, 0);
-        
+
         // Acquire manually the resource
         $manager->acquireLock($hashLocker);
         $this->assertMutexCounters($manager, $hashLocker, 1);
@@ -144,7 +137,7 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
         $listener->onKernelController($event2);
         $this->assertMutexCounters($manager, $hashLocker, 1);
     }
-    
+
     public function testReplacePlaceholders()
     {
         $request = new Request();
@@ -155,10 +148,10 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
 
         $name = 'resource_{id}_{color}';
         $name = MutexRequestListener::replacePlaceholders($request, $name);
-        
+
         $this->assertEquals('resource_1_red', $name);
     }
-    
+
     public function testReplaceNoPlaceholder()
     {
         $request = new Request();
@@ -184,21 +177,21 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
         $name = 'resource_{id}_{color}';
         MutexRequestListener::replacePlaceholders($request, $name);
     }
-    
+
     private function assertMutexCounters(LockerManagerInterface $manager, $name, $counter)
     {
         $refClass = new \ReflectionClass(LockerManager::class);
         $refProp  = $refClass->getProperty('locks');
         $refProp->setAccessible(true);
         $values   = $refProp->getValue($manager);
-        
+
         $this->assertArrayHasKey($name, $values);
         $mutex = $values[$name];
         $refClass = new \ReflectionClass(\NinjaMutex\Mutex::class);
         $refProp  = $refClass->getProperty('counter');
         $refProp->setAccessible(true);
         $value    = $refProp->getValue($mutex);
-        
+
         $this->assertEquals($counter, $value);
     }
 
@@ -215,7 +208,7 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
 
         return $listener;
     }
-    
+
     private function buildFilterEvent($action)
     {
         $kernelMock = $this->getMockBuilder(HttpKernel::class)
@@ -228,7 +221,7 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
             Request::create('/'),
             HttpKernelInterface::MASTER_REQUEST
         );
-        
+
         return $event;
     }
 }
