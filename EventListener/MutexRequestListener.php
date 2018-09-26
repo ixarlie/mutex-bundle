@@ -4,12 +4,10 @@ namespace IXarlie\MutexBundle\EventListener;
 
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use IXarlie\MutexBundle\Manager\LockerManagerInterface;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpKernel\KernelEvents;
 use Doctrine\Common\Annotations\Reader as AnnotationsReader;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Translation\TranslatorInterface;
@@ -19,7 +17,7 @@ use Symfony\Component\Translation\TranslatorInterface;
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class MutexRequestListener implements EventSubscriberInterface
+class MutexRequestListener
 {
     /**
      * @var AnnotationsReader
@@ -66,17 +64,6 @@ class MutexRequestListener implements EventSubscriberInterface
 
      */
     private $tokenStorage;
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents()
-    {
-        return array(
-            KernelEvents::CONTROLLER => 'onKernelController',
-            KernelEvents::TERMINATE  => 'onKernelTerminate'
-        );
-    }
 
     /**
      * MutexRequestListener constructor.
@@ -183,7 +170,7 @@ class MutexRequestListener implements EventSubscriberInterface
             }
             $name = str_replace($matches[0][$i], $routeParams[$match], $name);
         }
-        
+
         return $name;
     }
 
@@ -197,7 +184,7 @@ class MutexRequestListener implements EventSubscriberInterface
         if (false === $event->isMasterRequest()) {
             return;
         }
-        
+
         if (!is_array($controller = $event->getController())) {
             return;
         }
@@ -216,7 +203,7 @@ class MutexRequestListener implements EventSubscriberInterface
         }
 
         foreach ($configurations as $configuration) {
-            
+
             if (method_exists($this, $configuration->getMode())) {
                 $service = $this->getMutexService($configuration);
                 call_user_func([$this, $configuration->getMode()], $service, $configuration);
@@ -268,7 +255,7 @@ class MutexRequestListener implements EventSubscriberInterface
             $this->reader->getClassAnnotations($object),
             $this->reader->getMethodAnnotations($method)
         );
-        
+
         $configurations = [];
         foreach ($annotations as $configuration) {
             if (!$configuration instanceof MutexRequest) {
@@ -422,7 +409,7 @@ class MutexRequestListener implements EventSubscriberInterface
             $result = $service->acquireLock($configuration->getName(), $timeout, $configuration->getTtl());
             $tries++;
         } while(false === $result && $tries < $max);
-        
+
         // In case after the maximum tries, we cannot acquire the mutex, then throw a http exception
         if (false === $result) {
             throw new HttpException($configuration->getHttpCode(), $this->getTranslatedMessage($configuration));

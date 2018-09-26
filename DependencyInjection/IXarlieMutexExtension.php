@@ -11,6 +11,7 @@ use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Class IXarlieMutexExtension
@@ -67,7 +68,7 @@ class IXarlieMutexExtension extends Extension
         foreach ($rootConfig as $type => $declarations) {
             foreach ($declarations as $name => $config) {
                 if ($definition = $this->getDefinitionLoader($type)) {
-                    
+
                     // Register lock manager and configure its locker using its decorator definition
                     $serviceId = self::getLockerManagerId($type, $name);
                     $service   = $container->setDefinition(
@@ -88,8 +89,8 @@ class IXarlieMutexExtension extends Extension
         }
         $container->setAlias($aliasId, $serviceId);
         $providers[] = $aliasId;
-        
-        
+
+
         return $providers;
     }
 
@@ -118,7 +119,7 @@ class IXarlieMutexExtension extends Extension
             // Default listener was disabled.
             return;
         }
-        
+
         $definition = new Definition(MutexRequestListener::class);
         $definition->addArgument(new Reference('annotation_reader'));
 
@@ -160,8 +161,15 @@ class IXarlieMutexExtension extends Extension
         }
 
         // Register listener as soon as possible, default priority 255
-        $definition->addTag('kernel.event_subscriber', ['priority' => $config['priority']]);
-        
+        $definition->addTag(
+            'kernel.event_listener',
+            ['event' => KernelEvents::CONTROLLER, 'method' => 'onKernelController', 'priority' => $config['priority']]
+        );
+        $definition->addTag(
+            'kernel.event_listener',
+            ['event' => KernelEvents::TERMINATE, 'method' => 'onKernelTerminate']
+        );
+
         $container->setDefinition('i_xarlie_mutex.controller.listener', $definition);
     }
 }
