@@ -2,6 +2,7 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
+use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
@@ -13,21 +14,13 @@ use Symfony\Component\DependencyInjection\Definition;
 class RedisDefinition extends LockDefinition
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    protected function getLocker(array $config, ContainerBuilder $container)
+    protected function createStore(ContainerBuilder $container, array $config)
     {
-        $locker = new Definition('%ninja_mutex.locker_redis_class%');
-        
-        return $locker;
-    }
+        $store  = new Definition('%ixarlie_mutex.redis_store.class%');
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function getClient(array $config, ContainerBuilder $container)
-    {
-        $client = new Definition('%i_xarlie_mutex.redis.connection.class%');
+        $client = new Definition(\Redis::class);
         $client->addMethodCall('connect', [$config['host'], $config['port']]);
         if (isset($config['password'])) {
             $client->addMethodCall('auth', [$config['password']]);
@@ -35,7 +28,39 @@ class RedisDefinition extends LockDefinition
         if (isset($config['database'])) {
             $client->addMethodCall('select', [(int) $config['database']]);
         }
-        
-        return $client;
+
+        $store->addArgument($client);
+        $store->addArgument($config['default_ttl']);
+
+        return $store;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function addConfiguration(NodeBuilder $nodeBuilder)
+    {
+        return $nodeBuilder
+            ->arrayNode('redis')
+                ->useAttributeAsKey('name')
+                ->prototype('array')
+                ->children()
+                    ->scalarNode('host')->end()
+                    ->scalarNode('port')->end()
+                    ->scalarNode('default_ttl')->defaultValue(300)->end()
+                    ->scalarNode('password')->end()
+                    ->scalarNode('database')->end()
+                    ->scalarNode('logger')->defaultNull()->end()
+                    ->arrayNode('blocking')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->scalarNode('retry_sleep')->defaultValue(100)->end()
+                            ->integerNode('retry_count')->defaultValue(PHP_INT_MAX)->end()
+                        ->end()
+                    ->end()
+                ->end()
+                ->end()
+            ->end()
+        ;
     }
 }

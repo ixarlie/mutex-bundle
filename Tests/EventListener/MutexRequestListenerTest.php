@@ -3,27 +3,30 @@
 namespace IXarlie\MutexBundle\Tests\EventListener;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use IXarlie\MutexBundle\Manager\LockerManagerInterface;
 use IXarlie\MutexBundle\Tests\Fixtures\DemoController;
 use IXarlie\MutexBundle\EventListener\MutexRequestListener;
-use IXarlie\MutexBundle\Manager\LockerManager;
 use IXarlie\MutexBundle\Tests\Fixtures\ArrayLock;
 use IXarlie\MutexBundle\Tests\Util\UtilTestTrait;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\Lock\Factory;
 
-class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
+/**
+ * Class MutexRequestListenerTest.
+ */
+class MutexRequestListenerTest extends TestCase
 {
     use UtilTestTrait;
 
-    const DEFAULT_LOCKER = 'i_xarlie_mutex.locker';
+    const DEFAULT_LOCKER = 'ixarlie_mutex.default_store';
 
-    private function setUpListener(MutexRequestListener $listener, LockerManager $manager)
+    private function setUpListener(MutexRequestListener $listener, Factory $factory)
     {
-        $listener->addLockerManager(self::DEFAULT_LOCKER, $manager);
-        $listener->addLockerManager(self::DEFAULT_LOCKER.'_array', $manager);
+        $listener->addFactory(self::DEFAULT_LOCKER, $factory);
+        $listener->addFactory(self::DEFAULT_LOCKER.'_array', $factory);
     }
 
     /**

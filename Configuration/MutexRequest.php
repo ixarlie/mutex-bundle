@@ -2,6 +2,8 @@
 
 namespace IXarlie\MutexBundle\Configuration;
 
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationAnnotation;
+
 /**
  * Class MutexLock
  *
@@ -10,7 +12,7 @@ namespace IXarlie\MutexBundle\Configuration;
  * @Annotation
  * @Target({"CLASS", "METHOD"})
  */
-class MutexRequest
+class MutexRequest extends ConfigurationAnnotation
 {
     /**
      * Attempt to acquire the mutex, in case is locked an exception is thrown.
@@ -83,16 +85,6 @@ class MutexRequest
      */
     protected $userIsolation = false;
 
-    public function __construct(array $values)
-    {
-        foreach ($values as $k => $v) {
-            if (!method_exists($this, $name = 'set'.$k)) {
-                throw new \RuntimeException(sprintf('Unknown key "%s" for annotation "@%s".', $k, get_class($this)));
-            }
-            $this->$name($v);
-        }
-    }
-
     /**
      * @return string
      */
@@ -103,8 +95,6 @@ class MutexRequest
 
     /**
      * @param string $name
-     *
-     * return MutexRequest
      */
     public function setName($name)
     {
@@ -121,11 +111,17 @@ class MutexRequest
 
     /**
      * @param string $mode
-     *
-     * return MutexRequest
      */
     public function setMode($mode)
     {
+        if (null === $mode || '' === $mode) {
+            throw new \InvalidArgumentException('Mode cannot be empty.');
+        }
+
+        if (!defined('\IXarlie\MutexBundle\Configuration\MutexRequest::MODE_' . strtoupper($mode))) {
+            throw new \InvalidArgumentException("Mode $mode is not a valid mode.");
+        }
+
         $this->mode = $mode;
     }
 
@@ -139,8 +135,6 @@ class MutexRequest
 
     /**
      * @param int $httpCode
-     *
-     * return MutexRequest
      */
     public function setHttpCode($httpCode)
     {
@@ -157,8 +151,6 @@ class MutexRequest
 
     /**
      * @param string $message
-     *
-     * return MutexRequest
      */
     public function setMessage($message)
     {
@@ -175,8 +167,6 @@ class MutexRequest
 
     /**
      * @param int $ttl
-     *
-     * return MutexRequest
      */
     public function setTtl($ttl)
     {
@@ -193,8 +183,6 @@ class MutexRequest
 
     /**
      * @param string $service
-     *
-     * return MutexRequest
      */
     public function setService($service)
     {
@@ -211,8 +199,6 @@ class MutexRequest
 
     /**
      * @param boolean $userIsolation
-     *
-     * return MutexRequest
      */
     public function setUserIsolation($userIsolation)
     {

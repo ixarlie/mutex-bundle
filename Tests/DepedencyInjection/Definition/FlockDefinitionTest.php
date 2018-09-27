@@ -5,33 +5,32 @@ namespace IXarlie\MutexBundle\Tests\DependencyInjection\Definition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\FlockDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
 use IXarlie\MutexBundle\Tests\Util\UtilTestTrait;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Definition;
 
 /**
  * Class FlockDefinitionTest
- *
- * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class FlockDefinitionTest extends \PHPUnit_Framework_TestCase
+class FlockDefinitionTest extends TestCase
 {
     use UtilTestTrait;
 
     public function testInstanceOf()
     {
-        $this->assertInstanceOf(LockDefinition::class, new FlockDefinition('default'));
+        $this->assertInstanceOf(LockDefinition::class, new FlockDefinition());
     }
 
     public function testConfigure()
     {
         $container  = $this->getContainer();
         $service    = $this->getServiceDefinition();
-        $definition = new FlockDefinition('default');
+        $definition = new FlockDefinition();
 
         $this->assertEmpty($service->getArguments());
 
         $config = $this->processConfiguration('flock', ['cache_dir' => '/tmp/flock']);
 
-        $definition->configure($config, $service, $container);
+        $definition->createFactory($container, $config);
         $this->assertCount(1, $service->getArguments());
 
         /** @var Definition $locker */
@@ -47,7 +46,7 @@ class FlockDefinitionTest extends \PHPUnit_Framework_TestCase
     {
         $container  = $this->getContainer();
         $service    = $this->getServiceDefinition();
-        $definition = new FlockDefinition('default');
+        $definition = new FlockDefinition();
 
         $this->assertEmpty($service->getArguments());
 
@@ -55,7 +54,7 @@ class FlockDefinitionTest extends \PHPUnit_Framework_TestCase
 
         $config = ['cache_dir' => '/tmp/flock', 'logger' => 'logger'];
         $config = $this->processConfiguration('flock', $config);
-        $definition->configure($config, $service, $container);
+        $definition->createFactory($container, $config);
 
         $this->assertCount(2, $service->getArguments());
         $this->assertEquals('%logger.class%', $service->getArgument(1)->getClass());

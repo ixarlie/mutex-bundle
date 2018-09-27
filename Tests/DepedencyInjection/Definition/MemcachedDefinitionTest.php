@@ -31,7 +31,7 @@ class MemcachedDefinitionTest extends \PHPUnit_Framework_TestCase
 
         $config = $this->processConfiguration('memcached', ['host' => '127.0.0.1', 'port' => 6379]);
 
-        $definition->configure($config, $service, $container);
+        $definition->createFactory($config, $service, $container);
         $this->assertCount(1, $service->getArguments());
 
         /** @var Definition $locker */
@@ -65,7 +65,7 @@ class MemcachedDefinitionTest extends \PHPUnit_Framework_TestCase
 
         $config = ['host' => '127.0.0.1', 'port' => 6379, 'logger' => 'logger'];
         $config = $this->processConfiguration('memcached', $config);
-        $definition->configure($config, $service, $container);
+        $definition->createFactory($config, $service, $container);
 
         $this->assertCount(2, $service->getArguments());
         $this->assertEquals('%logger.class%', $service->getArgument(1)->getClass());

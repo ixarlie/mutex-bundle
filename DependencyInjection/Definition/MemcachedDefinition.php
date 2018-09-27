@@ -2,6 +2,7 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
+use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
@@ -13,23 +14,45 @@ use Symfony\Component\DependencyInjection\Definition;
 class MemcachedDefinition extends LockDefinition
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    protected function getLocker(array $config, ContainerBuilder $container)
+    protected function createStore(ContainerBuilder $container, array $config)
     {
-        $locker = new Definition('%ninja_mutex.locker_memcached_class%');
-        
-        return $locker;
+        $store  = new Definition('%ixarlie_mutex.memcached_store.class%');
+
+        $client = new Definition('\Memcached');
+        $client->addMethodCall('addServer', [$config['host'], $config['port']]);
+
+        $store->addArgument($client);
+        $store->addArgument($config['default_ttl']);
+
+        return $store;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    protected function getClient(array $config, ContainerBuilder $container)
+    public static function addConfiguration(NodeBuilder $nodeBuilder)
     {
-        $client = new Definition('%i_xarlie_mutex.memcached.connection.class%');
-        $client->addMethodCall('addServer', [$config['host'], $config['port']]);
-        
-        return $client;
+        return $nodeBuilder
+            ->arrayNode('memcached')
+                ->useAttributeAsKey('name')
+                ->prototype('array')
+                ->children()
+                    ->scalarNode('host')->end()
+                    ->scalarNode('port')->end()
+                    ->scalarNode('default_ttl')->defaultValue(300)->end()
+                    ->scalarNode('logger')->defaultNull()->end()
+                    ->arrayNode('blocking')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->scalarNode('retry_sleep')->defaultValue(100)->end()
+                            ->integerNode('retry_count')->defaultValue(PHP_INT_MAX)->end()
+                        ->end()
+                    ->end()
+                ->end()
+                ->end()
+            ->end()
+        ;
     }
 }

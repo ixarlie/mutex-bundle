@@ -3,12 +3,12 @@
 namespace IXarlie\MutexBundle\Tests\Util;
 
 use IXarlie\MutexBundle\DependencyInjection\Configuration;
-use IXarlie\MutexBundle\Manager\LockerManager;
+use Sensio\Bundle\FrameworkExtraBundle\EventListener\ControllerListener;
 use Symfony\Component\Config\Definition\Processor;
-use Symfony\Component\DependencyInjection\Compiler\Compiler;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\DependencyInjection\MergeExtensionConfigurationPass;
 
@@ -56,7 +56,7 @@ trait UtilTestTrait
             $locker => [$lockerName => $config]
         ];
         $normalized = $processor->processConfiguration($configuration, [$config]);
-        
+
         return $normalized[$locker][$lockerName];
     }
 
@@ -76,6 +76,12 @@ trait UtilTestTrait
         }
         $container->loadFromExtension('i_xarlie_mutex', $config);
         $bundle->build($container);
+
+        $controllerListener = new Definition(ControllerListener::class);
+        $controllerListener->addArgument(new Reference('annotation_reader'));
+        $controllerListener->addTag('kernel.event_subscriber');
+
+        $container->setDefinition('sensio_framework_extra.controller.listener', $controllerListener);
 
         // ensure these extensions are implicitly loaded
         $container->getCompilerPassConfig()->setMergePass(new MergeExtensionConfigurationPass($extensions));

@@ -2,8 +2,12 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
+use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Lock\Factory;
+use Symfony\Component\Lock\Store\RetryTillSaveStore;
 
 /**
  * Class LockDefinition
@@ -13,70 +17,54 @@ use Symfony\Component\DependencyInjection\Definition;
 abstract class LockDefinition
 {
     /**
-     * @var string
-     */
-    private $type;
-
-    /**
-     * @param $type
-     */
-    public function __construct($type)
-    {
-        $this->type = $type;
-    }
-
-    /**
-     * @param array            $config
-     * @param Definition       $manager
      * @param ContainerBuilder $container
+     * @param array            $config
+     *
+     * @return Definition
      */
-    public function configure(array $config, Definition $manager, ContainerBuilder $container)
+    public function createFactory(ContainerBuilder $container, array $config)
     {
-        // Get the locker definition.
-        $locker = $this->getLocker($config, $container);
-        
-        // If the locker have a client service, allow configure it and add it to the locker.
-        if ($client = $this->getClient($config, $container)) {
-            $client->setPublic(false);
-            $this->configureClient($locker, $client);
+        // Get the store definition.
+        $store = $this->createStore($container, $config);
+
+        // Decorates base store with RetryTillSaveStore class
+        if (isset($config['blocking'])) {
+            $blockStore = new Definition(RetryTillSaveStore::class);
+            $blockStore
+                ->addArgument($store)
+                ->addArgument($config['blocking']['retry_sleep'])
+                ->addArgument($config['blocking']['retry_count'])
+            ;
+
+            $store = $blockStore;
         }
-        
+
+        $factory = new Definition(Factory::class);
+        $factory->addArgument($store);
+
         // LockerManager first argument is a \NinjaMutex\Lock\LockInterface definition.
-        $manager->addArgument($locker);
         if (isset($config['logger'])) {
             // If a logger is configured, add it as argument
-            $manager->addArgument($container->findDefinition($config['logger']));
+            $factory->addMethodCall('setLogger', [new Reference($config['logger'])]);
         }
+
+        return $factory;
     }
 
     /**
      * Create a locker definition that will be use in the LockerManagerInterface
      *
-     * @param array $config
      * @param ContainerBuilder $container
+     * @param array            $config
      *
      * @return Definition
      */
-    abstract protected function getLocker(array $config, ContainerBuilder $container);
+    abstract protected function createStore(ContainerBuilder $container, array $config);
 
     /**
-     * Create a client definition that will be use in the locker
+     * @param NodeBuilder $nodeBuilder
      *
-     * @param array $config
-     * @param ContainerBuilder $container
-     *
-     * @return Definition
+     * @return NodeBuilder
      */
-    abstract protected function getClient(array $config, ContainerBuilder $container);
-
-    /**
-     * Configure client
-     *
-     * @param Definition $locker
-     * @param Definition $client
-     */
-    protected function configureClient(Definition $locker, Definition $client)
-    {
-        $locker->addArgument($client);
-    }
+    abstract public static function addConfiguration(NodeBuilder $nodeBuilder);
 }

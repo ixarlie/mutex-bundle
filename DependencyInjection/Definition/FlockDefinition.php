@@ -2,6 +2,7 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
+use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
@@ -13,21 +14,38 @@ use Symfony\Component\DependencyInjection\Definition;
 class FlockDefinition extends LockDefinition
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    protected function getLocker(array $config, ContainerBuilder $container)
+    protected function createStore(ContainerBuilder $container, array $config)
     {
-        $locker = new Definition('%ninja_mutex.locker_flock_class%');
-        $locker->addArgument($config['cache_dir']);
+        $store = new Definition('%ixarlie_mutex.flock_store.class%');
+        $store->addArgument($config['cache_dir']);
 
-        return $locker;
+        return $store;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    protected function getClient(array $config, ContainerBuilder $container)
+    public static function addConfiguration(NodeBuilder $nodeBuilder)
     {
-        return null;
+        return $nodeBuilder
+            ->arrayNode('flock')
+                ->useAttributeAsKey('name')
+                ->prototype('array')
+                ->children()
+                    ->scalarNode('cache_dir')->end()
+                    ->scalarNode('logger')->defaultNull()->end()
+                    ->arrayNode('blocking')
+                        ->addDefaultsIfNotSet()
+                        ->children()
+                            ->scalarNode('retry_sleep')->defaultValue(100)->end()
+                            ->integerNode('retry_count')->defaultValue(PHP_INT_MAX)->end()
+                        ->end()
+                    ->end()
+                ->end()
+                ->end()
+            ->end()
+        ;
     }
 }

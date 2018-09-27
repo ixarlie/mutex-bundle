@@ -3,20 +3,19 @@
 namespace IXarlie\MutexBundle\Tests\DependencyInjection;
 
 use IXarlie\MutexBundle\Configuration\MutexRequest;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class MutexRequestTest
- *
- * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class MutexRequestTest extends \PHPUnit_Framework_TestCase
+class MutexRequestTest extends TestCase
 {
     public function testInstanceOf()
     {
         $annotation = new MutexRequest([]);
         $this->assertInstanceOf(MutexRequest::class, $annotation);
     }
-    
+
     public function testProperties()
     {
         $params = [
@@ -29,9 +28,9 @@ class MutexRequestTest extends \PHPUnit_Framework_TestCase
             'messageDomain' => 'messages',
             'userIsolation' => true
         ];
-        
+
         $annotation = new MutexRequest($params);
-        
+
         $refClass = new \ReflectionClass(MutexRequest::class);
         foreach ($refClass->getProperties() as $property) {
             $property->setAccessible(true);

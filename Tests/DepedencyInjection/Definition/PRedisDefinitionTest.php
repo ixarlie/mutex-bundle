@@ -15,12 +15,12 @@ use Symfony\Component\DependencyInjection\Definition;
 class PRedisDefinitionTest extends \PHPUnit_Framework_TestCase
 {
     use UtilTestTrait;
-    
+
     public function testInstanceOf()
     {
         $this->assertInstanceOf(LockDefinition::class, new PRedisDefinition('default'));
     }
-    
+
     public function dataConfigurations()
     {
         return [
@@ -39,14 +39,14 @@ class PRedisDefinitionTest extends \PHPUnit_Framework_TestCase
         $container  = $this->getContainer();
         $service    = $this->getServiceDefinition();
         $definition = new PRedisDefinition('default');
-        
+
         $this->assertEmpty($service->getArguments());
-        
+
         $config     = $this->processConfiguration('predis', $config);
         $connection = isset($config['connection']['uri']) ? $config['connection']['uri'] : $config['connection'];
         $options    = $config['options'];
-        
-        $definition->configure($config, $service, $container);
+
+        $definition->createFactory($config, $service, $container);
         $this->assertCount(1, $service->getArguments());
 
         /** @var Definition $locker */
@@ -60,11 +60,11 @@ class PRedisDefinitionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('%i_xarlie_mutex.predis.connection.class%', $conn->getClass());
         $this->assertCount(2, $conn->getArguments());
         $this->assertFalse($conn->isPublic());
-        
+
         $this->assertEquals($connection, $conn->getArgument(0));
         $this->assertEquals($options, $conn->getArgument(1));
     }
-    
+
     public function testConfigureLogger()
     {
         $container  = $this->getContainer();
@@ -77,8 +77,8 @@ class PRedisDefinitionTest extends \PHPUnit_Framework_TestCase
 
         $config = ['connection' => 'tcp://127.0.0.1:6379', 'logger' => 'logger'];
         $config = $this->processConfiguration('predis', $config);
-        $definition->configure($config, $service, $container);
-        
+        $definition->createFactory($config, $service, $container);
+
         $this->assertCount(2, $service->getArguments());
         $this->assertEquals('%logger.class%', $service->getArgument(1)->getClass());
     }

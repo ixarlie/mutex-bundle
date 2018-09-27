@@ -12,26 +12,29 @@
     }
   ],
   "require": {
-    "php": ">=5.6",
-    "symfony/dependency-injection": "~2.3|3.*",
-    "arvenil/ninja-mutex": "~0.6",
-    "doctrine/common": "2.7.*"
+    "php": ">=5.6|>=7.1",
+    "symfony/lock": "^3.4|^4.1",
+    "symfony/dependency-injection": "^3.4|^4.1",
+    "symfony/config": "^3.4|^4.1",
+    "symfony/http-kernel": "^3.4|^4.1",
+    "doctrine/annotations": "^1.6",
+    "sensio/framework-extra-bundle": "^5.2"
   },
   "require-dev": {
-    "phpunit/phpunit": "3.7.*"
+    "symfony/translation": "^3.4|^4.1",
+    "symfony/security": "^3.4|^4.1",
+    "phpunit/phpunit": "^6.0|^7.0",
+    "symfony/yaml": "^3.4|^4.1"
   },
   "suggest": {
-    "doctrine/common": "In order to use controller annotations, make sure you have it in your project's dependencies",
-    "symfony/monolog-bundle": "Allows more advanced logging of the application flow"
   },
   "autoload": {
     "psr-0": { "IXarlie\\MutexBundle": "" }
   },
   "target-dir": "IXarlie/MutexBundle",
-  "minimum-stability": "dev",
   "extra": {
     "branch-alias": {
-      "dev-master": "0.1.x-dev"
+      "dev-master": "1.0.x-dev"
     }
   }
 }
