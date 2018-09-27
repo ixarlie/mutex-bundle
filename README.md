@@ -5,16 +5,10 @@ IXarlie Mutex Bundle
 [![Maintainability](https://api.codeclimate.com/v1/badges/308f7d2e318ae6ff22e4/maintainability)](https://codeclimate.com/github/ixarlie/mutex-bundle/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/308f7d2e318ae6ff22e4/test_coverage)](https://codeclimate.com/github/ixarlie/mutex-bundle/test_coverage)
 
-Integrates arvenil/ninja-mutex library into Symfony2.
-
-Library repository https://github.com/arvenil/ninja-mutex
+Integrates symfony/lock component to register locks as services.
 
 ## Lockers
-* flock (fylesystem)
-* redis
-* predis
-* memcache
-* memcached
+* flock (fylesystem), redis, predis, memcached, semaphore, combined.
 
 ## Features
 * Add services for each registered locker.
@@ -25,11 +19,11 @@ Library repository https://github.com/arvenil/ninja-mutex
 
 ```sh
 
-composer require ixarlie/mutex-bundle ^0.1
+composer require ixarlie/mutex-bundle ^1.0
 
 ```
 
-Add the bundle to app/AppKernel.php
+Add the bundle in kernel class
 
 ```php
 
@@ -45,8 +39,8 @@ $bundles(
 
 Full configuration options:
 ```yaml
-i_xarlie_mutex:
-  # default locker service is mandatory
+ixarlie_mutex:
+  # default locker service is mandatory (type.name)
   default: redis.default
   # configure some aspects of request listener
   request_listener:
@@ -60,51 +54,56 @@ i_xarlie_mutex:
     translator: ~
     # true for be able get a hash for the current token user (default: false)
     user_isolation: ~
-    # the max time queue listener will wait for a mutex, as default max_execution_time configuration is taken
-    # remember that is max_execution_time = 0, for the queue means it should not have to wait
-    queue_timeout: ~
-    # the max times queue listener will try for acquiring the mutex (default: 3)
-    queue_max_try: ~
     # optional http configuration for default message and code
     http_exception:
       message: 'This is the default block message'
       code: 409
   # you can have several lockers configurations for each type
+  # blocking option is present for every type but "combined".
+  # logger is present for every type, it is a logger service name.
   flock:
     default:
       cache_dir: '%kernel.cache_dir%'
+      blocking:
+        retry_sleep: 500
+        retry_count: 3
+      logger: monolog.logger
     other:
       cache_dir: '%temp%'
-  memcache:
+  semaphore:
     default:
-      host: '%memcache_host%'
-      port: '%memcache_port%'
   memcached:
     default:
       host: '%memcached_host%'
-      port: '%memcached_port%'    
+      port: '%memcached_port%'
+      default_ttl: 300 # ttl to avoid stalled locks
   redis:
     default:
       host: '%redis_host%'
       port: '%redis_port%'
+      default_ttl: 300 # ttl to avoid stalled locks
   predis:
     default:
       connection:
         host: '%predis_host%'
         port: '%predis_port%'
       options: ~
+      default_ttl: 300 # ttl to avoid stalled locks
+  combined:
+    default:
+      stores:
+        - ixarlie_mutex.redis_store.default     # store definition, not public services
+        - ixarlie_mutex.memcached_store.default
+      strategy: unanimous # consensus or a StrategyInterface service name  
 ```
 
 To use your own classes, there are some parameters to do it:
 ```yaml
 parameters:
-  i_xarlie_mutex.lock_manager_class: IXarlie\MutexBundle\Model\LockerManager
-
-  ninja_mutex.locker_flock_class: NinjaMutex\Lock\FlockLock
-  ninja_mutex.locker_predis_class: NinjaMutex\Lock\PredisRedisLock
-  ninja_mutex.locker_memcache_class: NinjaMutex\Lock\MemcacheLock
-  ninja_mutex.locker_memcached_class: NinjaMutex\Lock\MemcachedLock
-  ninja_mutex.locker_redis_class: IXarlie\MutexBundle\Lock\RedisLock
+  ixarlie_mutex.flock_store.class: Symfony\Component\Lock\Store\FlockStore
+  ixarlie_mutex.semaphore_store.class: Symfony\Component\Lock\Store\SemaphoreStore
+  ixarlie_mutex.memcached_store.class: Symfony\Component\Lock\Store\MemcachedStore
+  ixarlie_mutex.redis_store.class: Symfony\Component\Lock\Store\RedisStore
 ```
 
 ## Annotations
@@ -207,9 +206,8 @@ i_xarlie_mutex:
 class MyController extends Controller
 {
     /**
-     * @MutexRequest(name="foo", service="i_xarlie_mutex.locker_redis.default")
+     * @MutexRequest(name="foo", service="ixarlie_mutex.redis_factory.default")
      * @MutexRequest(name="foo", service="redis.default")
-     * @MutexRequest(name="foo", service="i_xarlie_mutex.locker")
      * @MutexRequest(name="foo")
      */
     public function importantAction()

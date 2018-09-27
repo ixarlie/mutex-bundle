@@ -8,7 +8,6 @@ use IXarlie\MutexBundle\DependencyInjection\Definition\PRedisDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\RedisDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
-use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 
 /**
  * Class Configuration
@@ -23,7 +22,7 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $nodeBuilder = $treeBuilder->root('i_xarlie_mutex')
+        $nodeBuilder = $treeBuilder->root('ixarlie_mutex')
             ->addDefaultsIfNotSet()
             ->children()
                 ->scalarNode('default')->isRequired()->cannotBeEmpty()->end()
@@ -58,28 +57,4 @@ class Configuration implements ConfigurationInterface
 
         return $treeBuilder;
     }
-
-//                ->arrayNode('memcache')
-//                    ->useAttributeAsKey('name')
-//                    ->prototype('array')
-//                        ->children()
-//                            ->scalarNode('host')->end()
-//                            ->scalarNode('port')->end()
-//                            ->scalarNode('logger')->defaultNull()->end()
-//                        ->end()
-//                    ->end()
-//                ->end()
-//                ->arrayNode('mysql')
-//                    ->useAttributeAsKey('name')
-//                    ->prototype('array')
-//                        ->children()
-//                            ->scalarNode('username')->isRequired()->cannotBeEmpty()->end()
-//                            ->scalarNode('password')->isRequired()->cannotBeEmpty()->end()
-//                            ->scalarNode('host')->isRequired()->cannotBeEmpty()->end()
-//                            ->scalarNode('port')->defaultValue(3306)->end()
-//                            ->scalarNode('class_name')->defaultValue('PDO')->end()
-//                            ->scalarNode('logger')->defaultNull()->end()
-//                        ->end()
-//                    ->end()
-//                ->end()
 }

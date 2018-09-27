@@ -19,10 +19,11 @@ abstract class LockDefinition
     /**
      * @param ContainerBuilder $container
      * @param array            $config
+     * @param string           $name
      *
      * @return Definition
      */
-    public function createFactory(ContainerBuilder $container, array $config)
+    public function createFactory(ContainerBuilder $container, array $config, $name)
     {
         // Get the store definition.
         $store = $this->createStore($container, $config);
@@ -39,14 +40,31 @@ abstract class LockDefinition
             $store = $blockStore;
         }
 
+        // Register store instance as service
+        $storeId = sprintf('ixarlie_mutex.%s_store.%s', $this->getName(), $name);
+        $store->setPrivate(true);
+        $container->setDefinition($storeId, $store);
+
         $factory = new Definition(Factory::class);
         $factory->addArgument($store);
+
+        $factoryId = sprintf('ixarlie_mutex.%s_factory.%s', $this->getName(), $name);
+        $container->setDefinition($factoryId, $factory);
 
         // LockerManager first argument is a \NinjaMutex\Lock\LockInterface definition.
         if (isset($config['logger'])) {
             // If a logger is configured, add it as argument
             $factory->addMethodCall('setLogger', [new Reference($config['logger'])]);
         }
+
+        list($storeName, $factoryName) = explode('.', $config['default']);
+
+        if ($storeName === $this->getName() && $factoryName === $name) {
+            $container->setAlias('ixarlie_mutex.default_factory', $factoryId);
+        }
+
+        $factory->addTag('ixarlie_factory', ['type' => $this->getName(), 'name' => $name]);
+
 
         return $factory;
     }
@@ -60,6 +78,11 @@ abstract class LockDefinition
      * @return Definition
      */
     abstract protected function createStore(ContainerBuilder $container, array $config);
+
+    /**
+     * @return string
+     */
+    abstract protected function getName();
 
     /**
      * @param NodeBuilder $nodeBuilder

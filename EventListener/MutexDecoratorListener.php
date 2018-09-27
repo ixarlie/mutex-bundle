@@ -48,7 +48,7 @@ class MutexDecoratorListener
     public function onKernelController(FilterControllerEvent $event)
     {
         $request          = $event->getRequest();
-        $configurations   = $request->attributes->get('_ixarlie_mutex', []);
+        $configurations   = $request->attributes->get('_ixarlie_mutex_request', []);
 
         /** @var MutexRequest $configuration */
         foreach ($configurations as $configuration) {

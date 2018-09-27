@@ -53,26 +53,13 @@ class IXarlieMutexExtension extends Extension
 
         foreach ($rootConfig as $type => $declarations) {
             foreach ($declarations as $name => $config) {
+                $config['default'] = $default;
                 if ($loader = $this->getDefinitionLoader($type)) {
-
                     // Register factory and createFactory its store using its decorator definition
-                    $serviceId = sprintf('ixarlie_mutex.%s_store.%s', $type, $name);
-                    $factory   = $loader->createFactory($container, $config);
-                    $factory->addTag('ixarlie_factory', ['type' => $type, 'name' => $name]);
-
-                    $container->setDefinition($serviceId, $factory);
+                    $loader->createFactory($container, $config, $name);
                 }
             }
         }
-
-        list($type, $name) = explode('.', $default);
-        $aliasId = sprintf('ixarlie_mutex.%s_store.%s', $type, $name);
-
-        if (!$container->hasDefinition($aliasId)) {
-            throw new ServiceNotFoundException($aliasId);
-        }
-
-        $container->setAlias('ixarlie_mutex.default_store', $aliasId);
 
         return $providers;
     }

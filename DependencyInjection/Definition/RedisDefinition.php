@@ -54,7 +54,7 @@ class RedisDefinition extends LockDefinition
                     ->arrayNode('blocking')
                         ->addDefaultsIfNotSet()
                         ->children()
-                            ->scalarNode('retry_sleep')->defaultValue(100)->end()
+                            ->integerNode('retry_sleep')->defaultValue(100)->end()
                             ->integerNode('retry_count')->defaultValue(PHP_INT_MAX)->end()
                         ->end()
                     ->end()
@@ -62,5 +62,13 @@ class RedisDefinition extends LockDefinition
                 ->end()
             ->end()
         ;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function getName()
+    {
+        return 'redis';
     }
 }

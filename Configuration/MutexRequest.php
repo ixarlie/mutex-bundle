@@ -220,4 +220,20 @@ class MutexRequest extends ConfigurationAnnotation
     {
         $this->messageDomain = $messageDomain;
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAliasName()
+    {
+        return 'ixarlie_mutex_request';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function allowArray()
+    {
+        return false;
+    }
 }
