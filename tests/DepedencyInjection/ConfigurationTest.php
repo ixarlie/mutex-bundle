@@ -44,7 +44,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 'request_placeholder' => false
             ]
         ];
-        $this->assertEquals($defaults, $options);
+        static::assertEquals($defaults, $options);
     }
 
     /**
@@ -74,7 +74,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 'default' => [
                     'connection' => [
                         'host'      => 'localhost',
-                        'port'      => 6379,    
+                        'port'      => 6379,
                     ],
                     'options'   => [],
                     'logger'    => null
@@ -94,7 +94,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 'request_placeholder' => false
             ]
         ];
-        $this->assertEquals($expected, $options);
+        static::assertEquals($expected, $options);
     }
 
     public function provideFullConfiguration()

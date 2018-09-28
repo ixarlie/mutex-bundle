@@ -17,7 +17,7 @@ class FlockDefinitionTest extends TestCase
 
     public function testInstanceOf()
     {
-        $this->assertInstanceOf(LockDefinition::class, new FlockDefinition());
+        static::assertInstanceOf(LockDefinition::class, new FlockDefinition());
     }
 
     public function testConfigure()
@@ -26,20 +26,20 @@ class FlockDefinitionTest extends TestCase
         $service    = $this->getServiceDefinition();
         $definition = new FlockDefinition();
 
-        $this->assertEmpty($service->getArguments());
+        static::assertEmpty($service->getArguments());
 
         $config = $this->processConfiguration('flock', ['cache_dir' => '/tmp/flock']);
 
         $definition->createFactory($container, $config);
-        $this->assertCount(1, $service->getArguments());
+        static::assertCount(1, $service->getArguments());
 
         /** @var Definition $locker */
         $locker = $service->getArgument(0);
-        $this->assertInstanceOf(Definition::class, $locker);
-        $this->assertEquals('%ninja_mutex.locker_flock_class%', $locker->getClass());
-        $this->assertCount(1, $locker->getArguments());
+        static::assertInstanceOf(Definition::class, $locker);
+        static::assertEquals('%ninja_mutex.locker_flock_class%', $locker->getClass());
+        static::assertCount(1, $locker->getArguments());
         $arg0 = $locker->getArgument(0);
-        $this->assertEquals($config['cache_dir'], $arg0);
+        static::assertEquals($config['cache_dir'], $arg0);
     }
 
     public function testConfigureLogger()
@@ -48,7 +48,7 @@ class FlockDefinitionTest extends TestCase
         $service    = $this->getServiceDefinition();
         $definition = new FlockDefinition();
 
-        $this->assertEmpty($service->getArguments());
+        static::assertEmpty($service->getArguments());
 
         $container->setDefinition('logger', new Definition('%logger.class%'));
 
@@ -56,7 +56,7 @@ class FlockDefinitionTest extends TestCase
         $config = $this->processConfiguration('flock', $config);
         $definition->createFactory($container, $config);
 
-        $this->assertCount(2, $service->getArguments());
-        $this->assertEquals('%logger.class%', $service->getArgument(1)->getClass());
+        static::assertCount(2, $service->getArguments());
+        static::assertEquals('%logger.class%', $service->getArgument(1)->getClass());
     }
 }

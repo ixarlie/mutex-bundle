@@ -65,7 +65,6 @@ abstract class LockDefinition
 
         $factory->addTag('ixarlie_factory', ['type' => $this->getName(), 'name' => $name]);
 
-
         return $factory;
     }
 
@@ -82,12 +81,15 @@ abstract class LockDefinition
     /**
      * @return string
      */
-    abstract protected function getName();
+    abstract public function getName();
 
     /**
      * @param NodeBuilder $nodeBuilder
      *
      * @return NodeBuilder
      */
-    abstract public static function addConfiguration(NodeBuilder $nodeBuilder);
+    public static function addConfiguration(NodeBuilder $nodeBuilder)
+    {
+        throw new \RuntimeException('Configuration must be implemented');
+    }
 }

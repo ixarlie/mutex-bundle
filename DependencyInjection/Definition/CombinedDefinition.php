@@ -83,7 +83,7 @@ class CombinedDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    protected function getName()
+    public function getName()
     {
         return 'combined';
     }

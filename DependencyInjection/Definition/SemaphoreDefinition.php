@@ -51,7 +51,7 @@ class SemaphoreDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    protected function getName()
+    public function getName()
     {
         return 'semaphore';
     }

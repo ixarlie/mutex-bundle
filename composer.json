@@ -31,6 +31,11 @@
   "autoload": {
     "psr-0": { "IXarlie\\MutexBundle": "" }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
   "target-dir": "IXarlie/MutexBundle",
   "extra": {
     "branch-alias": {

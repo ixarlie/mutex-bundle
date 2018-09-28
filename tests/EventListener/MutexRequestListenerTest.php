@@ -48,9 +48,9 @@ class MutexRequestListenerTest extends TestCase
         $this->setUpListener($listener1, $manager1);
 
         $listener1->onKernelController($event1);
-        $this->assertTrue($manager1->isLocked($hashLocker1));
-        $this->assertTrue($locker->isLocked($hashLocker1));
-        $this->assertMutexCounters($manager1, $hashLocker1, 1);
+        static::assertTrue($manager1->isLocked($hashLocker1));
+        static::assertTrue($locker->isLocked($hashLocker1));
+        static::assertMutexCounters($manager1, $hashLocker1, 1);
 
         // Mutex will be locked until the controller finish or the process ends.
         // In an a real scenario we need a second locker manager but we keep the same locker instance.
@@ -79,9 +79,9 @@ class MutexRequestListenerTest extends TestCase
         $event = $this->buildFilterEvent('block');
 
         $listener->onKernelController($event);
-        $this->assertTrue($manager->isLocked($hashLocker));
-        $this->assertTrue($locker->isLocked($hashLocker));
-        $this->assertMutexCounters($manager, $hashLocker, 1);
+        static::assertTrue($manager->isLocked($hashLocker));
+        static::assertTrue($locker->isLocked($hashLocker));
+        static::assertMutexCounters($manager, $hashLocker, 1);
 
         // Mutex will be raise an http exception when try to call endpoint
         $event2 = $this->buildFilterEvent('block');
@@ -103,13 +103,13 @@ class MutexRequestListenerTest extends TestCase
         $event = $this->buildFilterEvent('check');
 
         $listener->onKernelController($event);
-        $this->assertFalse($manager->isLocked($hashLocker));
-        $this->assertFalse($locker->isLocked($hashLocker));
-        $this->assertMutexCounters($manager, $hashLocker, 0);
+        static::assertFalse($manager->isLocked($hashLocker));
+        static::assertFalse($locker->isLocked($hashLocker));
+        static::assertMutexCounters($manager, $hashLocker, 0);
 
         // Acquire manually the resource
         $manager->acquireLock($hashLocker);
-        $this->assertMutexCounters($manager, $hashLocker, 1);
+        static::assertMutexCounters($manager, $hashLocker, 1);
 
         // Mutex will be raise an http exception when try to call endpoint
         $event2 = $this->buildFilterEvent('check');
@@ -131,14 +131,14 @@ class MutexRequestListenerTest extends TestCase
 
         // First time the resource is not locked
         $listener->onKernelController($event);
-        $this->assertTrue($manager->isLocked($hashLocker));
-        $this->assertTrue($locker->isLocked($hashLocker));
-        $this->assertMutexCounters($manager, $hashLocker, 1);
+        static::assertTrue($manager->isLocked($hashLocker));
+        static::assertTrue($locker->isLocked($hashLocker));
+        static::assertMutexCounters($manager, $hashLocker, 1);
 
         // Mutex will be raise an http exception when try to call endpoint
         $event2 = $this->buildFilterEvent('force');
         $listener->onKernelController($event2);
-        $this->assertMutexCounters($manager, $hashLocker, 1);
+        static::assertMutexCounters($manager, $hashLocker, 1);
     }
 
     public function testReplacePlaceholders()
@@ -152,7 +152,7 @@ class MutexRequestListenerTest extends TestCase
         $name = 'resource_{id}_{color}';
         $name = MutexRequestListener::replacePlaceholders($request, $name);
 
-        $this->assertEquals('resource_1_red', $name);
+        static::assertEquals('resource_1_red', $name);
     }
 
     public function testReplaceNoPlaceholder()
@@ -166,7 +166,7 @@ class MutexRequestListenerTest extends TestCase
         $name = 'resource';
         $name = MutexRequestListener::replacePlaceholders($request, $name);
 
-        $this->assertEquals('resource', $name);
+        static::assertEquals('resource', $name);
     }
 
     /**
@@ -188,14 +188,14 @@ class MutexRequestListenerTest extends TestCase
         $refProp->setAccessible(true);
         $values   = $refProp->getValue($manager);
 
-        $this->assertArrayHasKey($name, $values);
+        static::assertArrayHasKey($name, $values);
         $mutex = $values[$name];
         $refClass = new \ReflectionClass(\NinjaMutex\Mutex::class);
         $refProp  = $refClass->getProperty('counter');
         $refProp->setAccessible(true);
         $value    = $refProp->getValue($mutex);
 
-        $this->assertEquals($counter, $value);
+        static::assertEquals($counter, $value);
     }
 
     /**

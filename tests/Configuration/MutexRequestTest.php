@@ -1,9 +1,11 @@
 <?php
 
-namespace IXarlie\MutexBundle\Tests\DependencyInjection;
+namespace Tests\Configuration;
 
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use PHPUnit\Framework\TestCase;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationAnnotation;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 /**
  * Class MutexRequestTest
@@ -13,7 +15,7 @@ class MutexRequestTest extends TestCase
     public function testInstanceOf()
     {
         $annotation = new MutexRequest([]);
-        $this->assertInstanceOf(MutexRequest::class, $annotation);
+        static::assertInstanceOf(ConfigurationAnnotation::class, $annotation);
     }
 
     public function testProperties()
@@ -30,16 +32,10 @@ class MutexRequestTest extends TestCase
         ];
 
         $annotation = new MutexRequest($params);
+        $accessor   = new PropertyAccessor();
 
-        $refClass = new \ReflectionClass(MutexRequest::class);
-        foreach ($refClass->getProperties() as $property) {
-            $property->setAccessible(true);
-
-            $name  = $property->getName();
-            $this->assertArrayHasKey($name, $params);
-
-            $value = $property->getValue($annotation);
-            $this->assertEquals($params[$name], $value);
+        foreach ($params as $paramName => $value) {
+            static::assertEquals($value, $accessor->getValue($annotation, $paramName));
         }
     }
 

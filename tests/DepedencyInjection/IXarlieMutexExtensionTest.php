@@ -20,12 +20,12 @@ use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 class IXarlieMutexExtensionTest extends \PHPUnit_Framework_TestCase
 {
     use UtilTestTrait;
-    
+
     public function testInstance()
     {
-        $this->assertInstanceOf(ExtensionInterface::class, new IXarlieMutexExtension());
+        static::assertInstanceOf(ExtensionInterface::class, new IXarlieMutexExtension());
     }
-    
+
     public function testPlainConfiguration()
     {
         $container = $this->getContainer();
@@ -50,7 +50,7 @@ class IXarlieMutexExtensionTest extends \PHPUnit_Framework_TestCase
                 ]
             ]
         ], $container);
-        $this->assertTrue(true);
+        static::assertTrue(true);
     }
 
     /**
@@ -74,18 +74,18 @@ class IXarlieMutexExtensionTest extends \PHPUnit_Framework_TestCase
         ], $container);
 
         $manager = $container->get($serviceId);
-        $this->assertInstanceOf(LockerManagerInterface::class, $manager);
+        static::assertInstanceOf(LockerManagerInterface::class, $manager);
 
         $refl = new \ReflectionClass($manager);
         $prop = $refl->getProperty('locker');
         $prop->setAccessible(true);
 
         $locker = $prop->getValue($manager);
-        $this->assertInstanceOf($className, $locker);
+        static::assertInstanceOf($className, $locker);
 
         // test alias
         $alias = $container->get('i_xarlie_mutex.locker');
-        $this->assertEquals($manager, $alias);
+        static::assertEquals($manager, $alias);
     }
 
     /**

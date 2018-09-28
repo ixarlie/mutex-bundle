@@ -59,7 +59,7 @@ class MemcachedDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    protected function getName()
+    public function getName()
     {
         return 'memcached';
     }

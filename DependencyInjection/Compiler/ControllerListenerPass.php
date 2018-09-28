@@ -33,16 +33,14 @@ class ControllerListenerPass implements CompilerPassInterface
 
         $listener = $container->getDefinition('ixarlie_mutex.controller.listener');
         $tags     = $listener->getTag('kernel.event_listener');
-        $priority = isset($tags[0]['priority']) ? $tags[0]['priority'] : null;
-
-        if (null === $priority) {
-            return;
-        }
+        $priority = isset($tags[0]['priority']) ? $tags[0]['priority'] : 255;
 
         // ControllerListener should run before our MutexRequestListener
-        $listener            = $container->getDefinition('sensio_framework_extra.controller.listener');
+        $listener = $container->getDefinition('sensio_framework_extra.controller.listener');
         $listener->clearTag('kernel.event_subscriber');
-        $options = ['event' => KernelEvents::CONTROLLER, 'method' => 'onKernelController', 'priority' => $priority + 5];
-        $listener->addTag('kernel.event_listener', $options);
+        $listener->addTag(
+            'kernel.event_listener',
+            ['event' => KernelEvents::CONTROLLER, 'method' => 'onKernelController', 'priority' => $priority + 5]
+        );
     }
 }
