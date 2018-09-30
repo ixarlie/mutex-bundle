@@ -1,4 +1,4 @@
-#Custom
+# Custom
 
 The Custom type let you use a custom `Symfony\Component\Lock\StoreInterface` implementation.
 
@@ -17,6 +17,7 @@ i_xarlie_mutex:
                 retry_count: 3
             logger: 'monolog.logger'
 ```
+
 
 ***
 [Back](../README.md)

@@ -160,7 +160,7 @@ class IXarlieMutexExtension extends Extension
         $exceptionListener = new Definition(MutexExceptionListener::class);
         $exceptionListener->addTag(
             'kernel.event_listener',
-            ['event' => KernelEvents::EXCEPTION, 'method' => 'onKernelException']
+            ['event' => KernelEvents::EXCEPTION, 'method' => 'onKernelException', 'priority' => 255]
         );
         $container->setDefinition(MutexExceptionListener::class, $exceptionListener);
 
@@ -169,11 +169,13 @@ class IXarlieMutexExtension extends Extension
         }
 
         // Configure MutexReleaseListener
-        $terminateListener = new Definition(MutexReleaseListener::class);
-        $terminateListener->addTag(
-            'kernel.event_listener',
-            ['event' => KernelEvents::TERMINATE, 'method' => 'onKernelTerminate', 'priority' => -255]
-        );
-        $container->setDefinition(MutexReleaseListener::class, $terminateListener);
+        if ($config['autorelease']) {
+            $terminateListener = new Definition(MutexReleaseListener::class);
+            $terminateListener->addTag(
+                'kernel.event_listener',
+                ['event' => KernelEvents::TERMINATE, 'method' => 'onKernelTerminate', 'priority' => -255]
+            );
+            $container->setDefinition(MutexReleaseListener::class, $terminateListener);
+        }
     }
 }

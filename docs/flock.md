@@ -1,6 +1,6 @@
-#Flock
+# Flock
 
-[RedisStore](https://symfony.com/doc/current/components/lock.html#flockstore)
+[FlockStore](https://symfony.com/doc/current/components/lock.html#flockstore)
 [Reliability](https://symfony.com/doc/current/components/lock.html#id1)
 
 ## Configuration

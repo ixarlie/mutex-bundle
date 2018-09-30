@@ -1,4 +1,4 @@
-#Full configuration
+# Full configuration
 
 Full configuration options:
 ```yaml
@@ -8,9 +8,11 @@ i_xarlie_mutex:
     # configure some aspects of request listener
     request_listener:
         # if you want disable the default listener set this value to false.
-        enabled: ~
+        enabled: true
         # a priority value for the listener, the highest the soonest (not required, default: 255)
-        priority: ~
+        priority: 255
+        # add a kernel.terminate listener to release all the collected lockers
+        autorelease: true
     # you can have several lockers configurations for each type
     # blocking option is present for every type but "combined".
     # logger is present for every type, it is a logger service name.

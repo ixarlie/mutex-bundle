@@ -1,63 +1,31 @@
-# MutexRequest
+# Annotations
 
-`MutexRequest` annotation can be used both ways, as target class or method.
+`MutexRequest` annotation can be used only on controller methods.
 
-#### Options
+## Options
 
-##### name
+### name
+`not required`
 
-Lock's name. Not required. Default value is a hash combination of controller, method, path (and/or user hash)
+Lock's name. If no name is provided, the name will be created using request information and other configuration options.
 
-You can use request placeholders. For example: resource_{id}, {id} will be
-replaced for the request placeholder value. If there is no placeholder in the request and exception is thrown. 
+The name could contains request placeholders. For example: `resource_{id}`
+
+The placeholder `{id}` will be replaced with the request `_route_params` value. If there is no placeholder an exception
+is thrown.
+
+Note: Read `userIsolation` option to know how it affects to the name.
+Note: The prefix `ixarlie_mutex_` is prepend to every locker.
+Note: The name uses a md5 hash (to avoid issue with some stores)
 
 Examples:
-
-```php
-class MyController extends Controller
-{
-    /**
-     * @Route(name="important_action", path="/resource/{id}/important")
-     * @MutexRequest(mode="queue")
-     */
-    public function importantAction()
-    {
-        // ...
-    }
-}
+```
+@MutexRequest(mode="block")
+@MutexRequest(name="resource_{id}", mode="block")
 ```
 
-```php
-/**
- * To block methods each other in the same controller, it's important to use a custom name.
- *
- * @MutexRequest(name="MyController", mode="block")
- */
-class MyController extends Controller
-{
-    public function importantAction()
-    {
-        // ...
-    }
-}
-```
-
-```php
-class MyController extends Controller
-{
-    /**
-     * @MutexRequest(name="resource_{id}")
-     * @Request(name="resource_edit", path="/resource/{id}/edit")
-     */ 
-    public function importantAction()
-    {
-        // ...
-    }
-}
-```
-
-##### mode
-
+### mode
+`required`
 Required option.
 
 | Mode  | Description   |
@@ -67,91 +35,148 @@ Required option.
 | queue | Attempt to acquire the mutex, in case is locked, the request wait until the mutex is released. See notes |
 | force | Release any locked mutex, then acquire it. |
 
+Examples:
+```
+@MutexRequest(mode="block")
+@MutexRequest(mode="check")
+@MutexRequest(mode="queue")
+@MutexRequest(mode="force") 
+```
+
 **Queue Notes**
 
-It is very important when using `queue` option to have well configured the queue options in the `request_listener`.
-- `queue_timeout` (default: x): Set a number of seconds the listener will wait for the mutex.
-- `queue_max_try` (default: 3): Set the max number of attempts the listener will try to acquire the mutex.
+The `queue` mode will work depending on the `service` configuration and by the store's features.
 
-In no value is configured in `queue_timeout` the max_time_execution configuration will be taken, so be aware about this
-parameter in your php.ini
+Read `Blocking` section in [Symfony Docs](https://symfony.com/doc/current/components/lock.html#blocking-locks)
 
+Not all the stores implements this feature. For example: `RedisStore` does not support it and it should use `blocking`
+option in its configuration. You can defined `retry_sleep` and `retry_count` options.
 
-##### service
+Built-in supported stores: `flock`, `semaphore`, `custom` (depending on your custom implementation)
 
-Service to handle the lock. Not required. Default value is locker defined in `default` configuration.
+```yaml
+i_xarlie_mutex:
+    default: redis.default
+    redis:
+        default:                    # default cannot use acquire(true)
+            client: redis_client
+        queued:                     # queued can use acquire(true)
+            client: redis_client
+            blocking:
+                retry_sleep: 1000 # waits for the lock
+                retry_count: 3    # number of attempts
+```
+
+Examples:
+```
+@MutexRequest(mode="queue", service="redis.queued")
+
+// This is not going to work and an exception will be thrown.
+@MutexRequest(mode="queue", service="redis.default") 
+```
+
+### service
+`not required`
+
+The factory service name. If not value is provided the default value will be taken from the `default` configuration.
+
+If you want to use an specific factory it is recommended to use the simple form `{factory_type}.{factory_name}`.
+Also you can use the full name form `ixarlie_mutex.{factory_type}_factory.{factory_name}`
 
 Examples:
 
 With next configuration, below annotations are equivalents.
 ```yaml
 i_xarlie_mutex:
-  default: redis.default    
-  redis:
-    default:
-      host: '%redis_host%'
-      port: '%redis_port%'
+    default: redis.default    
+    redis:
+        default:
+            client: redis_client
+            logger: monolog.logger
 ```
-```php
-class MyController extends Controller
-{
-    /**
-     * @MutexRequest(name="foo", service="ixarlie_mutex.redis_factory.default")
-     * @MutexRequest(name="foo", service="redis.default")
-     * @MutexRequest(name="foo")
-     */
-    public function importantAction()
-    {
-        // ...
-    }
-}
+```
+@MutexRequest(name="foo", service="ixarlie_mutex.redis_factory.default")
+@MutexRequest(name="foo", service="redis.default")
+@MutexRequest(name="foo")
 ```
 
-##### httpCode
+### http
+`not required`
 
-In `queue`, `block` and `check` modes an `HttpException` can be thrown. Not required. Default value 409.
+When the lock is acquired some exception can be thrown. The array of available options are:
 
-See configuration option `request_listner.http_exception.code`
+- code: HTTP code status. Default: `423`
+- message: HTTP message. Default: `Resource is not available at this moment.`
+- domain: A translation domain to enable the message translation. Default: `~`
 
-##### message
+Note: `domain` will use the Symfony's translator service (if exists) to translate `message`.
+Note: Modes `queue`, `block` and `check` can throw `MutexException`.
 
-Message for the `HttpException`. Not required. Default value `Resource is not available at this moment.`
+### userIsolation
+`not required``default = false`
 
-See configuration option `request_listner.http_exception.message`
+This option allows isolate lockers for each user. An unique hash user will be append to the lock's name. The user information
+is taken from the `security.token_storage` Symfony service.
 
-##### messageDomain
-
-Domain to translate the message. Not required.
-
-##### userIsolation
-
-This option allows isolate mutex for each user. Not required. Default value `false`
-
-Examples:
-
-Two different users requesting same route, a unique hash user will be appended to the name.
-Hash is generated from the serialized user's token information.
- 
-* User1: hash1 -> foo_hash1
-* User2: hash2 -> foo_hash2
-
-```php
-class MyController extends Controller
-{
-    /**
-     * @MutexRequest(name="foo", userIsolation=true)
-     */
-    public function importantAction()
-    {
-        // ...
-    }
-}
+Example:
+```
+@MutexRequest(name="foo", userIsolation=true)
 ```
 
+Note: If `security.token_storage` is not defined and `userIsolation` is used, an expcetion will be thrown.
 Note: Be aware about using `userIsolation` in non anonymous routes.
 
-##### ttl
+### ttl
+`not required`
 
-Time-to-live in seconds. Not required.
+Maximum expected lock duration in seconds.
 
-Note: Not all lockers are compatible with time-to-live feature. Compatible lockers implements `LockExpirationInterface`
+Note: Compatible stores: `redis`, `memcached`, `combined` (depending of store list)
+
+
+## Listener
+
+### Configuration
+
+```yaml
+i_xarlie_mutex:
+    request_listener:
+        enabled: true       # this option enable all the request feature
+        priority: 255       # the listeners should be executed as soon as possible
+        autorelease: true   # release all the collected lockers on terminate
+```
+
+There are four built-in listeners:
+
+Note: `{priority}` can be configured in `request_listener.priority`
+
+### MutexDecoratorListener
+`kernel.controller` `priority: {priority + 1}`
+
+After `Sensio\Bundle\FrameworkExtraBundle\EventListener\ControllerListener` is executed, this listener will process the
+annotation configuration and it will set the default options for `name` and `service`.
+
+### MutexRequestListener
+`kernel.controller` `priority: {prioriry}`
+
+After `MutexDecoratorListener`, this listener will create the lockers and will execute it depending on the `mode` option.
+
+### MutexExceptionListener
+`kernel.exception` `priority: 255`
+
+If a `MutexException` exception is thrown, this listener will catch it, and it will replace it with an `HttpException`.
+
+The `HttpException` is configured depending on the `http` option. The new exception will be processed for the regular
+listeners.
+
+### MutexReleaseListener
+`kernel.terminate` `priority: -255`
+
+Despite lockers are created using the Symfony option `autorelease`, this listener will release all the collected lockers.
+
+Note: The bundle boost `Sensio\Bundle\FrameworkExtraBundle\EventListener\ControllerListener` priority for easy annotation
+reading.
+
+
+***
+[Back](../README.md)

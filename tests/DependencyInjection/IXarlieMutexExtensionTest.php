@@ -125,8 +125,9 @@ class IXarlieMutexExtensionTest extends TestCase
         $tags = $definition->getTag('kernel.event_listener');
         static::assertEquals(
             [
-                'event'  => KernelEvents::EXCEPTION,
-                'method' => 'onKernelException',
+                'event'    => KernelEvents::EXCEPTION,
+                'method'   => 'onKernelException',
+                'priority' => 255
             ],
             $tags[0]
         );

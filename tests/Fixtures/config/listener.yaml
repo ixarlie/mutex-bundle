@@ -3,3 +3,4 @@ i_xarlie_mutex:
     request_listener:
         enabled: true
         priority: 1000
+        autorelease: true

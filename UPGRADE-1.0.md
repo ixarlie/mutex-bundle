@@ -1,4 +1,4 @@
-#UPGRADE FROM 0.1 to 1.0
+# UPGRADE FROM 0.1 to 1.0
 
 ## Important
 In this new version, the library was changed completely in favor of `symfony/lock` component. You really have to
@@ -8,7 +8,7 @@ Please, read [Symfony/Lock](https://symfony.com/doc/current/components/lock.html
 
 ## Removed Locks
 
-* Memcache: Consider use memcached instead.
+* Memcache: consider to use memcached instead.
 
 ## Removed classes
 
@@ -43,6 +43,8 @@ should be configured in the annotation, the default values for them are kept.
 ## Annotation
 
 * The annotation cannot be used for classes anymore.
+* The options `httpCode`, `message` and `messageDomain` were moved under the same option `http` with the following names:
+`code`, `message` and `domain` respectively.
 
 ## LockManager
 

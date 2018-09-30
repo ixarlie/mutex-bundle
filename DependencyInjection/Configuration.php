@@ -54,6 +54,7 @@ class Configuration implements ConfigurationInterface
             ->canBeEnabled()
             ->children()
                 ->integerNode('priority')->defaultValue(255)->end()
+                ->booleanNode('autorelease')->defaultValue(true)->end()
             ->end()
             ->beforeNormalization()
                 ->ifNull()

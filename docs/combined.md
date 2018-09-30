@@ -1,6 +1,6 @@
-#Combined
+# Combined
 
-[RedisStore](https://symfony.com/doc/current/components/lock.html#combinedstore)
+[CombinedStore](https://symfony.com/doc/current/components/lock.html#combinedstore)
 [Reliability](https://symfony.com/doc/current/components/lock.html#id4)
 
 ## Configuration
@@ -18,6 +18,7 @@ i_xarlie_mutex:
                 retry_count: 3
             logger: 'monolog.logger'
 ```
+
 
 ***
 [Back](../README.md)

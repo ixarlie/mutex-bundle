@@ -1,11 +1,12 @@
-#IXarlie Mutex Bundle
+# IXarlie Mutex Bundle
 
 [![Build Status](https://travis-ci.org/ixarlie/mutex-bundle.svg?branch=master)](https://travis-ci.org/ixarlie/mutex-bundle)
 [![Maintainability](https://api.codeclimate.com/v1/badges/308f7d2e318ae6ff22e4/maintainability)](https://codeclimate.com/github/ixarlie/mutex-bundle/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/308f7d2e318ae6ff22e4/test_coverage)](https://codeclimate.com/github/ixarlie/mutex-bundle/test_coverage)
 
-Integrates symfony/lock component to register locks as services.
+Integrates `symfony/lock` component to register locks as services.
 
+Please, read [Symfony/Lock](https://symfony.com/doc/current/components/lock.html) for learning concepts.
 
 ## Types
 * [Flock](docs/flock.md)
@@ -17,6 +18,8 @@ Integrates symfony/lock component to register locks as services.
 
 
 ## Features
+
+* Creates services for configured locks factories.
 * MutexRequest annotation to use mutex in `kernel.controller` event.
 
 
@@ -53,23 +56,25 @@ See [Full configuration](docs/full_configuration.md) section for further informa
 
 ```yaml
 i_xarlie_mutex:
-    default: flock.default
+    default: flock.simple
     request_listener:
         enabled: true
     flock:
         default:
             lock_dir: '%kernel.cache_dir%'
             logger: monolog.logger
+        simple:
+            lock_dir: '/tmp/flock'
 ```
 
 Some services will be created using this configuration.
 
-- `ixarlie_mutex.flock_factory.default`, allow creates lockers
+- `ixarlie_mutex.flock_factory.default`, allow creates lockers.
 - `ixarlie_mutex.flock_store.default`, it is the store instance. It is private but you can use it as dependency.
-- `ixarlie_mutex.default_factory`, as the default option matches type.name = flock.default, it points to `ixarlie_mutex.flock_factory.default`
+- `ixarlie_mutex.default_factory`, is the default factory using the default option. type.name = flock.default, it points to `ixarlie_mutex.flock_factory.default`.
 
 
-To use your own store implementations, just replace these parameters:
+To use your own store implementation instead of Symfony, just replace these parameters:
 ```yaml
 parameters:
     ixarlie_mutex.flock_store.class: Symfony\Component\Lock\Store\FlockStore
@@ -79,16 +84,23 @@ parameters:
 ```
 
 
-## Event Listener
+## Request Listener
 
-To use this option the configuration `request_listener.enabled` should be set to `true`.
+To use this feature set `request_listener.enabled` option as `true` in the bundle configuration.
 
-It allows to add lockers in your controllers using an annotation. The annotation does have several options changing the
-way the locker is executed.
+Using the annotation `MutexRequest` a locker will be created and processed everytime your controller is called.
 
-The purpose for this is avoid concurrent requests for the same resource.
+```php
+class MyController {
 
-The listener priority is high (255 by default), this bundle have to boost `Sensio\Bundle\FrameworkExtraBundle\EventListener\ControllerListener`
-priority to read annotations easier.
+    /**
+     * @MutexRequest(name="action_name", mode="block", userIsolation=true, http={"code": 423, "message": "Wait!"})
+     */
+    public function fooAction()
+    {
+        return [];
+    }
+}
+```
 
 See [Annotations](docs/annotations.md) section for further information.

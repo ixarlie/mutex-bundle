@@ -1,4 +1,4 @@
-#Redis
+# Redis
 
 [RedisStore](https://symfony.com/doc/current/components/lock.html#redisstore)
 [Reliability](https://symfony.com/doc/current/components/lock.html#id3)
@@ -20,7 +20,7 @@ i_xarlie_mutex:
             logger: 'monolog.logger'
 ```
 
-## How to create a Redis services
+## How to create a Redis service
 
 ```yaml
 # Read Redis documentation to know more options.
@@ -29,8 +29,8 @@ services:
         class: '\Redis'
         calls:
             - ['connect', ['localhost', 9200]]
-            - ['auth', 'password']
-            - ['select', 0] 
+            - ['auth', 'password']              # optional
+            - ['select', 0]                     # optional
 ```
 
 ```yaml
@@ -39,10 +39,10 @@ services:
     predis_client:
         class: '\PRedis\Client'
         arguments:
-            - host: 'localhost' # connection
-              port: 9200
-            - []                # options
+            - { host: 'localhost', port: 9200 } # connection
+            - []                                # options (optional)
 ```
+
 
 ***
 [Back](../README.md)

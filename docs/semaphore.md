@@ -1,6 +1,6 @@
-#Semaphore
+# Semaphore
 
-[RedisStore](https://symfony.com/doc/current/components/lock.html#semaphorestore)
+[SemaphoreStore](https://symfony.com/doc/current/components/lock.html#semaphorestore)
 [Reliability](https://symfony.com/doc/current/components/lock.html#id5)
 
 ## Configuration
@@ -14,6 +14,7 @@ i_xarlie_mutex:
         default:
             logger: 'monolog.logger'
 ```
+
 
 ***
 [Back](../README.md)

@@ -24,8 +24,9 @@ class ConfigurationTest extends TestCase
         $expected = [
             'default'          => 'none',
             'request_listener' => [
-                'enabled'  => false,
-                'priority' => 255,
+                'enabled'     => false,
+                'priority'    => 255,
+                'autorelease' => true
             ],
             'flock'            => [],
             'semaphore'        => [],
@@ -132,8 +133,9 @@ class ConfigurationTest extends TestCase
                 ]
             ],
             'request_listener' => [
-                'enabled'  => false,
-                'priority' => 255,
+                'enabled'     => false,
+                'priority'    => 255,
+                'autorelease' => true
             ],
         ];
 
@@ -147,8 +149,9 @@ class ConfigurationTest extends TestCase
         $expected = [
             'default'          => 'none',
             'request_listener' => [
-                'enabled'  => true,
-                'priority' => 1000,
+                'enabled'     => true,
+                'priority'    => 1000,
+                'autorelease' => true,
             ],
             'flock'            => [],
             'redis'            => [],

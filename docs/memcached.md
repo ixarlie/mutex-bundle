@@ -1,6 +1,6 @@
-#Memcached
+# Memcached
 
-[RedisStore](https://symfony.com/doc/current/components/lock.html#memcachedstore)
+[MemcachedStore](https://symfony.com/doc/current/components/lock.html#memcachedstore)
 [Reliability](https://symfony.com/doc/current/components/lock.html#id2)
 
 ## Configuration
@@ -20,7 +20,7 @@ i_xarlie_mutex:
             logger: 'monolog.logger'
 ```
 
-## How to create a Memcached services
+## How to create a Memcached service
 
 ```yaml
 # Read Memcached documentation to know more options.
@@ -30,6 +30,7 @@ services:
         calls:
             - ['addServer', ['localhost', 1000]] 
 ```
+
 
 ***
 [Back](../README.md)
