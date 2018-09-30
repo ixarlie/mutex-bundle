@@ -2,6 +2,8 @@ framework:
     test: true
 
 sensio_framework_extra:
+    router:
+        annotations: false
 
 i_xarlie_mutex:
     request_listener:
