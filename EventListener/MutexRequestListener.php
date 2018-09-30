@@ -40,10 +40,6 @@ class MutexRequestListener
             return;
         }
 
-        if (!is_array($controller = $event->getController())) {
-            return;
-        }
-
         $locks          = [];
         $request        = $event->getRequest();
         $configurations = $request->attributes->get('_ixarlie_mutex_request', []);

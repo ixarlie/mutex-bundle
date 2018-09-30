@@ -2,7 +2,7 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
-use Symfony\Component\Config\Definition\Builder\NodeBuilder;
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -26,15 +26,20 @@ class CombinedDefinition extends LockDefinition
 
         $stores   = [];
         foreach ($config['stores'] as $store) {
+            if (preg_match('/(\w+)\.(\w+)/', $store, $matches)) {
+                // Service matches type.name
+                $store = sprintf('ixarlie_mutex.%s_store.%s', $matches[1], $matches[2]);
+            }
+
             $stores[] = new Reference($store);
         }
 
         switch ($config['strategy']) {
             case 'consensus':
-                $strategy = new ConsensusStrategy();
+                $strategy = new Definition(ConsensusStrategy::class);
                 break;
             case 'unanimous':
-                $strategy = new UnanimousStrategy();
+                $strategy = new Definition(UnanimousStrategy::class);
                 break;
             default:
                 $strategy = new Reference($config['strategy']);
@@ -52,32 +57,27 @@ class CombinedDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    public static function addConfiguration(NodeBuilder $nodeBuilder)
+    public function addConfiguration()
     {
-        return $nodeBuilder
-            ->arrayNode('combined')
-                ->useAttributeAsKey('name')
-                ->prototype('array')
-                ->children()
-                    ->arrayNode('stores')->isRequired()
-                        ->validate()
-                            ->ifEmpty()
-                            ->thenInvalid('At least one store is mandatory.')
-                        ->end()
-                    ->end()
-                    ->arrayNode('strategy')->defaultValue('unanimous')->end()
-                    ->scalarNode('logger')->defaultNull()->end()
-                    ->arrayNode('blocking')
-                    ->addDefaultsIfNotSet()
-                    ->children()
-                        ->integerNode('retry_sleep')->defaultValue(100)->end()
-                        ->integerNode('retry_count')->defaultValue(PHP_INT_MAX)->end()
-                    ->end()
+        $tree = new TreeBuilder();
+        $node = $tree->root($this->getName());
+        $node
+            ->requiresAtLeastOneElement()
+            ->useAttributeAsKey('name')
+            ->arrayPrototype()
+            ->children()
+                ->arrayNode('stores')
+                    ->isRequired()
+                    ->requiresAtLeastOneElement()
+                    ->scalarPrototype()->end()
                 ->end()
-                ->end()
-                ->end()
+                ->scalarNode('strategy')->defaultValue('unanimous')->end()
+                ->append($this->addBlockConfiguration())
+                ->scalarNode('logger')->end()
             ->end()
         ;
+
+        return $node;
     }
 
     /**

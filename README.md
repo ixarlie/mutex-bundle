@@ -1,5 +1,4 @@
-IXarlie Mutex Bundle
-===========================
+#IXarlie Mutex Bundle
 
 [![Build Status](https://travis-ci.org/ixarlie/mutex-bundle.svg?branch=master)](https://travis-ci.org/ixarlie/mutex-bundle)
 [![Maintainability](https://api.codeclimate.com/v1/badges/308f7d2e318ae6ff22e4/maintainability)](https://codeclimate.com/github/ixarlie/mutex-bundle/maintainability)
@@ -7,267 +6,89 @@ IXarlie Mutex Bundle
 
 Integrates symfony/lock component to register locks as services.
 
-## Lockers
-* flock (fylesystem), redis, predis, memcached, semaphore, combined.
+
+## Types
+* [Flock](docs/flock.md)
+* [Semaphore](docs/semaphore.md)
+* [Redis](docs/redis.md)
+* [Memcached](docs/memcached.md)
+* [Combined](docs/combined.md)
+* [Custom](docs/custom.md)
+
 
 ## Features
-* Add services for each registered locker.
-* MutexRequest annotation to use mutex in kernel.controller events.
+* MutexRequest annotation to use mutex in `kernel.controller` event.
 
 
 ## Install
 
 ```sh
-
-composer require ixarlie/mutex-bundle ^1.0
-
+composer require ixarlie/mutex-bundle "^1.0"
 ```
 
-Add the bundle in kernel class
+Add the bundle in the kernel class:
 
 ```php
-
-$bundles(
-    ...
-       new IXarlie\MutexBundle\IXarlieMutexBundle(),
-    ...
+// prior Symfony 4
+$bundles = array(
+    // ...
+    new IXarlie\MutexBundle\IXarlieMutexBundle(),
+    // ...
 );
 
+// Symfony 4
+$bundles = [
+    // ...
+    IXarlie\MutexBundle\IXarlieMutexBundle::class => ['all' => true],
+    // ...
+];
 ```
+
 
 ## Configuration
 
-Full configuration options:
+Any number of lockers can be defined with their own custom options.
+
+See [Full configuration](docs/full_configuration.md) section for further information.
+
 ```yaml
-ixarlie_mutex:
-  # default locker service is mandatory (type.name)
-  default: redis.default
-  # configure some aspects of request listener
-  request_listener:
-    # if you want disable the default listener set this value to false.
-    enabled: ~
-    # allow to use request placeholders to be replaced in the annotation name property (not required, default: false)
-    request_placeholder: false
-    # a priority value for the listener, the highest the soonest (not required, default: 255)
-    priority: ~
-    # true for enable message translation (default: false)
-    translator: ~
-    # true for be able get a hash for the current token user (default: false)
-    user_isolation: ~
-    # optional http configuration for default message and code
-    http_exception:
-      message: 'This is the default block message'
-      code: 409
-  # you can have several lockers configurations for each type
-  # blocking option is present for every type but "combined".
-  # logger is present for every type, it is a logger service name.
-  flock:
-    default:
-      cache_dir: '%kernel.cache_dir%'
-      blocking:
-        retry_sleep: 500
-        retry_count: 3
-      logger: monolog.logger
-    other:
-      cache_dir: '%temp%'
-  semaphore:
-    default:
-  memcached:
-    default:
-      host: '%memcached_host%'
-      port: '%memcached_port%'
-      default_ttl: 300 # ttl to avoid stalled locks
-  redis:
-    default:
-      host: '%redis_host%'
-      port: '%redis_port%'
-      default_ttl: 300 # ttl to avoid stalled locks
-  predis:
-    default:
-      connection:
-        host: '%predis_host%'
-        port: '%predis_port%'
-      options: ~
-      default_ttl: 300 # ttl to avoid stalled locks
-  combined:
-    default:
-      stores:
-        - ixarlie_mutex.redis_store.default     # store definition, not public services
-        - ixarlie_mutex.memcached_store.default
-      strategy: unanimous # consensus or a StrategyInterface service name  
+i_xarlie_mutex:
+    default: flock.default
+    request_listener:
+        enabled: true
+    flock:
+        default:
+            lock_dir: '%kernel.cache_dir%'
+            logger: monolog.logger
 ```
 
-To use your own classes, there are some parameters to do it:
+Some services will be created using this configuration.
+
+- `ixarlie_mutex.flock_factory.default`, allow creates lockers
+- `ixarlie_mutex.flock_store.default`, it is the store instance. It is private but you can use it as dependency.
+- `ixarlie_mutex.default_factory`, as the default option matches type.name = flock.default, it points to `ixarlie_mutex.flock_factory.default`
+
+
+To use your own store implementations, just replace these parameters:
 ```yaml
 parameters:
-  ixarlie_mutex.flock_store.class: Symfony\Component\Lock\Store\FlockStore
-  ixarlie_mutex.semaphore_store.class: Symfony\Component\Lock\Store\SemaphoreStore
-  ixarlie_mutex.memcached_store.class: Symfony\Component\Lock\Store\MemcachedStore
-  ixarlie_mutex.redis_store.class: Symfony\Component\Lock\Store\RedisStore
+    ixarlie_mutex.flock_store.class: Symfony\Component\Lock\Store\FlockStore
+    ixarlie_mutex.semaphore_store.class: Symfony\Component\Lock\Store\SemaphoreStore
+    ixarlie_mutex.memcached_store.class: Symfony\Component\Lock\Store\MemcachedStore
+    ixarlie_mutex.redis_store.class: Symfony\Component\Lock\Store\RedisStore
 ```
 
-## Annotations
 
-### MutexRequest
+## Event Listener
 
-`MutexRequest` annotation can be used both ways, as target class or method.
+To use this option the configuration `request_listener.enabled` should be set to `true`.
 
-#### Options
+It allows to add lockers in your controllers using an annotation. The annotation does have several options changing the
+way the locker is executed.
 
-##### name
+The purpose for this is avoid concurrent requests for the same resource.
 
-Lock's name. Not required. Default value is a hash combination of controller, method, path (and/or user hash)
+The listener priority is high (255 by default), this bundle have to boost `Sensio\Bundle\FrameworkExtraBundle\EventListener\ControllerListener`
+priority to read annotations easier.
 
-You can use request placeholders (you need enable `request_placeholder`). For example: resource_{id}, {id} will be
-replaced for the request placeholder value. If there is no placeholder in the request and exception is thrown. 
-
-Examples:
-
-```php
-class MyController extends Controller
-{
-    /**
-     * @Route(name="important_action", path="/resource/{id}/important")
-     * @MutexRequest(mode="queue")
-     */
-    public function importantAction()
-    {
-        // ...
-    }
-}
-```
-
-```php
-/**
- * To block methods each other in the same controller, it's important to use a custom name.
- *
- * @MutexRequest(name="MyController", mode="block")
- */
-class MyController extends Controller
-{
-    public function importantAction()
-    {
-        // ...
-    }
-}
-```
-
-```php
-class MyController extends Controller
-{
-    /**
-     * @MutexRequest(name="resource_{id}")
-     * @Request(name="resource_edit", path="/resource/{id}/edit")
-     */ 
-    public function importantAction()
-    {
-        // ...
-    }
-}
-```
-
-##### mode
-
-Required option.
-
-| Mode  | Description   |
-| ----- | ------------- |
-| block | Attempt to acquire the mutex, in case is locked an exception is thrown. |
-| check | Check status of the mutex, in case is locked an exception is thrown. (do not attempt to acquire the mutex) |
-| queue | Attempt to acquire the mutex, in case is locked, the request wait until the mutex is released. See notes |
-| force | Release any locked mutex, then acquire it. |
-
-**Queue Notes**
-
-It is very important when using `queue` option to have well configured the queue options in the `request_listener`.
-- `queue_timeout` (default: x): Set a number of seconds the listener will wait for the mutex.
-- `queue_max_try` (default: 3): Set the max number of attempts the listener will try to acquire the mutex.
-
-In no value is configured in `queue_timeout` the max_time_execution configuration will be taken, so be aware about this
-parameter in your php.ini
-
-
-##### service
-
-Service to handle the lock. Not required. Default value is locker defined in `default` configuration.
-
-Examples:
-
-With next configuration, below annotations are equivalents.
-```yaml
-i_xarlie_mutex:
-  default: redis.default    
-  redis:
-    default:
-      host: '%redis_host%'
-      port: '%redis_port%'
-```
-```php
-class MyController extends Controller
-{
-    /**
-     * @MutexRequest(name="foo", service="ixarlie_mutex.redis_factory.default")
-     * @MutexRequest(name="foo", service="redis.default")
-     * @MutexRequest(name="foo")
-     */
-    public function importantAction()
-    {
-        // ...
-    }
-}
-```
-
-##### httpCode
-
-In `queue`, `block` and `check` modes an `HttpException` can be thrown. Not required. Default value 409.
-
-See configuration option `request_listner.http_exception.code`
-
-##### message
-
-Message for the `HttpException`. Not required. Default value `Resource is not available at this moment.`
-
-See configuration option `request_listner.http_exception.message`
-
-##### messageDomain
-
-Domain to translate the message. Not required.
-
-##### userIsolation
-
-This option allows isolate mutex for each user. Not required. Default value `false`
-Note: You must set option request_listener.user_isolation as true
-```
-i_xarlie_mutex:
-  request_listener:
-    user_isolation: true
-```
-
-Examples:
-
-Two different users requesting same route, a unique hash user will be appended to the name.
-Hash is generated from the serialized user's token information.
- 
-* User1: hash1 -> foo_hash1
-* User2: hash2 -> foo_hash2
-
-```php
-class MyController extends Controller
-{
-    /**
-     * @MutexRequest(name="foo", userIsolation=true)
-     */
-    public function importantAction()
-    {
-        // ...
-    }
-}
-```
-
-Note: Be aware about using `userIsolation` in non anonymous routes.
-
-##### ttl
-
-Time-to-live in seconds. Not required.
-
-Note: Not all lockers are compatible with time-to-live feature. Compatible lockers implements `LockExpirationInterface`
+See [Annotations](docs/annotations.md) section for further information.

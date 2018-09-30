@@ -3,6 +3,7 @@
 namespace IXarlie\MutexBundle\Exception;
 
 use IXarlie\MutexBundle\Configuration\MutexRequest;
+use Symfony\Component\Lock\Exception\ExceptionInterface;
 use Symfony\Component\Lock\LockInterface;
 
 /**
@@ -24,12 +25,15 @@ class MutexException extends \Exception
 
     /**
      * MutexException constructor.
-     * @param LockInterface $lock
-     * @param MutexRequest $configuration
+     * @param LockInterface      $lock
+     * @param MutexRequest       $configuration
+     * @param ExceptionInterface $e
      */
-    public function __construct(LockInterface $lock, MutexRequest $configuration)
+    public function __construct(LockInterface $lock, MutexRequest $configuration, ExceptionInterface $e = null)
     {
-        $this->lock = $lock;
+        parent::__construct('', 0, $e);
+
+        $this->lock         = $lock;
         $this->configuration = $configuration;
     }
 

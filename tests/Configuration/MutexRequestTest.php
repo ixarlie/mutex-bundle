@@ -25,9 +25,11 @@ class MutexRequestTest extends TestCase
             'mode'          => MutexRequest::MODE_BLOCK,
             'ttl'           => 100,
             'service'       => 'default',
-            'httpCode'      => 418,
-            'message'       => 'Overwhelmed!',
-            'messageDomain' => 'messages',
+            'http'          => [
+                'code'    => 418,
+                'message' => 'Overwhelmed!',
+                'domain'  => 'messages',
+            ],
             'userIsolation' => true
         ];
 

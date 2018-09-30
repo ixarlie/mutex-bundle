@@ -1,0 +1,29 @@
+framework:
+    test: true
+
+sensio_framework_extra:
+
+i_xarlie_mutex:
+    request_listener:
+        enabled: true
+        priority: 255
+    default: 'flock.default'
+    flock:
+        default:
+            lock_dir: '%kernel.project_dir%/tests/var/flock'
+    semaphore:
+        default: ~
+    combined:
+        default:
+            stores: ['flock.default', 'semaphore.default']
+            strategy: 'consensus'
+    custom:
+        default:
+            service: Tests\Fixtures\ArrayStore
+
+services:
+    Tests\Fixtures\ArrayStore:
+        public: false
+
+parameters:
+    kernel.secret: 'secret'

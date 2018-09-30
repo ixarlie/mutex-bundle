@@ -1,5 +1,0 @@
-parameters:
-    ixarlie_mutex.flock_store.class: Symfony\Component\Lock\Store\FlockStore
-    ixarlie_mutex.semaphore_store.class: Symfony\Component\Lock\Store\SemaphoreStore
-    ixarlie_mutex.memcached_store.class: Symfony\Component\Lock\Store\MemcachedStore
-    ixarlie_mutex.redis_store.class: Symfony\Component\Lock\Store\RedisStore

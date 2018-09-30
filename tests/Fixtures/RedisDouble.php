@@ -74,7 +74,7 @@ class RedisDouble
                 unset($this->cache[$name]);
                 unset($this->expiration[$name]);
             } else {
-                $this->expiration[$name] = [$ttl, $current, $remain];    
+                $this->expiration[$name] = [$ttl, $current, $remain];
             }
         }
     }

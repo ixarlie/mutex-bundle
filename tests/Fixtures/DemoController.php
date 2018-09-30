@@ -1,6 +1,6 @@
 <?php
 
-namespace IXarlie\MutexBundle\Tests\Fixtures;
+namespace Tests\Fixtures;
 
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use Symfony\Component\HttpFoundation\Response;

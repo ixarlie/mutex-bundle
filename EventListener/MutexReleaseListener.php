@@ -20,7 +20,7 @@ class MutexReleaseListener
         $request = $event->getRequest();
         $locks   = $request->attributes->get('_ixarlie_mutex_locks', null);
 
-        if (null === $locks) {
+        if (!is_array($locks)) {
             return;
         }
 

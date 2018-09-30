@@ -2,9 +2,10 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
-use Symfony\Component\Config\Definition\Builder\NodeBuilder;
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Class MemcachedDefinition
@@ -19,9 +20,7 @@ class MemcachedDefinition extends LockDefinition
     protected function createStore(ContainerBuilder $container, array $config)
     {
         $store  = new Definition('%ixarlie_mutex.memcached_store.class%');
-
-        $client = new Definition('\Memcached');
-        $client->addMethodCall('addServer', [$config['host'], $config['port']]);
+        $client = new Reference($config['client']);
 
         $store->addArgument($client);
         $store->addArgument($config['default_ttl']);
@@ -32,28 +31,23 @@ class MemcachedDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    public static function addConfiguration(NodeBuilder $nodeBuilder)
+    public function addConfiguration()
     {
-        return $nodeBuilder
-            ->arrayNode('memcached')
-                ->useAttributeAsKey('name')
-                ->prototype('array')
-                ->children()
-                    ->scalarNode('host')->end()
-                    ->scalarNode('port')->end()
-                    ->scalarNode('default_ttl')->defaultValue(300)->end()
-                    ->scalarNode('logger')->defaultNull()->end()
-                    ->arrayNode('blocking')
-                        ->addDefaultsIfNotSet()
-                        ->children()
-                            ->integerNode('retry_sleep')->defaultValue(100)->end()
-                            ->integerNode('retry_count')->defaultValue(PHP_INT_MAX)->end()
-                        ->end()
-                    ->end()
-                ->end()
-                ->end()
+        $tree = new TreeBuilder();
+        $node = $tree->root($this->getName());
+        $node
+            ->requiresAtLeastOneElement()
+            ->useAttributeAsKey('name')
+            ->arrayPrototype()
+            ->children()
+                ->scalarNode('client')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('default_ttl')->defaultValue(300)->end()
+                ->append($this->addBlockConfiguration())
+                ->scalarNode('logger')->end()
             ->end()
         ;
+
+        return $node;
     }
 
     /**

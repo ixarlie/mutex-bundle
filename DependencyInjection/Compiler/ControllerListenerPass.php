@@ -2,6 +2,7 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Compiler;
 
+use IXarlie\MutexBundle\EventListener\MutexRequestListener;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
@@ -19,7 +20,7 @@ class ControllerListenerPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        if (!$container->hasDefinition('ixarlie_mutex.controller.listener')) {
+        if (!$container->hasDefinition(MutexRequestListener::class)) {
             return;
         }
 
@@ -31,7 +32,7 @@ class ControllerListenerPass implements CompilerPassInterface
             );
         }
 
-        $listener = $container->getDefinition('ixarlie_mutex.controller.listener');
+        $listener = $container->getDefinition(MutexRequestListener::class);
         $tags     = $listener->getTag('kernel.event_listener');
         $priority = isset($tags[0]['priority']) ? $tags[0]['priority'] : 255;
 

@@ -1,4 +1,4 @@
 
-.idea/
 vendor/
-Tests/Fixtures/cache/*
+tests/var/
+!tests/var/flock/.gitkeep

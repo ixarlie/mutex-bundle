@@ -2,7 +2,7 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
-use Symfony\Component\Config\Definition\Builder\NodeBuilder;
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
@@ -13,7 +13,6 @@ use Symfony\Component\DependencyInjection\Definition;
  */
 class SemaphoreDefinition extends LockDefinition
 {
-
     /**
      * @inheritdoc
      */
@@ -27,25 +26,21 @@ class SemaphoreDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    public static function addConfiguration(NodeBuilder $nodeBuilder)
+    public function addConfiguration()
     {
-        return $nodeBuilder
-            ->arrayNode('semaphore')
-                ->useAttributeAsKey('name')
-                ->prototype('array')
-                ->children()
-                    ->scalarNode('logger')->defaultNull()->end()
-                    ->arrayNode('blocking')
-                        ->addDefaultsIfNotSet()
-                        ->children()
-                            ->integerNode('retry_sleep')->defaultValue(100)->end()
-                            ->integerNode('retry_count')->defaultValue(PHP_INT_MAX)->end()
-                        ->end()
-                    ->end()
-                ->end()
-                ->end()
+        $tree = new TreeBuilder();
+        $node = $tree->root($this->getName());
+        $node
+            ->requiresAtLeastOneElement()
+            ->useAttributeAsKey('name')
+            ->arrayPrototype()
+            ->children()
+                ->append($this->addBlockConfiguration())
+                ->scalarNode('logger')->end()
             ->end()
         ;
+
+        return $node;
     }
 
     /**

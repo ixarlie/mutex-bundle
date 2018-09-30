@@ -2,10 +2,11 @@
 
 namespace IXarlie\MutexBundle\EventListener;
 
-use HttpException;
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use IXarlie\MutexBundle\Exception\MutexException;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Translation\TranslatorInterface;
 
 /**
@@ -41,25 +42,55 @@ class MutexExceptionListener
         }
 
         $configuration = $exception->getConfiguration();
-        $exception     = new HttpException($configuration->getHttpCode(), $this->getTranslatedMessage($configuration));
+
+        $this->decorateHttp($configuration);
+
+        $httpOptions   = $configuration->getHttp();
+        $exception     = new HttpException($httpOptions['code'], $httpOptions['message']);
 
         // Replace exception with a HttpException instance.
         $event->setException($exception);
     }
 
     /**
+     * @param MutexRequest $configuration
+     */
+    private function decorateHttp(MutexRequest $configuration)
+    {
+        $defaults = [
+            'code'    => Response::HTTP_LOCKED,
+            'message' => 'Resource is not available at this moment.',
+            'domain'  => null
+        ];
+
+        $http = $configuration->getHttp();
+        foreach ($defaults as $key => $value) {
+            if (!isset($http[$key])) {
+                $http[$key] = $value;
+            }
+        }
+
+        if (null !== $http['domain']) {
+            $http['message'] = $this->getTranslatedMessage($http['domain'], $http['message']);
+        }
+
+        $configuration->setHttp($http);
+    }
+
+    /**
      * Get a translated configuration message.
      *
-     * @param MutexRequest $configuration
+     * @param string $domain
+     * @param string $message
      *
      * @return string
      */
-    protected function getTranslatedMessage(MutexRequest $configuration)
+    protected function getTranslatedMessage($domain, $message)
     {
         if (null === $this->translator) {
-            return $configuration->getMessage();
+            return $message;
         }
 
-        return $this->translator->trans($configuration->getMessage(), [], $configuration->getMessageDomain());
+        return $this->translator->trans($message, [], $domain);
     }
 }

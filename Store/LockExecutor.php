@@ -4,6 +4,10 @@ namespace IXarlie\MutexBundle\Store;
 
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use IXarlie\MutexBundle\Exception\MutexException;
+use Symfony\Component\Lock\Exception\LockAcquiringException;
+use Symfony\Component\Lock\Exception\LockConflictedException;
+use Symfony\Component\Lock\Exception\LockExpiredException;
+use Symfony\Component\Lock\Exception\LockReleasingException;
 use Symfony\Component\Lock\Factory;
 use Symfony\Component\Lock\LockInterface;
 
@@ -46,19 +50,29 @@ class LockExecutor
             $this->configuration->getTtl()
         );
 
-        switch ($this->configuration->getMode()) {
-            case MutexRequest::MODE_CHECK:
-                $this->check($lock, $this->configuration);
-                break;
-            case MutexRequest::MODE_BLOCK:
-                $this->block($lock, $this->configuration);
-                break;
-            case MutexRequest::MODE_QUEUE:
-                $this->queue($lock, $this->configuration);
-                break;
-            case MutexRequest::MODE_FORCE:
-                $this->force($lock, $this->configuration);
-                break;
+        try {
+            switch ($this->configuration->getMode()) {
+                case MutexRequest::MODE_CHECK:
+                    $this->check($lock, $this->configuration);
+                    break;
+                case MutexRequest::MODE_BLOCK:
+                    $this->block($lock, $this->configuration);
+                    break;
+                case MutexRequest::MODE_QUEUE:
+                    $this->queue($lock, $this->configuration);
+                    break;
+                case MutexRequest::MODE_FORCE:
+                    $this->force($lock, $this->configuration);
+                    break;
+            }
+        } catch (LockConflictedException $e) {
+            throw new MutexException($lock, $this->configuration, $e);
+        } catch (LockAcquiringException $f) {
+            throw new MutexException($lock, $this->configuration, $f);
+        } catch (LockReleasingException $g) {
+            throw new MutexException($lock, $this->configuration, $g);
+        } catch (LockExpiredException $h) {
+            throw new MutexException($lock, $this->configuration, $h);
         }
 
         return $lock;
@@ -70,7 +84,7 @@ class LockExecutor
      * @param LockInterface $lock
      * @param MutexRequest  $configuration
      *
-     * @throws MutexException
+     * @throws LockAcquiringException
      */
     private function check(LockInterface $lock, MutexRequest $configuration)
     {
@@ -78,7 +92,7 @@ class LockExecutor
             return;
         }
 
-        throw new MutexException($lock, $configuration);
+        throw new LockAcquiringException(sprintf('Lock "%s" is already acquired', $configuration->getName()));
     }
 
     /**
@@ -86,13 +100,11 @@ class LockExecutor
      *
      * @param LockInterface $lock
      * @param MutexRequest  $configuration
-     *
-     * @throws MutexException
      */
     private function block(LockInterface $lock, MutexRequest $configuration)
     {
         $this->check($lock, $configuration);
-        $lock->acquire(true);
+        $lock->acquire(false);
     }
 
     /**
@@ -114,6 +126,6 @@ class LockExecutor
             $lock->release();
         }
 
-        $lock->acquire(true);
+        $lock->acquire(false);
     }
 }

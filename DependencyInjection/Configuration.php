@@ -2,10 +2,13 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection;
 
+use IXarlie\MutexBundle\DependencyInjection\Definition\CombinedDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\CustomDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\FlockDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\MemcachedDefinition;
-use IXarlie\MutexBundle\DependencyInjection\Definition\PRedisDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\RedisDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\SemaphoreDefinition;
+use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -17,44 +20,47 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 class Configuration implements ConfigurationInterface
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $nodeBuilder = $treeBuilder->root('ixarlie_mutex')
+        $tree = new TreeBuilder();
+        $tree->root('i_xarlie_mutex')
             ->addDefaultsIfNotSet()
             ->children()
                 ->scalarNode('default')->isRequired()->cannotBeEmpty()->end()
+                ->append((new FlockDefinition())->addConfiguration())
+                ->append((new SemaphoreDefinition())->addConfiguration())
+                ->append((new RedisDefinition())->addConfiguration())
+                ->append((new MemcachedDefinition())->addConfiguration())
+                ->append((new CombinedDefinition())->addConfiguration())
+                ->append((new CustomDefinition())->addConfiguration())
+                ->append($this->addListenerConfiguration())
+            ->end()
         ;
 
-        $nodeBuilder = FlockDefinition::addConfiguration($nodeBuilder);
-        $nodeBuilder = MemcachedDefinition::addConfiguration($nodeBuilder);
-        $nodeBuilder = RedisDefinition::addConfiguration($nodeBuilder);
-        $nodeBuilder = PRedisDefinition::addConfiguration($nodeBuilder);
+        return $tree;
+    }
 
-        // RequestListener configuration
-        $nodeBuilder
-            ->arrayNode('request_listener')
-            ->addDefaultsIfNotSet()
+    /**
+     * @return NodeDefinition
+     */
+    private function addListenerConfiguration()
+    {
+        $tree = new TreeBuilder();
+        $node = $tree->root('request_listener');
+        $node
+            ->isRequired()
+            ->canBeEnabled()
             ->children()
-                ->booleanNode('enabled')->defaultValue(true)->end()
-                ->booleanNode('request_placeholder')->defaultValue(false)->end()
                 ->integerNode('priority')->defaultValue(255)->end()
-                ->booleanNode('translator')->end()
-                ->booleanNode('user_isolation')->end()
-                ->arrayNode('http_exception')
-                    ->addDefaultsIfNotSet()
-                    ->children()
-                        ->scalarNode('message')->defaultValue('Resource is not available at this moment')->end()
-                        ->integerNode('code')->defaultValue(409)->end()
-                    ->end()
-                ->end()
             ->end()
-            ->end()
+            ->beforeNormalization()
+                ->ifNull()
+                ->thenEmptyArray()
             ->end()
         ;
 
-        return $treeBuilder;
+        return $node;
     }
 }

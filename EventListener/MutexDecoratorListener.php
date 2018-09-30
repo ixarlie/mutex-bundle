@@ -3,9 +3,9 @@
 namespace IXarlie\MutexBundle\EventListener;
 
 use IXarlie\MutexBundle\Configuration\MutexRequest;
+use IXarlie\MutexBundle\Exception\MutexConfigurationException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
@@ -21,25 +21,12 @@ class MutexDecoratorListener
     private $tokenStorage;
 
     /**
-     * @var array
-     */
-    private $decoratorOptions;
-
-    /**
      * MutexDecoratorListener constructor.
      * @param TokenStorageInterface $tokenStorage
      */
     public function __construct(TokenStorageInterface $tokenStorage = null)
     {
         $this->tokenStorage = $tokenStorage;
-    }
-
-    /**
-     * @param array $decoratorOptions
-     */
-    public function setDecoratorOptions(array $decoratorOptions = [])
-    {
-        $this->decoratorOptions = $decoratorOptions;
     }
 
     /**
@@ -54,7 +41,6 @@ class MutexDecoratorListener
         foreach ($configurations as $configuration) {
             $this->decorateService($request, $configuration);
             $this->decorateName($request, $configuration);
-            $this->decorateOptions($request, $configuration);
         }
     }
 
@@ -64,16 +50,18 @@ class MutexDecoratorListener
      */
     protected function decorateName(Request $request, MutexRequest $configuration)
     {
-        $name = $configuration->getName();
-
-        if (null === $name || '' === $name) {
-            $userHash = $configuration->isUserIsolation() ? $this->getIsolatedName() : '';
-            $name     = $this->generateLockName($request, $userHash);
-        } elseif ($this->decoratorOptions['requestPlaceholder']) {
-            $name = $this->replacePlaceholders($request, $name);
+        if ($configuration->isEmptyName()) {
+            $name = $this->createDefaultName($request, $configuration);
+        } else {
+            $name = $this->createCustomName($request, $configuration);
         }
 
-        $configuration->setName($name);
+        if ($configuration->isUserIsolation()) {
+            $name = $name . '_' . $this->getIsolatedName();
+        }
+
+        // Use a hash in order that file lockers could work properly.
+        $configuration->setName('ixarlie_mutex_' . md5($name));
     }
 
     /**
@@ -83,42 +71,24 @@ class MutexDecoratorListener
     protected function decorateService(Request $request, MutexRequest $configuration)
     {
         $service = $configuration->getService();
-
-        if (null === $service || '' === $service) {
-            $service = 'ixarlie_mutex.default_store';
-        } elseif (preg_match('(\w+)\.(\w+)', $service, $matches)) {
-            $service = sprintf('ixarlie_mutex.%s_store.%s', $matches[1], $matches[2]);
+        if ($configuration->isEmptyService()) {
+            // Setting default factory
+            $service = 'ixarlie_mutex.default_factory';
+        } elseif (preg_match('/ixarlie_mutex\.\w+_factory\.\w+/', $service)) {
+            // Service name matches the full qualified name for factories
+        } elseif (preg_match('/(\w+)\.(\w+)/', $service, $matches)) {
+            // Service matches type.name
+            $service = sprintf('ixarlie_mutex.%s_factory.%s', $matches[1], $matches[2]);
         }
 
         $configuration->setService($service);
     }
 
     /**
-     * @param Request      $request
-     * @param MutexRequest $configuration
-     */
-    protected function decorateOptions(Request $request, MutexRequest $configuration)
-    {
-        $options = [
-            'httpExceptionMessage' => ['message', $configuration->getMessage()],
-            'httpExceptionCode'    => ['httpCode', $configuration->getHttpCode()],
-            'maxQueueTimeout'      => ['maxQueueTimeout', $configuration->getMaxQueueTimeout()],
-            'maxQueueTry'          => ['maxQueueTry', $configuration->getMaxQueueTry()],
-        ];
-
-        $accessor = new PropertyAccessor();
-        foreach ($options as $option => [$property, $value]) {
-            if (null === $value || '' === $value) {
-                $value = isset($this->decoratorOptions[$option]) ? $this->decoratorOptions[$option] : null;
-                $accessor->setValue($configuration, $property, $value);
-            }
-        }
-    }
-
-    /**
      * Returns a unique hash for user.
      *
      * @return string
+     * @throws MutexConfigurationException
      */
     private function getIsolatedName()
     {
@@ -128,45 +98,48 @@ class MutexDecoratorListener
             return $token ? md5($token->serialize()) : '';
         }
 
-        throw new \RuntimeException('You attempted to use user isolation. Did you forget configure user_isolation?');
-    }
-
-    /**
-     * @param Request $request
-     * @param string  $userHash The user hash if any
-     *
-     * @return string
-     */
-    private function generateLockName(Request $request, $userHash = '')
-    {
-        list($className, $methodName) = explode(':', $request->attributes->get('_controller'));
-
-        $name = sprintf(
-            '%s_%s_%s_%s',
-            preg_replace('|[\/\\\\]|', '_', $className),
-            $methodName,
-            str_replace('/', '_', $request->getPathInfo()),
-            $userHash
+        throw new MutexConfigurationException(
+            '[MutexDecoratorListener] Cannot use isolation with missing "security.token_storage".'
         );
-
-        // Use a hash in order that file lockers could work properly.
-        return 'ix_mutex_' . md5($name);
     }
 
     /**
-     * @param Request $request
-     * @param string  $name
+     * Creates a default name
+     * ControllerName_MethodName_PathInfo_[UserIsolation]
+     *
+     * @param Request      $request
+     * @param MutexRequest $configuration
      *
      * @return string
      */
-    private function replacePlaceholders(Request $request, $name)
+    private function createDefaultName(Request $request, MutexRequest $configuration)
     {
+        return sprintf(
+            '%s_%s',
+            str_replace(['\\', ':'], ['_', '_'], $request->attributes->get('_controller')),
+            str_replace('/', '_', $request->getPathInfo())
+        );
+    }
+
+    /**
+     * @param Request      $request
+     * @param MutexRequest $configuration
+     *
+     * @return string
+     */
+    private function createCustomName(Request $request, MutexRequest $configuration)
+    {
+        $name = $configuration->getName();
         preg_match_all('|\{([^\{\}]+)\}|', $name, $matches);
         $routeParams = $request->attributes->get('_route_params', []);
 
         foreach ($matches[1] as $i => $match) {
             if (!array_key_exists($match, $routeParams)) {
-                throw new \RuntimeException(sprintf('Cannot find placeholder %s in request', $match));
+                throw new MutexConfigurationException(sprintf(
+                    '[MutexDecoratorListener] Cannot find placeholder "%s" in request for name "%s"',
+                    $match,
+                    $configuration->getName()
+                ));
             }
 
             $name = str_replace($matches[0][$i], $routeParams[$match], $name);

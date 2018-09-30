@@ -2,7 +2,8 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
-use Symfony\Component\Config\Definition\Builder\NodeBuilder;
+use Symfony\Component\Config\Definition\Builder\NodeDefinition;
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -84,12 +85,24 @@ abstract class LockDefinition
     abstract public function getName();
 
     /**
-     * @param NodeBuilder $nodeBuilder
-     *
-     * @return NodeBuilder
+     * @return NodeDefinition
      */
-    public static function addConfiguration(NodeBuilder $nodeBuilder)
+    abstract public function addConfiguration();
+
+    /**
+     * @return NodeDefinition
+     */
+    final protected function addBlockConfiguration()
     {
-        throw new \RuntimeException('Configuration must be implemented');
+        $tree = new TreeBuilder();
+        $node = $tree->root('blocking');
+        $node
+            ->children()
+                ->integerNode('retry_sleep')->defaultValue(100)->end()
+                ->integerNode('retry_count')->defaultValue(PHP_INT_MAX)->end()
+            ->end()
+        ;
+
+        return $node;
     }
 }
