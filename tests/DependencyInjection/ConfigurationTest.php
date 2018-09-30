@@ -101,15 +101,15 @@ class ConfigurationTest extends TestCase
             'combined' => [
                 'default'    => [
                     'stores' => [
-                        'semaphore.default',
-                        'ixarlie.flock_store.default'
+                        'ixarlie_mutex.semaphore_store.default',
+                        'ixarlie_mutex.flock_store.default'
                     ],
                     'strategy' => 'unanimous'
                 ],
                 'combined1' => [
                     'stores'   => [
-                        'semaphore.default',
-                        'ixarlie.flock_store.default'
+                        'ixarlie_mutex.semaphore_store.default',
+                        'ixarlie_mutex.flock_store.default'
                     ],
                     'strategy' => 'unanimous',
                     'blocking' => [

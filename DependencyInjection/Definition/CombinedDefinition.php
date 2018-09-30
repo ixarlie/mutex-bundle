@@ -22,19 +22,25 @@ class CombinedDefinition extends LockDefinition
      */
     protected function createStore(ContainerBuilder $container, array $config)
     {
-        $combined = new Definition(CombinedStore::class);
-
-        $stores   = [];
+        $stores = [];
         foreach ($config['stores'] as $store) {
-            if (preg_match('/(\w+)\.(\w+)/', $store, $matches)) {
-                // Service matches type.name
-                $store = sprintf('ixarlie_mutex.%s_store.%s', $matches[1], $matches[2]);
-            }
-
             $stores[] = new Reference($store);
         }
 
-        switch ($config['strategy']) {
+        $strategy = $this->createStrategy($config['strategy']);
+        $combined = new Definition(CombinedStore::class, [$stores, $strategy]);
+
+        return $combined;
+    }
+
+    /**
+     * @param string $strategy
+     *
+     * @return Definition|Reference
+     */
+    private function createStrategy($strategy)
+    {
+        switch ($strategy) {
             case 'consensus':
                 $strategy = new Definition(ConsensusStrategy::class);
                 break;
@@ -42,16 +48,11 @@ class CombinedDefinition extends LockDefinition
                 $strategy = new Definition(UnanimousStrategy::class);
                 break;
             default:
-                $strategy = new Reference($config['strategy']);
+                $strategy = new Reference($strategy);
                 break;
         }
 
-        $combined
-            ->addArgument($stores)
-            ->addArgument($strategy)
-        ;
-
-        return $combined;
+        return $strategy;
     }
 
     /**
@@ -69,7 +70,18 @@ class CombinedDefinition extends LockDefinition
                 ->arrayNode('stores')
                     ->isRequired()
                     ->requiresAtLeastOneElement()
-                    ->scalarPrototype()->end()
+                    ->scalarPrototype()
+                        ->beforeNormalization()
+                            ->ifTrue(function ($v) {
+                                return preg_match('/^(\w+)\.(\w+)$/', $v);
+                            })
+                            ->then(function ($v) {
+                                $parts = explode('.', $v);
+
+                                return sprintf('ixarlie_mutex.%s_store.%s', $parts[0], $parts[1]);
+                            })
+                        ->end()
+                    ->end()
                 ->end()
                 ->scalarNode('strategy')->defaultValue('unanimous')->end()
                 ->append($this->addBlockConfiguration())

@@ -39,9 +39,9 @@ i_xarlie_mutex:
             logger: 'monolog.logger'
     combined:
         default:
-            stores: ['semaphore.default', 'ixarlie.flock_store.default']
+            stores: ['semaphore.default', 'ixarlie_mutex.flock_store.default']
         combined1:
-            stores: ['semaphore.default', 'ixarlie.flock_store.default']
+            stores: ['semaphore.default', 'ixarlie_mutex.flock_store.default']
             strategy: 'unanimous'
             blocking:
                 retry_count: 3
