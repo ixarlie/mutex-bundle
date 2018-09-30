@@ -45,26 +45,10 @@ class LockExecutor
      */
     public function execute()
     {
-        $lock = $this->factory->createLock(
-            $this->configuration->getName(),
-            $this->configuration->getTtl()
-        );
+        $lock = $this->factory->createLock($this->configuration->getName(), $this->configuration->getTtl());
 
         try {
-            switch ($this->configuration->getMode()) {
-                case MutexRequest::MODE_CHECK:
-                    $this->check($lock, $this->configuration);
-                    break;
-                case MutexRequest::MODE_BLOCK:
-                    $this->block($lock, $this->configuration);
-                    break;
-                case MutexRequest::MODE_QUEUE:
-                    $this->queue($lock, $this->configuration);
-                    break;
-                case MutexRequest::MODE_FORCE:
-                    $this->force($lock, $this->configuration);
-                    break;
-            }
+            $this->executeMode($lock, $this->configuration->getMode());
         } catch (LockConflictedException $e) {
             throw new MutexException($lock, $this->configuration, $e);
         } catch (LockAcquiringException $f) {
@@ -79,48 +63,66 @@ class LockExecutor
     }
 
     /**
+     * @param LockInterface $lock
+     * @param string        $mode
+     */
+    private function executeMode(LockInterface $lock, $mode)
+    {
+        switch ($mode) {
+            case MutexRequest::MODE_CHECK:
+                $this->check($lock);
+                break;
+            case MutexRequest::MODE_BLOCK:
+                $this->block($lock);
+                break;
+            case MutexRequest::MODE_QUEUE:
+                $this->queue($lock);
+                break;
+            case MutexRequest::MODE_FORCE:
+                $this->force($lock);
+                break;
+        }
+    }
+
+    /**
      * Check if the lock is locked or not.
      *
      * @param LockInterface $lock
-     * @param MutexRequest  $configuration
      *
      * @throws LockAcquiringException
      */
-    private function check(LockInterface $lock, MutexRequest $configuration)
+    private function check(LockInterface $lock)
     {
         if (false === $lock->isAcquired()) {
             return;
         }
 
-        throw new LockAcquiringException(sprintf('Lock "%s" is already acquired', $configuration->getName()));
+        throw new LockAcquiringException(sprintf('Lock "%s" is already acquired', $this->configuration->getName()));
     }
 
     /**
      * Attempt to acquire the lock.
      *
      * @param LockInterface $lock
-     * @param MutexRequest  $configuration
      */
-    private function block(LockInterface $lock, MutexRequest $configuration)
+    private function block(LockInterface $lock)
     {
-        $this->check($lock, $configuration);
+        $this->check($lock);
         $lock->acquire(false);
     }
 
     /**
      * @param LockInterface $lock
-     * @param MutexRequest  $configuration
      */
-    private function queue(LockInterface $lock, MutexRequest $configuration)
+    private function queue(LockInterface $lock)
     {
         $lock->acquire(true);
     }
 
     /**
      * @param LockInterface $lock
-     * @param MutexRequest  $configuration
      */
-    private function force(LockInterface $lock, MutexRequest $configuration)
+    private function force(LockInterface $lock)
     {
         if ($lock->isAcquired()) {
             $lock->release();

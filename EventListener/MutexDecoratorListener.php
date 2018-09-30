@@ -39,7 +39,7 @@ class MutexDecoratorListener
 
         /** @var MutexRequest $configuration */
         foreach ($configurations as $configuration) {
-            $this->decorateService($request, $configuration);
+            $this->decorateService($configuration);
             $this->decorateName($request, $configuration);
         }
     }
@@ -51,7 +51,7 @@ class MutexDecoratorListener
     protected function decorateName(Request $request, MutexRequest $configuration)
     {
         if ($configuration->isEmptyName()) {
-            $name = $this->createDefaultName($request, $configuration);
+            $name = $this->createDefaultName($request);
         } else {
             $name = $this->createCustomName($request, $configuration);
         }
@@ -65,10 +65,9 @@ class MutexDecoratorListener
     }
 
     /**
-     * @param Request      $request
      * @param MutexRequest $configuration
      */
-    protected function decorateService(Request $request, MutexRequest $configuration)
+    protected function decorateService(MutexRequest $configuration)
     {
         $service = $configuration->getService();
         if ($configuration->isEmptyService()) {
@@ -107,12 +106,11 @@ class MutexDecoratorListener
      * Creates a default name
      * ControllerName_MethodName_PathInfo_[UserIsolation]
      *
-     * @param Request      $request
-     * @param MutexRequest $configuration
+     * @param Request $request
      *
      * @return string
      */
-    private function createDefaultName(Request $request, MutexRequest $configuration)
+    private function createDefaultName(Request $request)
     {
         return sprintf(
             '%s_%s',
