@@ -6,6 +6,8 @@
 
 Integrates `symfony/lock` component to register locks as services.
 
+For previous release with `arvenil/ninja-mutex` dependency follow [version 0.2](https://github.com/ixarlie/mutex-bundle/tree/0.2)
+
 Please, read [Symfony/Lock](https://symfony.com/doc/current/components/lock.html) for learning concepts.
 
 ## Types

@@ -16,7 +16,7 @@ Please, read [Symfony/Lock](https://symfony.com/doc/current/components/lock.html
 * `IXarlie\MutexBundle\Model\LockerManager` was removed in favor of `Symfony\Component\Lock\Factory`
 * `IXarlie\MutexBundle\Lock\RedisLock` was removed in favor of `Symfony\Component\Lock\Store\RedisStore`
 
-## Configuration:
+## Configuration
 
 Changes in the extension configuration:
 
