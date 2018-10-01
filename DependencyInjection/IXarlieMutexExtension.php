@@ -152,10 +152,6 @@ class IXarlieMutexExtension extends Extension
         );
         $container->setDefinition(MutexDecoratorListener::class, $decoratorListener);
 
-        if ($container->hasDefinition('security.token_storage')) {
-            $decoratorListener->addArgument(new Reference('security.token_storage'));
-        }
-
         // Configure MutexExceptionListener
         $exceptionListener = new Definition(MutexExceptionListener::class);
         $exceptionListener->addTag(
@@ -163,10 +159,6 @@ class IXarlieMutexExtension extends Extension
             ['event' => KernelEvents::EXCEPTION, 'method' => 'onKernelException', 'priority' => 255]
         );
         $container->setDefinition(MutexExceptionListener::class, $exceptionListener);
-
-        if ($container->hasDefinition('translator')) {
-            $exceptionListener->addArgument(new Reference('translator'));
-        }
 
         // Configure MutexReleaseListener
         if ($config['autorelease']) {

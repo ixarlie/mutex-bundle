@@ -30,15 +30,8 @@ class IXarlieMutexBundleTest extends TestCase
         $config = $container->getCompilerPassConfig();
         $passes = $config->getBeforeOptimizationPasses();
 
-        static::assertCount(5, $passes);
-        $found = false;
-        foreach ($passes as $pass) {
-            if ($pass instanceof ControllerListenerPass) {
-                $found = true;
-                break;
-            }
-        }
-
-        static::assertTrue($found);
+        static::assertCount(6, $passes);
+        // @TODO check ControllerListenerPass and SymfonyDecoratorPass are in the list
+        static::assertFalse(true);
     }
 }

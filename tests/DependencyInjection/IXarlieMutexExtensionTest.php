@@ -98,9 +98,11 @@ class IXarlieMutexExtensionTest extends TestCase
 
         $definition = $container->getDefinition(MutexDecoratorListener::class);
 
-        static::assertCount(1, $definition->getArguments());
-        static::assertInstanceOf(Reference::class, $definition->getArgument(0));
-        static::assertEquals('security.token_storage', (string) $definition->getArgument(0));
+        // Injected using compiler pass
+//        static::assertCount(1, $definition->getArguments());
+//        static::assertInstanceOf(Reference::class, $definition->getArgument(0));
+//        static::assertEquals('security.token_storage', (string) $definition->getArgument(0));
+
         static::assertCount(0, $definition->getMethodCalls());
         static::assertCount(1, $definition->getTags());
         static::assertCount(1, $definition->getTag('kernel.event_listener'));
@@ -116,9 +118,11 @@ class IXarlieMutexExtensionTest extends TestCase
 
         $definition = $container->getDefinition(MutexExceptionListener::class);
 
-        static::assertCount(1, $definition->getArguments());
-        static::assertInstanceOf(Reference::class, $definition->getArgument(0));
-        static::assertEquals('translator', (string) $definition->getArgument(0));
+        // Injected using compiler pass
+//        static::assertCount(1, $definition->getArguments());
+//        static::assertInstanceOf(Reference::class, $definition->getArgument(0));
+//        static::assertEquals('translator', (string) $definition->getArgument(0));
+
         static::assertCount(0, $definition->getMethodCalls());
         static::assertCount(1, $definition->getTags());
         static::assertCount(1, $definition->getTag('kernel.event_listener'));
