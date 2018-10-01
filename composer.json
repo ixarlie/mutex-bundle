@@ -18,7 +18,7 @@
         "symfony/config": "^3.4|^4.1",
         "symfony/http-kernel": "^3.4|^4.1",
         "doctrine/annotations": "^1.6",
-        "sensio/framework-extra-bundle": "^5.2"
+        "sensio/framework-extra-bundle": "^3.0|^4.0|^5.2"
     },
     "require-dev": {
         "symfony/translation": "^3.4|^4.1",
