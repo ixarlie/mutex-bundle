@@ -65,7 +65,7 @@ abstract class StoreDefinitionTestCase extends TestCase
         $store   = $factory->getArgument(0);
 
         static::assertInstanceOf(Definition::class, $store);
-        static::assertTrue($store->isPrivate());
+        static::assertFalse($store->isPublic());
         static::assertTrue($container->hasDefinition($storeId));
         static::assertSame($store, $container->getDefinition($storeId));
 

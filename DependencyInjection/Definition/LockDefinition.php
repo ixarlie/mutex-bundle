@@ -38,7 +38,7 @@ abstract class LockDefinition
         }
 
         // Register store instance as service
-        $store->setPrivate(true);
+        $store->setPublic(false);
         $container->setDefinition(sprintf('ixarlie_mutex.%s_store.%s', $this->getName(), $name), $store);
 
         $factory   = new Definition(Factory::class, [$store]);
