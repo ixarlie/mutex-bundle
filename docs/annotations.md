@@ -26,7 +26,6 @@ Examples:
 
 ### mode
 `required`
-Required option.
 
 | Mode  | Description   |
 | ----- | ------------- |
@@ -113,7 +112,7 @@ Note: `domain` will use the Symfony's translator service (if exists) to translat
 Note: Modes `queue`, `block` and `check` can throw `MutexException`.
 
 ### userIsolation
-`not required``default = false`
+`not required` `default = false`
 
 This option allows isolate lockers for each user. An unique hash user will be append to the lock's name. The user information
 is taken from the `security.token_storage` Symfony service.

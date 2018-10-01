@@ -11,7 +11,7 @@ i_xarlie_mutex:
     request_listener: ~
     custom:
         default:
-            service: 
+            service: app.store          # the StoreInterface service
             blocking:                   # decorates with RetryTillSaveStore
                 retry_sleep: 900
                 retry_count: 3

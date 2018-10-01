@@ -1,6 +1,7 @@
 # Redis
 
 [RedisStore](https://symfony.com/doc/current/components/lock.html#redisstore)
+
 [Reliability](https://symfony.com/doc/current/components/lock.html#id3)
 
 ## Configuration

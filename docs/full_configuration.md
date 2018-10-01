@@ -1,6 +1,5 @@
 # Full configuration
 
-Full configuration options:
 ```yaml
 i_xarlie_mutex:
     # default locker service is mandatory (type.name)
@@ -18,7 +17,7 @@ i_xarlie_mutex:
     # logger is present for every type, it is a logger service name.
     flock:
         default:
-            lock_dir: '%kernel.cache_dir%'
+            lock_dir: '/tmp/flock'    # a writable directory
             blocking:
                 retry_sleep: 500
                 retry_count: 3
@@ -46,7 +45,18 @@ i_xarlie_mutex:
     combined:
         default:
             stores: [redis.default, ixarlie_mutex.memcached_store.default]
-            strategy: unanimous # unanimous, consensus or a StrategyInterface service name  
+            strategy: unanimous # unanimous, consensus or a StrategyInterface service name
+            blocking:                   # decorates with RetryTillSaveStore
+                retry_sleep: 900
+                retry_count: 3
+            logger: 'monolog.logger'
+    custom:
+        default:
+            service: app.store_lock   # StoreInterface service
+            blocking:                   # decorates with RetryTillSaveStore
+                retry_sleep: 900
+                retry_count: 3
+            logger: monolog.logger
 ```
 
 ***

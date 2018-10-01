@@ -1,6 +1,7 @@
 # Semaphore
 
 [SemaphoreStore](https://symfony.com/doc/current/components/lock.html#semaphorestore)
+
 [Reliability](https://symfony.com/doc/current/components/lock.html#id5)
 
 ## Configuration

@@ -1,6 +1,7 @@
 # Combined
 
 [CombinedStore](https://symfony.com/doc/current/components/lock.html#combinedstore)
+
 [Reliability](https://symfony.com/doc/current/components/lock.html#id4)
 
 ## Configuration

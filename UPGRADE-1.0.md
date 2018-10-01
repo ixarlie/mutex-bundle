@@ -6,9 +6,10 @@ consider this in case you want upgrade.
 
 Please, read [Symfony/Lock](https://symfony.com/doc/current/components/lock.html) for learning some concepts.
 
-## Removed Locks
+## Removed locks
 
 * Memcache: consider to use memcached instead.
+* Predis: use `redis` and use a predis client as `client`
 
 ## Removed classes
 
@@ -35,7 +36,7 @@ defining lockers instead.
 should be configured in the annotation, the default values for them are kept.
 * Under `memcached` the options to configure the client were removed. Use `client` to indicate your own client as a service.
 * Under `redis` the options to configure the client were removed. Use `client` to indicate your own client as a service.
-* Under `predis` the options to configure the client were removed. Use `client` to indicate your own client as a service.
+* `predis` and `memcache` are not valid types (use `redis` and `memcached` respectively)
 * `i_xarlie_mutex.lock_manager_class` parameter was removed. No new parameter is available to change `Symfony\Component\Lock\Factory`
 * `ninja_mutex.locker_X_class` parameters were removed. Check new store class parameters.
 * The services like `i_xarlie_mutex.locker_X.Y` were changed to `ixarlie_mutex.X_factory.Y`
@@ -59,6 +60,6 @@ isAcquired($name) | isAcquired()
 isLocked($name) | -
 hasLocked($name) | -
 
-Note: $name and $ttl are configured when creating the lock from the factory.
+Note: `$name` and `$ttl` are configured when creating the lock from the factory.
 
-Note: $timeout is configured in your lock definition in the bundle configuration.
+Note: `$timeout` is configured in your lock definition in the bundle configuration.
