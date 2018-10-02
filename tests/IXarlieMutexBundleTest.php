@@ -3,8 +3,10 @@
 namespace Tests;
 
 use IXarlie\MutexBundle\DependencyInjection\Compiler\ControllerListenerPass;
+use IXarlie\MutexBundle\DependencyInjection\Compiler\SymfonyDecoratorPass;
 use IXarlie\MutexBundle\IXarlieMutexBundle;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -31,7 +33,15 @@ class IXarlieMutexBundleTest extends TestCase
         $passes = $config->getBeforeOptimizationPasses();
 
         static::assertCount(6, $passes);
-        // @TODO check ControllerListenerPass and SymfonyDecoratorPass are in the list
-        static::assertFalse(true);
+
+        $result = array_filter($passes, function (CompilerPassInterface $pass) {
+            return $pass instanceof ControllerListenerPass;
+        });
+        static::assertCount(1, $result);
+
+        $result = array_filter($passes, function (CompilerPassInterface $pass) {
+            return $pass instanceof SymfonyDecoratorPass;
+        });
+        static::assertCount(1, $result);
     }
 }
