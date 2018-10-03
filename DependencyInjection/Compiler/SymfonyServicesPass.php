@@ -9,11 +9,11 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
- * Class SymfonyDecoratorPass
+ * Class SymfonyServicesPass
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class SymfonyDecoratorPass implements CompilerPassInterface
+class SymfonyServicesPass implements CompilerPassInterface
 {
     /**
      * @inheritdoc
@@ -22,11 +22,8 @@ class SymfonyDecoratorPass implements CompilerPassInterface
     {
         if ($container->hasDefinition(MutexExceptionListener::class)) {
             $listener = $container->getDefinition(MutexExceptionListener::class);
-            if ($container->hasDefinition('translator')) {
+            if ($container->hasDefinition('translator') || $container->hasAlias('translator')) {
                 $listener->addArgument(new Reference('translator'));
-            }
-            if ($container->hasDefinition('security.token_storage')) {
-                $listener->addArgument(new Reference('security.token_storage'));
             }
         }
 

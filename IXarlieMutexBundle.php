@@ -3,7 +3,7 @@
 namespace IXarlie\MutexBundle;
 
 use IXarlie\MutexBundle\DependencyInjection\Compiler\ControllerListenerPass;
-use IXarlie\MutexBundle\DependencyInjection\Compiler\SymfonyDecoratorPass;
+use IXarlie\MutexBundle\DependencyInjection\Compiler\SymfonyServicesPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -20,7 +20,7 @@ class IXarlieMutexBundle extends Bundle
      */
     public function build(ContainerBuilder $container)
     {
-        $container->addCompilerPass(new SymfonyDecoratorPass());
+        $container->addCompilerPass(new SymfonyServicesPass());
         $container->addCompilerPass(new ControllerListenerPass());
     }
 }

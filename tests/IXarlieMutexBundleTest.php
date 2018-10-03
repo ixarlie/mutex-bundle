@@ -3,7 +3,7 @@
 namespace Tests;
 
 use IXarlie\MutexBundle\DependencyInjection\Compiler\ControllerListenerPass;
-use IXarlie\MutexBundle\DependencyInjection\Compiler\SymfonyDecoratorPass;
+use IXarlie\MutexBundle\DependencyInjection\Compiler\SymfonyServicesPass;
 use IXarlie\MutexBundle\IXarlieMutexBundle;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -40,7 +40,7 @@ class IXarlieMutexBundleTest extends TestCase
         static::assertCount(1, $result);
 
         $result = array_filter($passes, function (CompilerPassInterface $pass) {
-            return $pass instanceof SymfonyDecoratorPass;
+            return $pass instanceof SymfonyServicesPass;
         });
         static::assertCount(1, $result);
     }
