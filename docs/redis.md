@@ -29,7 +29,7 @@ services:
     redis_client:
         class: '\Redis'
         calls:
-            - ['connect', ['localhost', 9200]]
+            - ['connect', ['localhost', 6379]]
             - ['auth', 'password']              # optional
             - ['select', 0]                     # optional
 ```
@@ -40,7 +40,7 @@ services:
     predis_client:
         class: '\PRedis\Client'
         arguments:
-            - { host: 'localhost', port: 9200 } # connection
+            - { host: 'localhost', port: 6379 } # connection
             - []                                # options (optional)
 ```
 
