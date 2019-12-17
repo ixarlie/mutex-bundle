@@ -3,6 +3,11 @@
 namespace IXarlie\MutexBundle\Manager;
 
 use NinjaMutex\Lock\LockExpirationInterface;
+use NinjaMutex\Lock\LockInterface;
+use NinjaMutex\Mutex;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Class LockerManager
@@ -11,88 +16,92 @@ use NinjaMutex\Lock\LockExpirationInterface;
  */
 class LockerManager implements LockerManagerInterface
 {
+    use LoggerAwareTrait;
+
     /**
-     * @var \NinjaMutex\Lock\LockInterface
+     * @var LockInterface
      */
     private $locker;
 
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @var Mutex[]
      */
-    private $logger;
+    private $locks = [];
 
     /**
-     * @var \NinjaMutex\Mutex[]
+     * @param LockInterface        $locker
+     * @param LoggerInterface|null $logger
      */
-    private $locks;
-
-    /**
-     * @param \NinjaMutex\Lock\LockInterface $locker
-     */
-    public function __construct(\NinjaMutex\Lock\LockInterface $locker, \Psr\Log\LoggerInterface $logger = null)
+    public function __construct(LockInterface $locker, ?LoggerInterface $logger = null)
     {
         $this->locker = $locker;
-        $this->logger = $logger;
-        $this->locks  = [];
+        $this->setLogger($logger ?? new NullLogger());
     }
 
     /**
      * @param string $name
-     * @return \NinjaMutex\Mutex
+     *
+     * @return Mutex
      */
-    private function getOrCreateLock($name)
+    private function getOrCreateLock(string $name): Mutex
     {
         if (!$this->hasLock($name)) {
-            $mutex = new \NinjaMutex\Mutex($name, $this->locker);
+            $mutex              = new Mutex($name, $this->locker);
             $this->locks[$name] = $mutex;
         }
+
         return $this->locks[$name];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function acquireLock($name, $timeout = null, $ttl = 0)
+    public function acquireLock(string $name, ?int $timeout = null, ?int $ttl = 0): bool
     {
         $mutex = $this->getOrCreateLock($name);
         if ($this->locker instanceof LockExpirationInterface) {
             $this->locker->setExpiration($ttl);
         }
+
         return $mutex->acquireLock($timeout);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function releaseLock($name)
+    public function releaseLock(string $name): bool
     {
         $mutex = $this->getOrCreateLock($name);
+
         return $mutex->releaseLock();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function isAcquired($name)
+    public function isAcquired(string $name): bool
     {
         $mutex = $this->getOrCreateLock($name);
+
         return $mutex->isAcquired();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function isLocked($name)
+    public function isLocked(string $name): bool
     {
         $mutex = $this->getOrCreateLock($name);
+
         return $mutex->isLocked();
     }
 
     /**
      * @param string $name
+     *
      * @return bool
      */
-    public function hasLock($name)
+    public function hasLock(string $name): bool
     {
         return isset($this->locks[$name]) ? true : false;
     }

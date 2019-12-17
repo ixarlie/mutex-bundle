@@ -19,6 +19,7 @@ class RedisLock extends PhpRedisLock implements LockExpirationInterface
 
     /**
      * Stores what ttl was set for a lock
+     *
      * @var array
      */
     private $ttl = [];
@@ -43,6 +44,7 @@ class RedisLock extends PhpRedisLock implements LockExpirationInterface
             if ($this->expiration > 0) {
                 $this->ttl[$name] = $this->client->ttl($name);
             }
+
             return false;
         }
         $content = serialize($this->getLockInformation());

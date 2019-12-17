@@ -10,33 +10,33 @@ use NinjaMutex\Lock\FlockLock;
 use NinjaMutex\Lock\MemcachedLock;
 use NinjaMutex\Lock\MemcacheLock;
 use NinjaMutex\Lock\PredisRedisLock;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 
 /**
  * Class IXarlieMutexExtensionTest
- *
- * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class IXarlieMutexExtensionTest extends \PHPUnit_Framework_TestCase
+class IXarlieMutexExtensionTest extends TestCase
 {
     use UtilTestTrait;
-    
+
     public function testInstance()
     {
-        $this->assertInstanceOf(ExtensionInterface::class, new IXarlieMutexExtension());
+        static::assertInstanceOf(ExtensionInterface::class, new IXarlieMutexExtension());
     }
-    
+
     public function testPlainConfiguration()
     {
         $container = $this->getContainer();
         $loader    = new IXarlieMutexExtension();
         $loader->load([
             [
-                'default'        => 'flock.mylocker',
-                'flock' => [
+                'default'          => 'flock.mylocker',
+                'flock'            => [
                     'mylocker' => [
-                        'cache_dir' => '/tmp'
-                    ]
+                        'cache_dir' => '/tmp',
+                    ],
                 ],
                 'request_listener' => [
                     'queue_timeout'  => 30,
@@ -44,22 +44,28 @@ class IXarlieMutexExtensionTest extends \PHPUnit_Framework_TestCase
                     'translator'     => true,
                     'user_isolation' => true,
                     'http_exception' => [
-                        'message'    => 'You shall not pass!',
-                        'code'       => 409
-                    ]
-                ]
-            ]
+                        'message' => 'You shall not pass!',
+                        'code'    => 409,
+                    ],
+                ],
+            ],
         ], $container);
-        $this->assertTrue(true);
+
+        static::expectNotToPerformAssertions();
     }
 
     /**
      * @dataProvider bundleConfigurations
+     *
+     * @param string      $className
+     * @param string      $type
+     * @param array       $config
+     * @param string|null $dependencyClass
      */
-    public function testLockerConfiguration($className, $type, $config, $dependencyClass = null)
+    public function testLockerConfiguration(string $className, string $type, array $config, ?string $dependencyClass)
     {
         if ($dependencyClass && !class_exists($dependencyClass)) {
-            $this->markTestSkipped($dependencyClass . ' is not installed/configured');
+            static::markTestSkipped($dependencyClass . ' is not installed/configured');
         }
 
         $serviceId = 'i_xarlie_mutex.locker_' . $type . '.mylocker';
@@ -69,88 +75,85 @@ class IXarlieMutexExtensionTest extends \PHPUnit_Framework_TestCase
         $loader->load([
             [
                 'default' => $type . '.mylocker',
-                $type => $config
-            ]
+                $type     => $config,
+            ],
         ], $container);
 
         $manager = $container->get($serviceId);
-        $this->assertInstanceOf(LockerManagerInterface::class, $manager);
+        static::assertInstanceOf(LockerManagerInterface::class, $manager);
 
         $refl = new \ReflectionClass($manager);
         $prop = $refl->getProperty('locker');
         $prop->setAccessible(true);
 
         $locker = $prop->getValue($manager);
-        $this->assertInstanceOf($className, $locker);
+        static::assertInstanceOf($className, $locker);
 
         // test alias
         $alias = $container->get('i_xarlie_mutex.locker');
-        $this->assertEquals($manager, $alias);
+        static::assertEquals($manager, $alias);
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
-     * @expectedExceptionMessage The service "i_xarlie_mutex.locker" has a dependency on a non-existent service "i_xarlie_mutex.locker_flock.foo"
-     */
     public function testInvalidDefault()
     {
+        static::expectException(ServiceNotFoundException::class);
+        static::expectExceptionMessage('The service "i_xarlie_mutex.locker" has a dependency on a non-existent service "i_xarlie_mutex.locker_flock.foo"');
+
         $container = $this->getContainer();
-        $loader = new IXarlieMutexExtension();
+        $loader    = new IXarlieMutexExtension();
         $loader->load([
             [
                 'default' => 'flock.foo',
-                'flock' => [
+                'flock'   => [
                     'mylocker' => [
-                        'cache_dir' => '%kernel.cache_dir'
-                    ]
-                ]
-            ]
+                        'cache_dir' => '%kernel.cache_dir',
+                    ],
+                ],
+            ],
         ], $container);
     }
 
     public function bundleConfigurations()
     {
-        return [
-            [
-                'class'  => FlockLock::class,
-                'type'   => 'flock',
-                'config' => [
-                    'mylocker' => ['cache_dir' => '%kernel.cache_dir%']
-                ]
+        yield [
+            'class'  => FlockLock::class,
+            'type'   => 'flock',
+            'config' => [
+                'mylocker' => ['cache_dir' => '%kernel.cache_dir%'],
             ],
-            [
-                'class'  => RedisLock::class,
-                'type'   => 'redis',
-                'config' => [
-                    'mylocker' => ['host' => '127.0.0.1', 'port' => 6379]
-                ],
-                '\Redis'
+            null,
+        ];
+        yield [
+            'class'  => RedisLock::class,
+            'type'   => 'redis',
+            'config' => [
+                'mylocker' => ['host' => '127.0.0.1', 'port' => 6379],
             ],
-            [
-                'class'  => PredisRedisLock::class,
-                'type'   => 'predis',
-                'config' => [
-                    'mylocker' => ['connection' => 'tcp://127.0.0.1:6379']
-                ],
-                '\Predis\Client'
+            '\Redis',
+        ];
+        yield [
+            'class'  => PredisRedisLock::class,
+            'type'   => 'predis',
+            'config' => [
+                'mylocker' => ['connection' => 'tcp://127.0.0.1:6379'],
             ],
-            [
-                'class'  => MemcacheLock::class,
-                'type'   => 'memcache',
-                'config' => [
-                    'mylocker' => ['host' => '127.0.0.1', 'port' => 6379]
-                ],
-                '\Memcache'
+            '\Predis\Client',
+        ];
+        yield [
+            'class'  => MemcacheLock::class,
+            'type'   => 'memcache',
+            'config' => [
+                'mylocker' => ['host' => '127.0.0.1', 'port' => 6379],
             ],
-            [
-                'class'  => MemcachedLock::class,
-                'type'   => 'memcached',
-                'config' => [
-                    'mylocker' => ['host' => '127.0.0.1', 'port' => 6379]
-                ],
-                '\Memcached'
+            '\Memcache',
+        ];
+        yield [
+            'class'  => MemcachedLock::class,
+            'type'   => 'memcached',
+            'config' => [
+                'mylocker' => ['host' => '127.0.0.1', 'port' => 6379],
             ],
-
+            '\Memcached',
         ];
     }
 }

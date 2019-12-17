@@ -13,19 +13,19 @@ use Symfony\Component\DependencyInjection\Definition;
 class RedisDefinition extends LockDefinition
 {
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    protected function getLocker(array $config, ContainerBuilder $container)
+    protected function getLocker(array $config, ContainerBuilder $container): Definition
     {
         $locker = new Definition('%ninja_mutex.locker_redis_class%');
-        
+
         return $locker;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    protected function getClient(array $config, ContainerBuilder $container)
+    protected function getClient(array $config, ContainerBuilder $container): ?Definition
     {
         $client = new Definition('%i_xarlie_mutex.redis.connection.class%');
         $client->addMethodCall('connect', [$config['host'], $config['port']]);
@@ -35,7 +35,7 @@ class RedisDefinition extends LockDefinition
         if (isset($config['database'])) {
             $client->addMethodCall('select', [(int) $config['database']]);
         }
-        
+
         return $client;
     }
 }

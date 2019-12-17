@@ -13,9 +13,9 @@ use Symfony\Component\DependencyInjection\Definition;
 class PRedisDefinition extends LockDefinition
 {
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    protected function getLocker(array $config, ContainerBuilder $container)
+    protected function getLocker(array $config, ContainerBuilder $container): Definition
     {
         $locker = new Definition('%ninja_mutex.locker_predis_class%');
 
@@ -23,11 +23,11 @@ class PRedisDefinition extends LockDefinition
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    protected function getClient(array $config, ContainerBuilder $container)
+    protected function getClient(array $config, ContainerBuilder $container): ?Definition
     {
-        $client = new Definition('%i_xarlie_mutex.predis.connection.class%');
+        $client     = new Definition('%i_xarlie_mutex.predis.connection.class%');
         $parameters = $options = null;
         if (isset($config['connection']['uri'])) {
             $parameters = $config['connection']['uri'];
@@ -38,7 +38,7 @@ class PRedisDefinition extends LockDefinition
             $options = $config['options'];
         }
         $client->setArguments([$parameters, $options]);
-        
+
         return $client;
     }
 }

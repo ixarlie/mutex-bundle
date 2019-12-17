@@ -5,12 +5,12 @@ namespace IXarlie\MutexBundle\EventListener;
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use IXarlie\MutexBundle\Manager\LockerManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
-use Symfony\Component\HttpKernel\Event\PostResponseEvent;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Doctrine\Common\Annotations\Reader as AnnotationsReader;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Class MutexRequestListener
@@ -61,12 +61,12 @@ class MutexRequestListener
 
     /**
      * @var TokenStorageInterface
-
      */
     private $tokenStorage;
 
     /**
      * MutexRequestListener constructor.
+     *
      * @param AnnotationsReader $reader
      */
     public function __construct(AnnotationsReader $reader)
@@ -78,7 +78,7 @@ class MutexRequestListener
      * @param string                 $name
      * @param LockerManagerInterface $locker
      */
-    public function addLockerManager($name, LockerManagerInterface $locker)
+    public function addLockerManager(string $name, LockerManagerInterface $locker): void
     {
         $this->managers[$name] = $locker;
     }
@@ -86,7 +86,7 @@ class MutexRequestListener
     /**
      * @param bool $requestPlaceholder
      */
-    public function setRequestPlaceholder($requestPlaceholder)
+    public function setRequestPlaceholder(bool $requestPlaceholder): void
     {
         $this->requestPlaceholder = $requestPlaceholder;
     }
@@ -94,7 +94,7 @@ class MutexRequestListener
     /**
      * @param TranslatorInterface $translator
      */
-    public function setTranslator($translator)
+    public function setTranslator(?TranslatorInterface $translator): void
     {
         $this->translator = $translator;
     }
@@ -102,7 +102,7 @@ class MutexRequestListener
     /**
      * @param TokenStorageInterface $tokenStorage
      */
-    public function setTokenStorage($tokenStorage)
+    public function setTokenStorage(?TokenStorageInterface $tokenStorage): void
     {
         $this->tokenStorage = $tokenStorage;
     }
@@ -111,7 +111,7 @@ class MutexRequestListener
      * @param string $message
      * @param int    $code
      */
-    public function setHttpExceptionOptions($message, $code)
+    public function setHttpExceptionOptions(string $message, int $code): void
     {
         $this->httpExceptionCode    = $code;
         $this->httpExceptionMessage = $message;
@@ -120,7 +120,7 @@ class MutexRequestListener
     /**
      * @param int $maxQueueTimeout
      */
-    public function setMaxQueueTimeout($maxQueueTimeout)
+    public function setMaxQueueTimeout(int $maxQueueTimeout): void
     {
         $this->maxQueueTimeout = $maxQueueTimeout;
     }
@@ -128,7 +128,7 @@ class MutexRequestListener
     /**
      * @param int $maxQueueTry
      */
-    public function setMaxQueueTry($maxQueueTry)
+    public function setMaxQueueTry(int $maxQueueTry): void
     {
         $this->maxQueueTry = $maxQueueTry;
     }
@@ -141,8 +141,12 @@ class MutexRequestListener
      *
      * @return string
      */
-    public static function generateLockName($className, $methodName, $path, $userHash = '')
-    {
+    public static function generateLockName(
+        string $className,
+        string $methodName,
+        string $path,
+        string $userHash = ''
+    ): string {
         $name = sprintf(
             '%s_%s_%s_%s',
             preg_replace('|[\/\\\\]|', '_', $className),
@@ -150,6 +154,7 @@ class MutexRequestListener
             str_replace('/', '_', $path),
             $userHash
         );
+
         // Use a hash in order that file lockers could work properly.
         return 'ix_mutex_' . md5($name);
     }
@@ -160,7 +165,7 @@ class MutexRequestListener
      *
      * @return string
      */
-    public static function replacePlaceholders(Request $request, $name)
+    public static function replacePlaceholders(Request $request, string $name): string
     {
         preg_match_all('|\{([^\{\}]+)\}|', $name, $matches);
         $routeParams = $request->attributes->get('_route_params', []);
@@ -175,11 +180,11 @@ class MutexRequestListener
     }
 
     /**
-     * @param FilterControllerEvent $event
+     * @param ControllerEvent $event
      *
      * @throws HttpException
      */
-    public function onKernelController(FilterControllerEvent $event)
+    public function onKernelController(ControllerEvent $event): void
     {
         if (false === $event->isMasterRequest()) {
             return;
@@ -192,8 +197,7 @@ class MutexRequestListener
         $controller = $event->getController();
         $className  = class_exists('Doctrine\Common\Util\ClassUtils') ?
             \Doctrine\Common\Util\ClassUtils::getClass($controller[0]) :
-            get_class($controller[0])
-        ;
+            get_class($controller[0]);
         $methodName = $controller[1];
 
         $request        = $event->getRequest();
@@ -214,9 +218,9 @@ class MutexRequestListener
     }
 
     /**
-     * @param PostResponseEvent $event
+     * @param TerminateEvent $event
      */
-    public function onKernelTerminate(PostResponseEvent $event)
+    public function onKernelTerminate(TerminateEvent $event): void
     {
         $this->releaseLocks($event->getRequest());
     }
@@ -224,7 +228,7 @@ class MutexRequestListener
     /**
      * @param Request $request
      */
-    public function releaseLocks(Request $request)
+    public function releaseLocks(Request $request): void
     {
         $configurations = $request->attributes->get('mutex_requests');
         if (!$configurations) {
@@ -247,10 +251,10 @@ class MutexRequestListener
      *
      * @return MutexRequest[]
      */
-    protected function getConfigurations(Request $request, $className, $methodName)
+    protected function getConfigurations(Request $request, string $className, string $methodName): array
     {
-        $object = new \ReflectionClass($className);
-        $method = $object->getMethod($methodName);
+        $object      = new \ReflectionClass($className);
+        $method      = $object->getMethod($methodName);
         $annotations = array_merge(
             $this->reader->getClassAnnotations($object),
             $this->reader->getMethodAnnotations($method)
@@ -282,7 +286,7 @@ class MutexRequestListener
      *
      * @return LockerManagerInterface|null
      */
-    private function getMutexService(MutexRequest $configuration)
+    private function getMutexService(MutexRequest $configuration): ?LockerManagerInterface
     {
         $id = $configuration->getService();
         if (!isset($this->managers[$id])) {
@@ -299,7 +303,7 @@ class MutexRequestListener
      *
      * @return string
      */
-    protected function getTranslatedMessage(MutexRequest $configuration)
+    protected function getTranslatedMessage(MutexRequest $configuration): ?string
     {
         if (null === $this->translator) {
             return $configuration->getMessage();
@@ -313,7 +317,7 @@ class MutexRequestListener
      *
      * @return string
      */
-    protected function getIsolatedName()
+    protected function getIsolatedName(): ?string
     {
         if (null === $this->tokenStorage) {
             throw new \RuntimeException('You attempted to use user isolation. Did you forget configure user_isolation?');
@@ -331,8 +335,12 @@ class MutexRequestListener
      * @param string       $className
      * @param string       $methodName
      */
-    protected function applyDefaults(MutexRequest $configuration, Request $request, $className, $methodName)
-    {
+    protected function applyDefaults(
+        MutexRequest $configuration,
+        Request $request,
+        string $className,
+        string $methodName
+    ): void {
         $userHash = $configuration->isUserIsolation() ? $this->getIsolatedName() : '';
         $name     = $configuration->getName();
         if (null === $name || '' === $name) {
@@ -374,7 +382,7 @@ class MutexRequestListener
      *
      * @throws HttpException
      */
-    private function block(LockerManagerInterface $service, MutexRequest $configuration)
+    private function block(LockerManagerInterface $service, MutexRequest $configuration): void
     {
         $this->check($service, $configuration);
         $service->acquireLock($configuration->getName(), null, $configuration->getTtl());
@@ -388,19 +396,19 @@ class MutexRequestListener
      *
      * @throws HttpException
      */
-    private function check(LockerManagerInterface $service, MutexRequest $configuration)
+    private function check(LockerManagerInterface $service, MutexRequest $configuration): void
     {
         if (!$service->isLocked($configuration->getName())) {
             return;
         }
-        throw new HttpException($configuration->getHttpCode(), $this->getTranslatedMessage($configuration));
+        throw new HttpException((int) $configuration->getHttpCode(), $this->getTranslatedMessage($configuration));
     }
 
     /**
      * @param LockerManagerInterface $service
-     * @param MutexRequest $configuration
+     * @param MutexRequest           $configuration
      */
-    private function queue(LockerManagerInterface $service, MutexRequest $configuration)
+    private function queue(LockerManagerInterface $service, MutexRequest $configuration): void
     {
         $tries   = 0;
         $max     = $this->maxQueueTry ?: 3;
@@ -408,19 +416,19 @@ class MutexRequestListener
         do {
             $result = $service->acquireLock($configuration->getName(), $timeout, $configuration->getTtl());
             $tries++;
-        } while(false === $result && $tries < $max);
+        } while (false === $result && $tries < $max);
 
         // In case after the maximum tries, we cannot acquire the mutex, then throw a http exception
         if (false === $result) {
-            throw new HttpException($configuration->getHttpCode(), $this->getTranslatedMessage($configuration));
+            throw new HttpException((int) $configuration->getHttpCode(), $this->getTranslatedMessage($configuration));
         }
     }
 
     /**
      * @param LockerManagerInterface $service
-     * @param MutexRequest $configuration
+     * @param MutexRequest           $configuration
      */
-    private function force(LockerManagerInterface $service, MutexRequest $configuration)
+    private function force(LockerManagerInterface $service, MutexRequest $configuration): void
     {
         if ($service->isLocked($configuration->getName())) {
             $service->releaseLock($configuration->getName());

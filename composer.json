@@ -14,8 +14,14 @@
   "require": {
     "php": ">=7.1",
     "symfony/dependency-injection": "^3.4.26|^4.4.0",
+    "symfony/config": "^3.4.26|^4.4.0",
     "arvenil/ninja-mutex": "~0.6",
-    "doctrine/common": "^2.8"
+    "doctrine/common": "^2.8",
+    "symfony/http-kernel": "^3.4.26|^4.4.0",
+    "symfony/yaml": "^3.4.26|^4.4.0",
+    "symfony/translation": "^3.4.26|^4.4.0",
+    "symfony/security": "^3.4.26|^4.4.0",
+    "symfony/contracts": "^1.0|^2.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^8.5"
@@ -28,7 +34,7 @@
     "psr-0": { "IXarlie\\MutexBundle": "" }
   },
   "target-dir": "IXarlie/MutexBundle",
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
   "extra": {
     "branch-alias": {
       "dev-master": "1.0.x-dev"
