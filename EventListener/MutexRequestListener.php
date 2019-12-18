@@ -5,8 +5,8 @@ namespace IXarlie\MutexBundle\EventListener;
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use IXarlie\MutexBundle\Manager\LockerManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\ControllerEvent;
-use Symfony\Component\HttpKernel\Event\TerminateEvent;
+use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
+use Symfony\Component\HttpKernel\Event\PostResponseEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Doctrine\Common\Annotations\Reader as AnnotationsReader;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -185,11 +185,11 @@ class MutexRequestListener
     }
 
     /**
-     * @param ControllerEvent $event
+     * @param FilterControllerEvent $event
      *
      * @throws HttpException
      */
-    public function onKernelController(ControllerEvent $event): void
+    public function onKernelController(FilterControllerEvent $event): void
     {
         if (false === $event->isMasterRequest()) {
             return;
@@ -223,9 +223,9 @@ class MutexRequestListener
     }
 
     /**
-     * @param TerminateEvent $event
+     * @param PostResponseEvent $event
      */
-    public function onKernelTerminate(TerminateEvent $event): void
+    public function onKernelTerminate(PostResponseEvent $event): void
     {
         $this->releaseLocks($event->getRequest());
     }
