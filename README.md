@@ -25,20 +25,18 @@ Library repository https://github.com/arvenil/ninja-mutex
 
 ```sh
 
-composer require ixarlie/mutex-bundle ^0.1
+composer require ixarlie/mutex-bundle ^1.0
 
 ```
 
-Add the bundle to app/AppKernel.php
+Add the bundle to config/bundles.php
 
 ```php
-
-$bundles(
-    ...
-       new IXarlie\MutexBundle\IXarlieMutexBundle(),
-    ...
-);
-
+return [
+    // ...
+    [IXarlie\MutexBundle\IXarlieMutexBundle::class, ['all' => true]],
+    // ...
+];
 ```
 
 ## Configuration

@@ -6,6 +6,7 @@ use IXarlie\MutexBundle\IXarlieMutexBundle;
 use IXarlie\MutexBundle\Tests\Fixtures\TokenStorage;
 use IXarlie\MutexBundle\Tests\Fixtures\Translator;
 use IXarlie\MutexBundle\Tests\Util\UtilTestTrait;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -15,14 +16,14 @@ use Symfony\Component\HttpKernel\KernelEvents;
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
+class IXarlieMutexBundleTest extends TestCase
 {
     use UtilTestTrait;
 
     public function testInstance()
     {
         $bundle = new IXarlieMutexBundle();
-        $this->assertInstanceOf(Bundle::class, $bundle);
+        static::assertInstanceOf(Bundle::class, $bundle);
     }
 
     public function testBootBundle()
@@ -30,23 +31,23 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
         $container = $this->getContainer();
         $bundle    = new IXarlieMutexBundle();
         $config    = [
-            'default' => 'flock.default',
+            'default'          => 'flock.default',
             'request_listener' => [
-                'queue_timeout' => 60,
-                'queue_max_try' => 8,
-                'translator' => true,
+                'queue_timeout'  => 60,
+                'queue_max_try'  => 8,
+                'translator'     => true,
                 'user_isolation' => true,
                 'http_exception' => [
                     'message' => 'No way!',
-                    'code' => 418,
+                    'code'    => 418,
                 ],
-                'priority' => 1000
+                'priority'       => 1000,
             ],
-            'flock' => ['default' => ['cache_dir' => '/tmp']],
-            'redis' => ['default' => ['host' => 'localhost', 'port' => 6379]],
-            'predis' => ['default' => ['connection' => ['host' => 'localhost', 'port' => 6379]]],
-            'memcache' => ['default' => ['host' => 'localhost', 'port' => 6379]],
-            'memcached' => ['default' => ['host' => 'localhost', 'port' => 6379]],
+            'flock'            => ['default' => ['cache_dir' => '/tmp']],
+            'redis'            => ['default' => ['host' => 'localhost', 'port' => 6379]],
+            'predis'           => ['default' => ['connection' => ['host' => 'localhost', 'port' => 6379]]],
+            'memcache'         => ['default' => ['host' => 'localhost', 'port' => 6379]],
+            'memcached'        => ['default' => ['host' => 'localhost', 'port' => 6379]],
         ];
         $this->prepareContainer($container, $bundle, $config);
 
@@ -54,33 +55,31 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
         $definition = $container->getDefinition('i_xarlie_mutex.controller.listener');
 
         // calls methods
-        $this->assertFalse($definition->hasMethodCall('setTranslator'));
-        $this->assertFalse($definition->hasMethodCall('setTokenStorage'));
+        static::assertFalse($definition->hasMethodCall('setTranslator'));
+        static::assertFalse($definition->hasMethodCall('setTokenStorage'));
         $map = [
             'setMaxQueueTimeout'      => 'queue_timeout',
             'setMaxQueueTry'          => 'queue_max_try',
             'setHttpExceptionOptions' => 'http_exception',
         ];
-        foreach ($definition->getMethodCalls() as list($method, $params)) {
+        foreach ($definition->getMethodCalls() as [$method, $params]) {
             if (isset($map[$method])) {
                 $configValue = $config['request_listener'][$map[$method]];
                 $configValue = is_array($configValue) ? array_values($configValue) : [$configValue];
-                $this->assertEquals($configValue, $params);
+                static::assertEquals($configValue, $params);
             } elseif ($method === 'addLockerManager') {
                 if ($params[0] !== 'i_xarlie_mutex.locker') {
-                    $params = explode('.', $params[0]);
-                } else {
-                    $params = explode('.', $params[1]);
+                    $params    = explode('.', $params[0]);
+                    $params[1] = str_replace('locker_', '', $params[1]);
+                    static::assertArrayHasKey($params[1], $config);
+                    static::assertArrayHasKey($params[2], $config[$params[1]]);
                 }
-                $params[1] = str_replace('locker_', '', $params[1]);
-                $this->assertArrayHasKey($params[1], $config);
-                $this->assertArrayHasKey($params[2], $config[$params[1]]);
             }
         }
 
         // priority tag
-        $this->assertNotNull($tag = $definition->getTag('kernel.event_listener'));
-        $this->assertCount(2, $tag);
+        static::assertNotNull($tag = $definition->getTag('kernel.event_listener'));
+        static::assertCount(2, $tag);
         $tags = [
             [
                 'event'    => KernelEvents::CONTROLLER,
@@ -90,12 +89,12 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
             [
                 'event'  => KernelEvents::TERMINATE,
                 'method' => 'onKernelTerminate',
-            ]
+            ],
         ];
         foreach ($tags as $i => $params) {
             foreach ($params as $key => $value) {
-                $this->assertArrayHasKey($key, $tag[$i]);
-                $this->assertEquals($value, $tag[$i][$key]);
+                static::assertArrayHasKey($key, $tag[$i]);
+                static::assertEquals($value, $tag[$i][$key]);
             }
         }
     }
@@ -108,20 +107,20 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
         $bundle = new IXarlieMutexBundle();
 
         $this->prepareContainer($container, $bundle, [
-            'default' => 'flock.default',
+            'default'          => 'flock.default',
             'request_listener' => [
-                'translator' => true
+                'translator' => true,
             ],
-            'flock' => [
+            'flock'            => [
                 'default' => [
-                    'cache_dir' => '/tmp'
-                ]
-            ]
+                    'cache_dir' => '/tmp',
+                ],
+            ],
         ]);
 
         $definition = $container->getDefinition('i_xarlie_mutex.controller.listener');
-        $this->assertTrue($definition->hasMethodCall('setTranslator'));
-        $this->assertFalse($definition->hasMethodCall('setTokenStorage'));
+        static::assertTrue($definition->hasMethodCall('setTranslator'));
+        static::assertFalse($definition->hasMethodCall('setTokenStorage'));
     }
 
     public function testCompileWithSecurityToken()
@@ -132,19 +131,19 @@ class IXarlieMutexBundleTest extends \PHPUnit_Framework_TestCase
         $bundle = new IXarlieMutexBundle();
 
         $this->prepareContainer($container, $bundle, [
-            'default' => 'flock.default',
+            'default'          => 'flock.default',
             'request_listener' => [
-                'user_isolation' => true
+                'user_isolation' => true,
             ],
-            'flock' => [
+            'flock'            => [
                 'default' => [
-                    'cache_dir' => '/tmp'
-                ]
-            ]
+                    'cache_dir' => '/tmp',
+                ],
+            ],
         ]);
 
         $definition = $container->getDefinition('i_xarlie_mutex.controller.listener');
-        $this->assertTrue($definition->hasMethodCall('setTokenStorage'));
-        $this->assertFalse($definition->hasMethodCall('setTranslator'));
+        static::assertTrue($definition->hasMethodCall('setTokenStorage'));
+        static::assertFalse($definition->hasMethodCall('setTranslator'));
     }
 }

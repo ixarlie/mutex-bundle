@@ -9,12 +9,17 @@ use IXarlie\MutexBundle\EventListener\MutexRequestListener;
 use IXarlie\MutexBundle\Manager\LockerManager;
 use IXarlie\MutexBundle\Tests\Fixtures\ArrayLock;
 use IXarlie\MutexBundle\Tests\Util\UtilTestTrait;
+use NinjaMutex\Mutex;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
-use Symfony\Component\HttpKernel\HttpKernel;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
-class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
+/**
+ * Class MutexRequestListenerTest.
+ */
+class MutexRequestListenerTest extends TestCase
 {
     use UtilTestTrait;
 
@@ -23,7 +28,7 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
     private function setUpListener(MutexRequestListener $listener, LockerManager $manager)
     {
         $listener->addLockerManager(self::DEFAULT_LOCKER, $manager);
-        $listener->addLockerManager(self::DEFAULT_LOCKER.'_array', $manager);
+        $listener->addLockerManager(self::DEFAULT_LOCKER . '_array', $manager);
     }
 
     /**
@@ -31,11 +36,11 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
      * It's recommended set a timeout in case the other request take so long, also if it was not specified the listener
      * will attempt a number of tries. After all of this if the new process cannot acquire the mutex a http exception
      * is thrown.
-     *
-     * @expectedException \Symfony\Component\HttpKernel\Exception\HttpException
      */
     public function testQueueController()
     {
+        static::expectException(HttpException::class);
+
         $locker      = new ArrayLock();
         $listener1   = $this->getListener();
         $manager1    = new LockerManager($locker);
@@ -45,16 +50,16 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
         $this->setUpListener($listener1, $manager1);
 
         $listener1->onKernelController($event1);
-        $this->assertTrue($manager1->isLocked($hashLocker1));
-        $this->assertTrue($locker->isLocked($hashLocker1));
-        $this->assertMutexCounters($manager1, $hashLocker1, 1);
+        static::assertTrue($manager1->isLocked($hashLocker1));
+        static::assertTrue($locker->isLocked($hashLocker1));
+        static::assertMutexCounters($manager1, $hashLocker1, 1);
 
         // Mutex will be locked until the controller finish or the process ends.
         // In an a real scenario we need a second locker manager but we keep the same locker instance.
         // Figure out our ArrayCache is a shared place to store mutex.
-        $listener2   = $this->getListener();
-        $manager2    = new LockerManager($locker);
-        $event2      = $this->buildFilterEvent('queue');
+        $listener2 = $this->getListener();
+        $manager2  = new LockerManager($locker);
+        $event2    = $this->buildFilterEvent('queue');
 
         $this->setUpListener($listener2, $manager2);
         // Listener will throw an exception because the other process don't release the mutex after 2 waits of 10 sec.
@@ -63,10 +68,11 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Block checks first if the resource if free, in that case block the resource for new requests.
-     * @expectedException \Symfony\Component\HttpKernel\Exception\HttpException
      */
     public function testBlockController()
     {
+        static::expectException(HttpException::class);
+
         $listener   = $this->getListener();
         $locker     = new ArrayLock();
         $manager    = new LockerManager($locker);
@@ -76,9 +82,9 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
         $event = $this->buildFilterEvent('block');
 
         $listener->onKernelController($event);
-        $this->assertTrue($manager->isLocked($hashLocker));
-        $this->assertTrue($locker->isLocked($hashLocker));
-        $this->assertMutexCounters($manager, $hashLocker, 1);
+        static::assertTrue($manager->isLocked($hashLocker));
+        static::assertTrue($locker->isLocked($hashLocker));
+        static::assertMutexCounters($manager, $hashLocker, 1);
 
         // Mutex will be raise an http exception when try to call endpoint
         $event2 = $this->buildFilterEvent('block');
@@ -87,10 +93,11 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Check raise an exception in case the resource is already locked but it's not going to acquire it.
-     * @expectedException \Symfony\Component\HttpKernel\Exception\HttpException
      */
     public function testCheckController()
     {
+        static::expectException(HttpException::class);
+
         $listener   = $this->getListener();
         $locker     = new ArrayLock();
         $manager    = new LockerManager($locker);
@@ -100,13 +107,13 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
         $event = $this->buildFilterEvent('check');
 
         $listener->onKernelController($event);
-        $this->assertFalse($manager->isLocked($hashLocker));
-        $this->assertFalse($locker->isLocked($hashLocker));
-        $this->assertMutexCounters($manager, $hashLocker, 0);
+        static::assertFalse($manager->isLocked($hashLocker));
+        static::assertFalse($locker->isLocked($hashLocker));
+        static::assertMutexCounters($manager, $hashLocker, 0);
 
         // Acquire manually the resource
         $manager->acquireLock($hashLocker);
-        $this->assertMutexCounters($manager, $hashLocker, 1);
+        static::assertMutexCounters($manager, $hashLocker, 1);
 
         // Mutex will be raise an http exception when try to call endpoint
         $event2 = $this->buildFilterEvent('check');
@@ -128,14 +135,14 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
 
         // First time the resource is not locked
         $listener->onKernelController($event);
-        $this->assertTrue($manager->isLocked($hashLocker));
-        $this->assertTrue($locker->isLocked($hashLocker));
-        $this->assertMutexCounters($manager, $hashLocker, 1);
+        static::assertTrue($manager->isLocked($hashLocker));
+        static::assertTrue($locker->isLocked($hashLocker));
+        static::assertMutexCounters($manager, $hashLocker, 1);
 
         // Mutex will be raise an http exception when try to call endpoint
         $event2 = $this->buildFilterEvent('force');
         $listener->onKernelController($event2);
-        $this->assertMutexCounters($manager, $hashLocker, 1);
+        static::assertMutexCounters($manager, $hashLocker, 1);
     }
 
     public function testReplacePlaceholders()
@@ -143,13 +150,13 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
         $request = new Request();
         $request->attributes->set('_route_params', [
             'id'    => 1,
-            'color' => 'red'
+            'color' => 'red',
         ]);
 
         $name = 'resource_{id}_{color}';
         $name = MutexRequestListener::replacePlaceholders($request, $name);
 
-        $this->assertEquals('resource_1_red', $name);
+        static::assertEquals('resource_1_red', $name);
     }
 
     public function testReplaceNoPlaceholder()
@@ -157,20 +164,19 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
         $request = new Request();
         $request->attributes->set('_route_params', [
             'id'    => 1,
-            'color' => 'red'
+            'color' => 'red',
         ]);
 
         $name = 'resource';
         $name = MutexRequestListener::replacePlaceholders($request, $name);
 
-        $this->assertEquals('resource', $name);
+        static::assertEquals('resource', $name);
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
     public function testReplaceMissingPlaceholder()
     {
+        static::expectException(\RuntimeException::class);
+
         $request = new Request();
         $request->attributes->set('_route_params', ['id' => 1]);
 
@@ -178,27 +184,32 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
         MutexRequestListener::replacePlaceholders($request, $name);
     }
 
-    private function assertMutexCounters(LockerManagerInterface $manager, $name, $counter)
+    /**
+     * @param LockerManagerInterface $manager
+     * @param string                 $name
+     * @param int                    $counter
+     */
+    private static function assertMutexCounters(LockerManagerInterface $manager, string $name, int $counter)
     {
         $refClass = new \ReflectionClass(LockerManager::class);
         $refProp  = $refClass->getProperty('locks');
         $refProp->setAccessible(true);
-        $values   = $refProp->getValue($manager);
+        $values = $refProp->getValue($manager);
 
-        $this->assertArrayHasKey($name, $values);
-        $mutex = $values[$name];
-        $refClass = new \ReflectionClass(\NinjaMutex\Mutex::class);
+        static::assertArrayHasKey($name, $values);
+        $mutex    = $values[$name];
+        $refClass = new \ReflectionClass(Mutex::class);
         $refProp  = $refClass->getProperty('counter');
         $refProp->setAccessible(true);
-        $value    = $refProp->getValue($mutex);
+        $value = $refProp->getValue($mutex);
 
-        $this->assertEquals($counter, $value);
+        static::assertEquals($counter, $value);
     }
 
     /**
      * @return MutexRequestListener
      */
-    private function getListener()
+    private function getListener(): MutexRequestListener
     {
         $reader   = new AnnotationReader();
         $listener = new MutexRequestListener($reader);
@@ -209,19 +220,20 @@ class MutexRequestListenerTest extends \PHPUnit_Framework_TestCase
         return $listener;
     }
 
-    private function buildFilterEvent($action)
+    /**
+     * @param string $action
+     *
+     * @return ControllerEvent
+     */
+    private function buildFilterEvent(string $action): ControllerEvent
     {
-        $kernelMock = $this->getMockBuilder(HttpKernel::class)
-            ->disableOriginalConstructor()
-            ->getMock()
-        ;
-        $event = new FilterControllerEvent(
+        $kernelMock = $this->createMock(HttpKernelInterface::class);
+
+        return new ControllerEvent(
             $kernelMock,
-            [new DemoController(), $action.'Action'],
+            [new DemoController(), $action . 'Action'],
             Request::create('/'),
             HttpKernelInterface::MASTER_REQUEST
         );
-
-        return $event;
     }
 }

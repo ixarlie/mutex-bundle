@@ -18,8 +18,9 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $treeBuilder->root('i_xarlie_mutex')
+        $treeBuilder = new TreeBuilder('i_xarlie_mutex');
+        $treeBuilder
+            ->getRootNode()
             ->addDefaultsIfNotSet()
             ->children()
                 ->scalarNode('default')->isRequired()->cannotBeEmpty()->end()
@@ -118,7 +119,7 @@ class Configuration implements ConfigurationInterface
                                 }
                                 return $v;
                             })
-                            ->end()                
+                            ->end()
                         ->end()
                         ->integerNode('queue_timeout')
                             ->defaultValue((int) ini_get('max_execution_time'))

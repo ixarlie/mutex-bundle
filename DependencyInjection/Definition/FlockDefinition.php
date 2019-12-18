@@ -13,9 +13,9 @@ use Symfony\Component\DependencyInjection\Definition;
 class FlockDefinition extends LockDefinition
 {
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    protected function getLocker(array $config, ContainerBuilder $container)
+    protected function getLocker(array $config, ContainerBuilder $container): Definition
     {
         $locker = new Definition('%ninja_mutex.locker_flock_class%');
         $locker->addArgument($config['cache_dir']);
@@ -24,9 +24,9 @@ class FlockDefinition extends LockDefinition
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    protected function getClient(array $config, ContainerBuilder $container)
+    protected function getClient(array $config, ContainerBuilder $container): ?Definition
     {
         return null;
     }

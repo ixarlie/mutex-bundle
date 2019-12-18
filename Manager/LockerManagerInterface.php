@@ -13,31 +13,36 @@ interface LockerManagerInterface
      * @param string   $name
      * @param int|null $timeout
      * @param int      $ttl
+     *
      * @return bool
      */
-    public function acquireLock($name, $timeout = null, $ttl = 0);
+    public function acquireLock(string $name, ?int $timeout = null, ?int $ttl = 0): bool;
 
     /**
      * @param string $name
+     *
      * @return bool
      */
-    public function releaseLock($name);
+    public function releaseLock(string $name): bool;
 
     /**
      * @param string $name
+     *
      * @return bool
      */
-    public function isAcquired($name);
+    public function isAcquired(string $name): bool;
 
     /**
      * @param string $name
+     *
      * @return bool
      */
-    public function isLocked($name);
+    public function isLocked(string $name): bool;
 
     /**
      * @param string $name
+     *
      * @return bool
      */
-    public function hasLock($name);
+    public function hasLock(string $name): bool;
 }

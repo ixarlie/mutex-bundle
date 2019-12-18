@@ -5,7 +5,6 @@ namespace IXarlie\MutexBundle\Tests\Util;
 use IXarlie\MutexBundle\DependencyInjection\Configuration;
 use IXarlie\MutexBundle\Manager\LockerManager;
 use Symfony\Component\Config\Definition\Processor;
-use Symfony\Component\DependencyInjection\Compiler\Compiler;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
@@ -19,22 +18,23 @@ trait UtilTestTrait
      *
      * @return ContainerBuilder
      */
-    private function getContainer(array $params = [])
+    private function getContainer(array $params = []): ContainerBuilder
     {
         $params = array_replace($params, [
-            'kernel.debug'          => false,
-            'kernel.bundles'        => [],
-            'kernel.cache_dir'      => sys_get_temp_dir(),
-            'kernel.environment'    => 'test',
-            'kernel.root_dir'       => __DIR__ . '/../../' // src dir
+            'kernel.debug'       => false,
+            'kernel.bundles'     => [],
+            'kernel.cache_dir'   => sys_get_temp_dir(),
+            'kernel.environment' => 'test',
+            'kernel.root_dir'    => __DIR__ . '/../../' // src dir
         ]);
+
         return new ContainerBuilder(new ParameterBag($params));
     }
 
     /**
      * @return Definition
      */
-    private function getServiceDefinition()
+    private function getServiceDefinition(): Definition
     {
         return new Definition(LockerManager::class);
     }
@@ -46,17 +46,17 @@ trait UtilTestTrait
      *
      * @return array
      */
-    private function processConfiguration($locker, array $config = [], $lockerName = 'default')
+    private function processConfiguration($locker, array $config = [], $lockerName = 'default'): array
     {
         $processor     = new Processor();
         $configuration = new Configuration();
 
-        $config = [
+        $config     = [
             'default' => sprintf('%s_%s', $locker, $lockerName),
-            $locker => [$lockerName => $config]
+            $locker   => [$lockerName => $config],
         ];
         $normalized = $processor->processConfiguration($configuration, [$config]);
-        
+
         return $normalized[$locker][$lockerName];
     }
 
@@ -67,9 +67,9 @@ trait UtilTestTrait
      * @param BundleInterface  $bundle
      * @param array            $config
      */
-    protected function prepareContainer(ContainerBuilder $container, BundleInterface $bundle, array $config)
+    protected function prepareContainer(ContainerBuilder $container, BundleInterface $bundle, array $config): void
     {
-        $extensions    = [];
+        $extensions = [];
         if ($extension = $bundle->getContainerExtension()) {
             $container->registerExtension($extension);
             $extensions[] = $extension->getAlias();
@@ -82,6 +82,5 @@ trait UtilTestTrait
         $container->compile();
 
         $bundle->setContainer($container);
-        $bundle->boot();
     }
 }

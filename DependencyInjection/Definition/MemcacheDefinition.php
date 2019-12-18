@@ -14,23 +14,23 @@ class MemcacheDefinition extends LockDefinition
 {
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    protected function getLocker(array $config, ContainerBuilder $container)
+    protected function getLocker(array $config, ContainerBuilder $container): Definition
     {
         $locker = new Definition('%ninja_mutex.locker_memcache_class%');
-        
+
         return $locker;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    protected function getClient(array $config, ContainerBuilder $container)
+    protected function getClient(array $config, ContainerBuilder $container): ?Definition
     {
         $client = new Definition('%i_xarlie_mutex.memcache.connection.class%');
         $client->addMethodCall('addserver', [$config['host'], $config['port']]);
-        
+
         return $client;
     }
 }

@@ -5,20 +5,20 @@ namespace IXarlie\MutexBundle\Tests\DependencyInjection\Definition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\FlockDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
 use IXarlie\MutexBundle\Tests\Util\UtilTestTrait;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Class FlockDefinitionTest
- *
- * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class FlockDefinitionTest extends \PHPUnit_Framework_TestCase
+class FlockDefinitionTest extends TestCase
 {
     use UtilTestTrait;
 
     public function testInstanceOf()
     {
-        $this->assertInstanceOf(LockDefinition::class, new FlockDefinition('default'));
+        static::assertInstanceOf(LockDefinition::class, new FlockDefinition('default'));
     }
 
     public function testConfigure()
@@ -27,20 +27,20 @@ class FlockDefinitionTest extends \PHPUnit_Framework_TestCase
         $service    = $this->getServiceDefinition();
         $definition = new FlockDefinition('default');
 
-        $this->assertEmpty($service->getArguments());
+        static::assertEmpty($service->getArguments());
 
         $config = $this->processConfiguration('flock', ['cache_dir' => '/tmp/flock']);
 
         $definition->configure($config, $service, $container);
-        $this->assertCount(1, $service->getArguments());
+        static::assertCount(1, $service->getArguments());
 
         /** @var Definition $locker */
         $locker = $service->getArgument(0);
-        $this->assertInstanceOf(Definition::class, $locker);
-        $this->assertEquals('%ninja_mutex.locker_flock_class%', $locker->getClass());
-        $this->assertCount(1, $locker->getArguments());
+        static::assertInstanceOf(Definition::class, $locker);
+        static::assertEquals('%ninja_mutex.locker_flock_class%', $locker->getClass());
+        static::assertCount(1, $locker->getArguments());
         $arg0 = $locker->getArgument(0);
-        $this->assertEquals($config['cache_dir'], $arg0);
+        static::assertEquals($config['cache_dir'], $arg0);
     }
 
     public function testConfigureLogger()
@@ -49,7 +49,7 @@ class FlockDefinitionTest extends \PHPUnit_Framework_TestCase
         $service    = $this->getServiceDefinition();
         $definition = new FlockDefinition('default');
 
-        $this->assertEmpty($service->getArguments());
+        static::assertEmpty($service->getArguments());
 
         $container->setDefinition('logger', new Definition('%logger.class%'));
 
@@ -57,7 +57,8 @@ class FlockDefinitionTest extends \PHPUnit_Framework_TestCase
         $config = $this->processConfiguration('flock', $config);
         $definition->configure($config, $service, $container);
 
-        $this->assertCount(2, $service->getArguments());
-        $this->assertEquals('%logger.class%', $service->getArgument(1)->getClass());
+        static::assertCount(2, $service->getArguments());
+        static::assertInstanceOf(Reference::class, $service->getArgument(1));
+        static::assertEquals('logger', (string) $service->getArgument(1));
     }
 }

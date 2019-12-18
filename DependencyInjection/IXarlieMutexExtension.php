@@ -2,6 +2,7 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection;
 
+use Doctrine\Common\Annotations\AnnotationReader;
 use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
 use IXarlie\MutexBundle\EventListener\MutexRequestListener;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -21,7 +22,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class IXarlieMutexExtension extends Extension
 {
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function load(array $configs, ContainerBuilder $container)
     {
@@ -30,7 +31,7 @@ class IXarlieMutexExtension extends Extension
         $loader->load('lockers.yml');
 
         $configuration = new Configuration();
-        $config = $this->processConfiguration($configuration, $configs);
+        $config        = $this->processConfiguration($configuration, $configs);
 
         $providers = $this->loadLockProviders($config, $container);
         $this->loadRequestListener($config, $providers, $container);
@@ -42,7 +43,7 @@ class IXarlieMutexExtension extends Extension
      *
      * @return string
      */
-    public static function getLockerManagerId($type = null, $name = null)
+    public static function getLockerManagerId(?string $type, ?string $name): string
     {
         $base = 'i_xarlie_mutex.locker';
         if ($type) {
@@ -51,6 +52,7 @@ class IXarlieMutexExtension extends Extension
         if ($name) {
             $base .= '.' . $name;
         }
+
         return $base;
     }
 
@@ -60,7 +62,7 @@ class IXarlieMutexExtension extends Extension
      *
      * @return array    List of locker managers id to be registered in the request listener
      */
-    private function loadLockProviders(array $rootConfig, ContainerBuilder $container)
+    private function loadLockProviders(array $rootConfig, ContainerBuilder $container): array
     {
         $providers = [];
         $default   = $rootConfig['default'];
@@ -82,14 +84,14 @@ class IXarlieMutexExtension extends Extension
             }
         }
 
-        $aliasId   = self::getLockerManagerId();
-        $serviceId = self::getLockerManagerId($default);
+        $aliasId   = self::getLockerManagerId(null, null);
+        $serviceId = self::getLockerManagerId($default, null);
         if (!$container->hasDefinition($serviceId)) {
             throw new ServiceNotFoundException($serviceId, $aliasId);
         }
+
         $container->setAlias($aliasId, $serviceId);
         $providers[] = $aliasId;
-
 
         return $providers;
     }
@@ -99,12 +101,13 @@ class IXarlieMutexExtension extends Extension
      *
      * @return LockDefinition
      */
-    private function getDefinitionLoader($type)
+    private function getDefinitionLoader(string $type): ?LockDefinition
     {
         $class = sprintf('%s\Definition\%s', __NAMESPACE__, ucfirst($type) . 'Definition');
         if (class_exists($class)) {
             return new $class($type);
         }
+
         return null;
     }
 
@@ -115,13 +118,17 @@ class IXarlieMutexExtension extends Extension
      */
     private function loadRequestListener(array $config, array $providers, ContainerBuilder $container)
     {
-        if (isset($config['request_listener']['enabled']) && false === $config['request_listener']['enabled']) {
+        $isEnabled = $config['request_listener']['enabled'] ?? false;
+        if (false === $isEnabled) {
             // Default listener was disabled.
             return;
         }
 
         $definition = new Definition(MutexRequestListener::class);
-        $definition->addArgument(new Reference('annotation_reader'));
+        $reader     = new Definition(AnnotationReader::class);
+        $container->setDefinition('i_xarlie_mutex.annotation_reader', $reader);
+        $definition->addArgument($reader);
+        $definition->setPublic(true);
 
         // Register as many lockers were registered in the configuration
         foreach ($providers as $providerId) {
