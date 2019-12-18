@@ -20,7 +20,7 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder('i_xarlie_mutex');
         $treeBuilder
-            ->getRootNode()
+            ->root('i_xarlie_mutex')
             ->addDefaultsIfNotSet()
             ->children()
                 ->scalarNode('default')->isRequired()->cannotBeEmpty()->end()
