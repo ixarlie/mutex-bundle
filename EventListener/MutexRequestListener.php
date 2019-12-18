@@ -11,6 +11,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Doctrine\Common\Annotations\Reader as AnnotationsReader;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\Translation\TranslatorInterface as LegacyTranslatorInterface;
 
 /**
  * Class MutexRequestListener
@@ -55,7 +56,7 @@ class MutexRequestListener
     private $requestPlaceholder = false;
 
     /**
-     * @var TranslatorInterface
+     * @var TranslatorInterface|LegacyTranslatorInterface
      */
     private $translator;
 
@@ -92,10 +93,14 @@ class MutexRequestListener
     }
 
     /**
-     * @param TranslatorInterface $translator
+     * @param TranslatorInterface|LegacyTranslatorInterface $translator
      */
-    public function setTranslator(?TranslatorInterface $translator): void
+    public function setTranslator($translator): void
     {
+        if (!$translator instanceof TranslatorInterface && !$translator instanceof LegacyTranslatorInterface) {
+            throw new \InvalidArgumentException('Not a valid translator instance.');
+        }
+
         $this->translator = $translator;
     }
 
