@@ -1,4 +1,8 @@
-
-.idea/
+/composer.lock
 vendor/
-Tests/Fixtures/cache/*
+!tests/var/.gitkeep
+!tests/var/flock/.gitkeep
+tests/var/
+.phpunit.result.cache
+.php_cs.cache
+.php_cs.dist

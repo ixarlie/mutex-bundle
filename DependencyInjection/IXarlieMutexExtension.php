@@ -2,16 +2,24 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection;
 
-use Doctrine\Common\Annotations\AnnotationReader;
+use IXarlie\MutexBundle\DependencyInjection\Definition\CombinedDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\CustomDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\FlockDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\MemcachedDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\PdoDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\RedisDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\SemaphoreDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\ZookepperDefinition;
+use IXarlie\MutexBundle\EventListener\MutexDecoratorListener;
+use IXarlie\MutexBundle\EventListener\MutexExceptionListener;
+use IXarlie\MutexBundle\EventListener\MutexReleaseListener;
 use IXarlie\MutexBundle\EventListener\MutexRequestListener;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
+use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -22,161 +30,138 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class IXarlieMutexExtension extends Extension
 {
     /**
-     * @inheritDoc
+     * @var LockDefinition[]
+     */
+    private $definitions;
+
+    /**
+     * IXarlieMutexExtension constructor.
+     */
+    public function __construct()
+    {
+        $definitions = [
+            new FlockDefinition(),
+            new SemaphoreDefinition(),
+            new MemcachedDefinition(),
+            new RedisDefinition(),
+            new CombinedDefinition(),
+            new PdoDefinition(),
+            new ZookepperDefinition(),
+            new CustomDefinition(),
+        ];
+        /** @var LockDefinition $definition */
+        foreach ($definitions as $definition) {
+            $this->definitions[$definition->getName()] = $definition;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function load(array $configs, ContainerBuilder $container)
     {
-        // Get base definition of services and lockers
-        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
-        $loader->load('lockers.yml');
-
         $configuration = new Configuration();
         $config        = $this->processConfiguration($configuration, $configs);
 
-        $providers = $this->loadLockProviders($config, $container);
-        $this->loadRequestListener($config, $providers, $container);
+        $this->loadServices($container, $config);
+        $this->loadRequestListener($container, $config);
     }
 
     /**
-     * @param string $type
-     * @param string $name
-     *
-     * @return string
-     */
-    public static function getLockerManagerId(?string $type, ?string $name): string
-    {
-        $base = 'i_xarlie_mutex.locker';
-        if ($type) {
-            $base .= '_' . $type;
-        }
-        if ($name) {
-            $base .= '.' . $name;
-        }
-
-        return $base;
-    }
-
-    /**
-     * @param array            $rootConfig
      * @param ContainerBuilder $container
-     *
-     * @return array    List of locker managers id to be registered in the request listener
+     * @param array            $rootConfig
      */
-    private function loadLockProviders(array $rootConfig, ContainerBuilder $container): array
+    private function loadServices(ContainerBuilder $container, array $rootConfig)
     {
-        $providers = [];
-        $default   = $rootConfig['default'];
+        $default = $rootConfig['default'];
         unset($rootConfig['default'], $rootConfig['request_listener']);
+
+        $factories = 0;
         foreach ($rootConfig as $type => $declarations) {
             foreach ($declarations as $name => $config) {
-                if ($definition = $this->getDefinitionLoader($type)) {
+                $config['default'] = $default;
 
-                    // Register lock manager and configure its locker using its decorator definition
-                    $serviceId = self::getLockerManagerId($type, $name);
-                    $service   = $container->setDefinition(
-                        $serviceId,
-                        new Definition('%i_xarlie_mutex.lock_manager_class%')
-                    );
-                    $definition->configure($config, $service, $container);
-
-                    $providers[] = $serviceId;
+                if (!isset($this->definitions[$type])) {
+                    throw new \RuntimeException('Cannot find definition class for type ' . $type);
                 }
+
+                // Register factory
+                $this->definitions[$type]->createFactory($container, $config, $name);
+                $factories++;
             }
         }
 
-        $aliasId   = self::getLockerManagerId(null, null);
-        $serviceId = self::getLockerManagerId($default, null);
-        if (!$container->hasDefinition($serviceId)) {
-            throw new ServiceNotFoundException($serviceId, $aliasId);
+        if (!$container->hasAlias('ixarlie_mutex.default_factory') && $factories > 0) {
+            throw new LogicException(sprintf(
+                '%s is not a valid default factory name value. Use type.name form',
+                $default
+            ));
         }
-
-        $container->setAlias($aliasId, $serviceId);
-        $providers[] = $aliasId;
-
-        return $providers;
     }
 
     /**
-     * @param string $type
-     *
-     * @return LockDefinition
-     */
-    private function getDefinitionLoader(string $type): ?LockDefinition
-    {
-        $class = sprintf('%s\Definition\%s', __NAMESPACE__, ucfirst($type) . 'Definition');
-        if (class_exists($class)) {
-            return new $class($type);
-        }
-
-        return null;
-    }
-
-    /**
-     * @param array            $config
-     * @param Definition[]     $providers
      * @param ContainerBuilder $container
+     * @param array            $config
      */
-    private function loadRequestListener(array $config, array $providers, ContainerBuilder $container)
+    private function loadRequestListener(ContainerBuilder $container, array $config)
     {
-        $isEnabled = $config['request_listener']['enabled'] ?? false;
-        if (false === $isEnabled) {
+        if (false === $config['request_listener']['enabled']) {
             // Default listener was disabled.
             return;
         }
 
         $definition = new Definition(MutexRequestListener::class);
-        $reader     = new Definition(AnnotationReader::class);
-        $container->setDefinition('i_xarlie_mutex.annotation_reader', $reader);
-        $definition->addArgument($reader);
-        $definition->setPublic(true);
+        $container->setDefinition(MutexRequestListener::class, $definition);
 
         // Register as many lockers were registered in the configuration
-        foreach ($providers as $providerId) {
-            $definition->addMethodCall('addLockerManager', [$providerId, new Reference($providerId)]);
+        $factories = $container->findTaggedServiceIds('ixarlie_factory');
+        foreach ($factories as $factoryId => $options) {
+            $definition->addMethodCall('addFactory', [$factoryId, new Reference($factoryId)]);
         }
 
-        // Configure listener with bundle configuration
-        if (!isset($config['request_listener'])) {
-            return;
+        if ($container->hasAlias('ixarlie_mutex.default_factory')) {
+            $definition->addMethodCall(
+                'addFactory',
+                ['ixarlie_mutex.default_factory', new Reference($container->getAlias('ixarlie_mutex.default_factory'))]
+            );
         }
 
         $config = $config['request_listener'];
-
-        $definition->addMethodCall(
-            'setHttpExceptionOptions',
-            [$config['http_exception']['message'], $config['http_exception']['code']]
-        );
-
-        if (isset($config['queue_timeout'])) {
-            $definition->addMethodCall('setMaxQueueTimeout', [(int) $config['queue_timeout']]);
-        }
-
-        if (isset($config['queue_max_try'])) {
-            $definition->addMethodCall('setMaxQueueTry', [(int) $config['queue_max_try']]);
-        }
-
-        if (isset($config['translator']) && true === $config['translator']) {
-            $definition->addMethodCall('setTranslator', [new Reference('translator')]);
-        }
-
-        if (isset($config['user_isolation']) && true === $config['user_isolation']) {
-            $definition->addMethodCall('setTokenStorage', [new Reference('security.token_storage')]);
-        }
-
-        if (isset($config['request_placeholder']) && true === $config['request_placeholder']) {
-            $definition->addMethodCall('setRequestPlaceholder', [true]);
-        }
 
         // Register listener as soon as possible, default priority 255
         $definition->addTag(
             'kernel.event_listener',
             ['event' => KernelEvents::CONTROLLER, 'method' => 'onKernelController', 'priority' => $config['priority']]
         );
-        $definition->addTag(
-            'kernel.event_listener',
-            ['event' => KernelEvents::TERMINATE, 'method' => 'onKernelTerminate']
-        );
 
-        $container->setDefinition('i_xarlie_mutex.controller.listener', $definition);
+        // Configure MutexDecoratorListener
+        $decoratorListener = new Definition(MutexDecoratorListener::class);
+        $decoratorListener->addTag(
+            'kernel.event_listener',
+            [
+                'event'    => KernelEvents::CONTROLLER,
+                'method'   => 'onKernelController',
+                'priority' => $config['priority'] + 1,
+            ]
+        );
+        $container->setDefinition(MutexDecoratorListener::class, $decoratorListener);
+
+        // Configure MutexExceptionListener
+        $exceptionListener = new Definition(MutexExceptionListener::class);
+        $exceptionListener->addTag(
+            'kernel.event_listener',
+            ['event' => KernelEvents::EXCEPTION, 'method' => 'onKernelException', 'priority' => 255]
+        );
+        $container->setDefinition(MutexExceptionListener::class, $exceptionListener);
+
+        // Configure MutexReleaseListener
+        if ($config['autorelease']) {
+            $terminateListener = new Definition(MutexReleaseListener::class);
+            $terminateListener->addTag(
+                'kernel.event_listener',
+                ['event' => KernelEvents::TERMINATE, 'method' => 'onKernelTerminate', 'priority' => -255]
+            );
+            $container->setDefinition(MutexReleaseListener::class, $terminateListener);
+        }
     }
 }

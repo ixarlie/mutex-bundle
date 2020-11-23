@@ -2,25 +2,26 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
+use IXarlie\MutexBundle\Store\CustomStore;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\Lock\Store\FlockStore;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
- * Class FlockDefinition
+ * Class CustomDefinition.
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class FlockDefinition extends LockDefinition
+class CustomDefinition extends LockDefinition
 {
     /**
      * @inheritdoc
      */
     public function getName(): string
     {
-        return 'flock';
+        return 'custom';
     }
 
     /**
@@ -35,9 +36,8 @@ class FlockDefinition extends LockDefinition
             ->useAttributeAsKey('name')
             ->arrayPrototype()
             ->children()
-                ->scalarNode('lock_dir')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('service')->isRequired()->cannotBeEmpty()->end()
                 ->scalarNode('logger')->end()
-            ->end()
             ->end()
         ;
 
@@ -49,8 +49,8 @@ class FlockDefinition extends LockDefinition
      */
     protected function createStore(ContainerBuilder $container, array $config): Definition
     {
-        $store = new Definition(FlockStore::class);
-        $store->addArgument($config['lock_dir']);
+        $store = new Definition(CustomStore::class);
+        $store->addArgument(new Reference($config['service']));
 
         return $store;
     }

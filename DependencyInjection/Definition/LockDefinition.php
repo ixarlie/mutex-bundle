@@ -2,9 +2,13 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
+use Symfony\Component\Config\Definition\Builder\NodeDefinition;
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\RetryTillSaveStore;
 
 /**
  * Class LockDefinition
@@ -14,70 +18,86 @@ use Symfony\Component\DependencyInjection\Reference;
 abstract class LockDefinition
 {
     /**
-     * @var string
-     */
-    private $type;
-
-    /**
-     * @param string $type
-     */
-    public function __construct(string $type)
-    {
-        $this->type = $type;
-    }
-
-    /**
-     * @param array            $config
-     * @param Definition       $manager
      * @param ContainerBuilder $container
+     * @param array            $config
+     * @param string           $name
+     *
+     * @return Definition
      */
-    public function configure(array $config, Definition $manager, ContainerBuilder $container): void
+    final public function createFactory(ContainerBuilder $container, array $config, string $name): Definition
     {
-        // Get the locker definition.
-        $locker = $this->getLocker($config, $container);
+        $default = $config['default'];
+        unset($config['default']);
 
-        // If the locker have a client service, allow configure it and add it to the locker.
-        if ($client = $this->getClient($config, $container)) {
-            $client->setPublic(false);
-            $this->configureClient($locker, $client);
+        // Get the store definition.
+        $store = $this->createStore($container, $config);
+
+        // If blocking option is enable, decorates base store with RetryTillSaveStore class
+        if (isset($config['blocking'])) {
+            $store = new Definition(
+                RetryTillSaveStore::class,
+                [$store, $config['blocking']['retry_sleep'], $config['blocking']['retry_count']]
+            );
         }
 
-        // LockerManager first argument is a \NinjaMutex\Lock\LockInterface definition.
-        $manager->addArgument($locker);
+        // Register store instance as service
+        $store->setPublic(false);
+        $container->setDefinition(sprintf('ixarlie_mutex.%s_store.%s', $this->getName(), $name), $store);
+
+        $factory   = new Definition(LockFactory::class, [$store]);
+        $factoryId = sprintf('ixarlie_mutex.%s_factory.%s', $this->getName(), $name);
+        $container->setDefinition($factoryId, $factory);
+
         if (isset($config['logger'])) {
             // If a logger is configured, add it as argument
-            $manager->addArgument(new Reference($config['logger']));
+            $factory->addMethodCall('setLogger', [new Reference($config['logger'])]);
         }
+
+        [$storeName, $factoryName] = explode('.', $default);
+
+        if ($storeName === $this->getName() && $factoryName === $name) {
+            $container->setAlias('ixarlie_mutex.default_factory', $factoryId);
+        }
+
+        $factory->addTag('ixarlie_factory', ['type' => $this->getName(), 'name' => $name]);
+
+        return $factory;
     }
+
+    /**
+     * @return string
+     */
+    abstract public function getName(): string;
+
+    /**
+     * @return NodeDefinition
+     */
+    abstract public function addConfiguration(): NodeDefinition;
 
     /**
      * Create a locker definition that will be use in the LockerManagerInterface
      *
-     * @param array            $config
      * @param ContainerBuilder $container
+     * @param array            $config
      *
      * @return Definition
      */
-    abstract protected function getLocker(array $config, ContainerBuilder $container): Definition;
+    abstract protected function createStore(ContainerBuilder $container, array $config): Definition;
 
     /**
-     * Create a client definition that will be use in the locker
-     *
-     * @param array            $config
-     * @param ContainerBuilder $container
-     *
-     * @return Definition
+     * @return NodeDefinition
      */
-    abstract protected function getClient(array $config, ContainerBuilder $container): ?Definition;
-
-    /**
-     * Configure client
-     *
-     * @param Definition $locker
-     * @param Definition $client
-     */
-    protected function configureClient(Definition $locker, Definition $client): void
+    final protected function addBlockConfiguration(): NodeDefinition
     {
-        $locker->addArgument($client);
+        $tree = new TreeBuilder('blocking');
+        $node = $tree->getRootNode();
+        $node
+            ->children()
+            ->integerNode('retry_sleep')->defaultValue(100)->end()
+            ->integerNode('retry_count')->defaultValue(PHP_INT_MAX)->end()
+            ->end()
+        ;
+
+        return $node;
     }
 }

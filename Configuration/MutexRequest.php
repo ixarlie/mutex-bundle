@@ -2,15 +2,17 @@
 
 namespace IXarlie\MutexBundle\Configuration;
 
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationAnnotation;
+
 /**
- * Class MutexLock
+ * Class MutexRequest
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  *
  * @Annotation
- * @Target({"CLASS", "METHOD"})
+ * @Target({"METHOD"})
  */
-class MutexRequest
+final class MutexRequest extends ConfigurationAnnotation
 {
     /**
      * Attempt to acquire the mutex, in case is locked an exception is thrown.
@@ -18,25 +20,28 @@ class MutexRequest
      * @var string
      */
     const MODE_BLOCK = 'block';
+
     /**
      * Check status of the mutex, in case is locked an exception is thrown. (do not attempt to acquire the mutex)
      *
      * @var string
      */
     const MODE_CHECK = 'check';
+
     /**
      * Attempt to acquire the mutex, in case is locked, the request wait until the mutex is released.
      *
      * @var string
      */
     const MODE_QUEUE = 'queue';
+
     /**
      * Release any locked mutex, then acquire it.
      */
     const MODE_FORCE = 'force';
 
     /**
-     * Lock name. If you don't specify one the name will be a generated hash using request information
+     * Lock name. If you don't specify one the name will be a generated hash using request information.
      *
      * @var string
      */
@@ -50,8 +55,7 @@ class MutexRequest
     protected $mode;
 
     /**
-     * Some lockers implements a time-to-live option.
-     * This option is ignored for non compatible lockers.
+     * Some lockers implements a time-to-live option. This option is ignored for non compatible lockers.
      *
      * @var int
      */
@@ -60,52 +64,31 @@ class MutexRequest
     /**
      * Registered service to create the lock. Reduced or complete name can be used.
      * If you don't specify a value, the default locker will be used.
-     * (redis == i_xarlie_mutex.locker_redis)
+     * (redis.name == ixarlie_mutex.redis_factory.name)
      *
      * @var string
      */
     protected $service;
 
     /**
-     * HTTP Code to throw if resource is locked.
+     * HTTP options to change the behaviour of the http exceptions:
+     *  - code: Http code status to throw is resource is locked.
+     *  - message: Message of the exception.
+     *  - domain: If want to use the translator using a domain
      *
-     * @var int
+     * @var array
      */
-    protected $httpCode;
+    protected $http = [];
 
     /**
-     * Custom message for HTTP exception
-     *
-     * @var string
-     */
-    protected $message;
-
-    /**
-     * Domain to translate the message
-     *
-     * @var string
-     */
-    protected $messageDomain;
-
-    /**
-     * Append user information to the lock to have isolated locks
+     * Append user information to the lock name to have isolated locks.
      *
      * @var bool
      */
     protected $userIsolation = false;
 
-    public function __construct(array $values)
-    {
-        foreach ($values as $k => $v) {
-            if (!method_exists($this, $name = 'set' . $k)) {
-                throw new \RuntimeException(sprintf('Unknown key "%s" for annotation "@%s".', $k, get_class($this)));
-            }
-            $this->$name($v);
-        }
-    }
-
     /**
-     * @return string
+     * @return string|null
      */
     public function getName(): ?string
     {
@@ -113,11 +96,9 @@ class MutexRequest
     }
 
     /**
-     * @param string $name
-     *
-     * return MutexRequest
+     * @param string|null $name
      */
-    public function setName(?string $name)
+    public function setName(?string $name): void
     {
         $this->name = $name;
     }
@@ -125,55 +106,27 @@ class MutexRequest
     /**
      * @return string
      */
-    public function getMode(): ?string
+    public function getMode(): string
     {
         return $this->mode;
     }
 
     /**
      * @param string $mode
-     *
-     * return MutexRequest
      */
-    public function setMode(?string $mode)
+    public function setMode(string $mode): void
     {
+        switch ($mode) {
+            case self::MODE_BLOCK:
+            case self::MODE_CHECK:
+            case self::MODE_FORCE:
+            case self::MODE_QUEUE:
+                break;
+            default:
+                throw new \InvalidArgumentException(sprintf('Mode "%s" is not a valid mutex mode.', $mode));
+        }
+
         $this->mode = $mode;
-    }
-
-    /**
-     * @return int
-     */
-    public function getHttpCode(): ?int
-    {
-        return $this->httpCode;
-    }
-
-    /**
-     * @param int $httpCode
-     *
-     * return MutexRequest
-     */
-    public function setHttpCode(?int $httpCode)
-    {
-        $this->httpCode = $httpCode;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMessage(): ?string
-    {
-        return $this->message;
-    }
-
-    /**
-     * @param string $message
-     *
-     * return MutexRequest
-     */
-    public function setMessage(?string $message)
-    {
-        $this->message = $message;
     }
 
     /**
@@ -185,11 +138,9 @@ class MutexRequest
     }
 
     /**
-     * @param int $ttl
-     *
-     * return MutexRequest
+     * @param int|null $ttl
      */
-    public function setTtl(?int $ttl)
+    public function setTtl(?int $ttl): void
     {
         $this->ttl = $ttl;
     }
@@ -203,46 +154,74 @@ class MutexRequest
     }
 
     /**
-     * @param string $service
-     *
-     * return MutexRequest
+     * @param string|null $service
      */
-    public function setService(?string $service)
+    public function setService(?string $service): void
     {
         $this->service = $service;
     }
 
     /**
-     * @return boolean
+     * @return bool
      */
-    public function isUserIsolation(): ?bool
+    public function isUserIsolation(): bool
     {
         return $this->userIsolation;
     }
 
     /**
-     * @param boolean $userIsolation
-     *
-     * return MutexRequest
+     * @param bool $userIsolation
      */
-    public function setUserIsolation(?bool $userIsolation)
+    public function setUserIsolation(bool $userIsolation): void
     {
         $this->userIsolation = $userIsolation;
     }
 
     /**
-     * @return string
+     * @return array
      */
-    public function getMessageDomain(): ?string
+    public function getHttp(): array
     {
-        return $this->messageDomain;
+        return $this->http;
     }
 
     /**
-     * @param string $messageDomain
+     * @param array $http
      */
-    public function setMessageDomain(?string $messageDomain)
+    public function setHttp(array $http): void
     {
-        $this->messageDomain = $messageDomain;
+        $this->http = $http;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAliasName()
+    {
+        return 'ixarlie_mutex_request';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function allowArray()
+    {
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEmptyName(): bool
+    {
+        return null === $this->name || '' === $this->name;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEmptyService(): bool
+    {
+        return null === $this->service || '' === $this->service;
     }
 }

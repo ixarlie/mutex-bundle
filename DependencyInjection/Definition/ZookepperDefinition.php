@@ -1,4 +1,8 @@
-<?php
+<?php declare(strict_types=1);
+
+/*
+ * Copyright (c) 2020, Surex Ltd.
+ */
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
@@ -6,25 +10,25 @@ use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\Lock\Store\FlockStore;
+use Symfony\Component\Lock\Store\ZookeeperStore;
 
 /**
- * Class FlockDefinition
+ * Class ZookepperDefinition.
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class FlockDefinition extends LockDefinition
+class ZookepperDefinition extends LockDefinition
 {
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function getName(): string
     {
-        return 'flock';
+        return 'zookeeper';
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function addConfiguration(): NodeDefinition
     {
@@ -35,9 +39,9 @@ class FlockDefinition extends LockDefinition
             ->useAttributeAsKey('name')
             ->arrayPrototype()
             ->children()
-                ->scalarNode('lock_dir')->isRequired()->cannotBeEmpty()->end()
+                ->scalarNode('client')->isRequired()->cannotBeEmpty()->end()
+                ->append($this->addBlockConfiguration())
                 ->scalarNode('logger')->end()
-            ->end()
             ->end()
         ;
 
@@ -45,12 +49,12 @@ class FlockDefinition extends LockDefinition
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     protected function createStore(ContainerBuilder $container, array $config): Definition
     {
-        $store = new Definition(FlockStore::class);
-        $store->addArgument($config['lock_dir']);
+        $store = new Definition(ZookeeperStore::class);
+        $store->addArgument($config['client']);
 
         return $store;
     }
