@@ -4,3 +4,5 @@ vendor/
 !tests/var/flock/.gitkeep
 tests/var/
 .phpunit.result.cache
+.php_cs.cache
+.php_cs.dist
