@@ -4,6 +4,7 @@ namespace IXarlie\MutexBundle\Store;
 
 use Symfony\Component\Lock\BlockingStoreInterface;
 use Symfony\Component\Lock\Key;
+use Symfony\Component\Lock\PersistingStoreInterface;
 
 /**
  * Class CustomStore.
@@ -13,16 +14,16 @@ use Symfony\Component\Lock\Key;
 class CustomStore implements BlockingStoreInterface
 {
     /**
-     * @var BlockingStoreInterface
+     * @var PersistingStoreInterface
      */
     private $store;
 
     /**
      * CustomStore constructor.
      *
-     * @param BlockingStoreInterface $store
+     * @param PersistingStoreInterface $store
      */
-    public function __construct(BlockingStoreInterface $store)
+    public function __construct(PersistingStoreInterface $store)
     {
         $this->store = $store;
     }
@@ -33,14 +34,6 @@ class CustomStore implements BlockingStoreInterface
     public function save(Key $key)
     {
         $this->store->save($key);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function waitAndSave(Key $key)
-    {
-        $this->store->waitAndSave($key);
     }
 
     /**
@@ -65,5 +58,15 @@ class CustomStore implements BlockingStoreInterface
     public function exists(Key $key)
     {
         return $this->store->exists($key);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function waitAndSave(Key $key)
+    {
+        if ($this->store instanceof BlockingStoreInterface) {
+            $this->store->waitAndSave($key);
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace Tests\DependencyInjection\Definition;
 
 use IXarlie\MutexBundle\DependencyInjection\Definition\CombinedDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Lock\Store\CombinedStore;
@@ -12,12 +13,12 @@ use Symfony\Component\Lock\Strategy\UnanimousStrategy;
 /**
  * Class CombinedDefinitionTest
  */
-class CombinedDefinitionTest extends StoreDefinitionTestCase
+final class CombinedDefinitionTest extends StoreDefinitionTestCase
 {
     /**
      * @inheritdoc
      */
-    protected function getClassName()
+    protected function getClassName(): string
     {
         return CombinedStore::class;
     }
@@ -25,7 +26,7 @@ class CombinedDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    protected function getDefinitionInstance()
+    protected function getDefinitionInstance(): LockDefinition
     {
         return new CombinedDefinition();
     }
@@ -33,7 +34,7 @@ class CombinedDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    protected function getDefinitionName()
+    protected function getDefinitionName(): string
     {
         return 'combined';
     }
@@ -41,7 +42,7 @@ class CombinedDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    protected function assertStore(Definition $definition, array $configuration)
+    protected function assertStore(Definition $definition, array $configuration): void
     {
         static::assertCount(2, $definition->getArguments());
 
@@ -75,23 +76,23 @@ class CombinedDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    public function getDefinitionProvider()
+    public function dataDefinitionProvider(): \Generator
     {
         yield [
             [
                 'default'  => 'foo.bar',
                 'stores'   => ['my_store_service_one', 'my_store_service_two'],
                 'strategy' => 'consensus',
-                'logger'   => 'monolog.logger'
-            ]
+                'logger'   => 'monolog.logger',
+            ],
         ];
         yield [
             [
                 'default'  => 'combined.default',
                 'stores'   => ['my_store_service_one', 'my_store_service_two'],
                 'strategy' => 'strategy_service',
-                'logger'   => 'monolog.logger'
-            ]
+                'logger'   => 'monolog.logger',
+            ],
         ];
         yield [
             [
@@ -102,32 +103,72 @@ class CombinedDefinitionTest extends StoreDefinitionTestCase
                 'blocking' => [
                     'retry_count' => 500,
                     'retry_sleep' => 1000,
-                ]
-            ]
+                ],
+            ],
         ];
     }
 
     /**
      * @inheritdoc
      */
-    public function getConfigurationProvider()
+    public function dataConfigurationProvider(): \Generator
     {
         yield [
             [
                 'foo' => [
                     'stores' => [
-                        'ixarlie_mutex.flock_store.default'
-                    ]
-                ]
+                        'ixarlie_mutex.flock_store.default',
+                    ],
+                ],
             ],
             [
                 'foo' => [
-                    'stores' => [
-                        'ixarlie_mutex.flock_store.default'
+                    'stores'   => [
+                        'ixarlie_mutex.flock_store.default',
                     ],
-                    'strategy' => 'unanimous'
-                ]
-            ]
+                    'strategy' => 'unanimous',
+                ],
+            ],
+        ];
+        yield [
+            [
+                'foo' => [
+                    'stores'   => [
+                        'ixarlie_mutex.flock_store.default',
+                        'ixarlie_mutex.flock_store.extra',
+                    ],
+                    'strategy' => 'consensus',
+                ],
+            ],
+            [
+                'foo' => [
+                    'stores'   => [
+                        'ixarlie_mutex.flock_store.default',
+                        'ixarlie_mutex.flock_store.extra',
+                    ],
+                    'strategy' => 'consensus',
+                ],
+            ],
+        ];
+        yield [
+            [
+                'foo' => [
+                    'stores'   => [
+                        'ixarlie_mutex.flock_store.default',
+                        'ixarlie_mutex.flock_store.extra',
+                    ],
+                    'strategy' => 'app.strategy_service',
+                ],
+            ],
+            [
+                'foo' => [
+                    'stores'   => [
+                        'ixarlie_mutex.flock_store.default',
+                        'ixarlie_mutex.flock_store.extra',
+                    ],
+                    'strategy' => 'app.strategy_service',
+                ],
+            ],
         ];
         yield [
             [
@@ -136,106 +177,66 @@ class CombinedDefinitionTest extends StoreDefinitionTestCase
                         'ixarlie_mutex.flock_store.default',
                         'ixarlie_mutex.flock_store.extra',
                     ],
-                    'strategy' => 'consensus'
-                ]
+                    'logger' => 'monolog.logger',
+                ],
             ],
             [
                 'foo' => [
-                    'stores' => [
-                        'ixarlie_mutex.flock_store.default',
-                        'ixarlie_mutex.flock_store.extra',
-                    ],
-                    'strategy' => 'consensus'
-                ]
-            ]
-        ];
-        yield [
-            [
-                'foo' => [
-                    'stores' => [
-                        'ixarlie_mutex.flock_store.default',
-                        'ixarlie_mutex.flock_store.extra',
-                    ],
-                    'strategy' => 'app.strategy_service'
-                ]
-            ],
-            [
-                'foo' => [
-                    'stores' => [
-                        'ixarlie_mutex.flock_store.default',
-                        'ixarlie_mutex.flock_store.extra',
-                    ],
-                    'strategy' => 'app.strategy_service'
-                ]
-            ]
-        ];
-        yield [
-            [
-                'foo' => [
-                    'stores' => [
-                        'ixarlie_mutex.flock_store.default',
-                        'ixarlie_mutex.flock_store.extra',
-                    ],
-                    'logger' => 'monolog.logger'
-                ]
-            ],
-            [
-                'foo' => [
-                    'stores' => [
+                    'stores'   => [
                         'ixarlie_mutex.flock_store.default',
                         'ixarlie_mutex.flock_store.extra',
                     ],
                     'strategy' => 'unanimous',
-                    'logger'   => 'monolog.logger'
-                ]
-            ]
+                    'logger'   => 'monolog.logger',
+                ],
+            ],
         ];
         yield [
             [
                 'foo' => [
-                    'stores' => [
+                    'stores'   => [
                         'ixarlie_mutex.flock_store.default',
                     ],
-                    'blocking' => []
-                ]
+                    'blocking' => [],
+                ],
             ],
             [
                 'foo' => [
-                    'stores' => [
+                    'stores'   => [
                         'ixarlie_mutex.flock_store.default',
                     ],
                     'strategy' => 'unanimous',
                     'blocking' => [
                         'retry_sleep' => 100,
                         'retry_count' => PHP_INT_MAX,
-                    ]
-                ]
-            ]
+                    ],
+                ],
+            ],
         ];
         yield [
             [
                 'foo' => [
-                    'stores' => [
+                    'stores'   => [
                         'ixarlie_mutex.flock_store.default',
                     ],
                     'blocking' => [
                         'retry_sleep' => 5,
                         'retry_count' => 10,
-                    ]
-                ]
+                    ],
+                ],
             ],
             [
                 'foo' => [
-                    'stores' => [
+                    'stores'   => [
                         'ixarlie_mutex.flock_store.default',
                     ],
                     'strategy' => 'unanimous',
                     'blocking' => [
                         'retry_sleep' => 5,
                         'retry_count' => 10,
-                    ]
-                ]
-            ]
+                    ],
+                ],
+            ],
         ];
     }
 }

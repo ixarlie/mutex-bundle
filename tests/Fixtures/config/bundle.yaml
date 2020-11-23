@@ -17,7 +17,7 @@ i_xarlie_mutex:
         default: ~
     combined:
         default:
-            stores: ['flock.default', 'semaphore.default']
+            stores: [ 'flock.default', 'semaphore.default' ]
             strategy: 'consensus'
     custom:
         default:

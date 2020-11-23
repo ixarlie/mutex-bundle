@@ -44,20 +44,14 @@ class LockExecutor
      * @return LockInterface
      * @throws MutexException
      */
-    public function execute()
+    public function execute(): LockInterface
     {
         $lock = $this->factory->createLock($this->configuration->getName(), $this->configuration->getTtl());
 
         try {
             $this->executeMode($lock, $this->configuration->getMode());
-        } catch (LockConflictedException $e) {
+        } catch (LockConflictedException|LockAcquiringException|LockReleasingException|LockExpiredException $e) {
             throw new MutexException($lock, $this->configuration, $e);
-        } catch (LockAcquiringException $f) {
-            throw new MutexException($lock, $this->configuration, $f);
-        } catch (LockReleasingException $g) {
-            throw new MutexException($lock, $this->configuration, $g);
-        } catch (LockExpiredException $h) {
-            throw new MutexException($lock, $this->configuration, $h);
         }
 
         return $lock;
@@ -67,7 +61,7 @@ class LockExecutor
      * @param LockInterface $lock
      * @param string        $mode
      */
-    private function executeMode(LockInterface $lock, $mode)
+    private function executeMode(LockInterface $lock, string $mode)
     {
         switch ($mode) {
             case MutexRequest::MODE_CHECK:

@@ -6,26 +6,26 @@ use IXarlie\MutexBundle\Configuration\MutexRequest;
 use IXarlie\MutexBundle\EventListener\MutexRequestListener;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\Lock\Factory;
+use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\LockInterface;
 use Tests\Fixtures\ArrayStore;
 
 /**
  * Class MutexRequestListenerTest.
  */
-class MutexRequestListenerTest extends TestCase
+final class MutexRequestListenerTest extends TestCase
 {
-    public function testOnKernelController()
+    public function testOnKernelController(): void
     {
         $listener   = new MutexRequestListener();
         $store      = new ArrayStore();
-        $factory    = new Factory($store);
+        $factory    = new LockFactory($store);
         $annotation = new MutexRequest([
             'mode'    => 'block',
             'name'    => 'resource',
-            'service' => 'array'
+            'service' => 'array',
         ]);
         $event      = $this->createEvent($annotation);
 
@@ -49,17 +49,17 @@ class MutexRequestListenerTest extends TestCase
     /**
      * @param MutexRequest $annotation
      *
-     * @return FilterControllerEvent
+     * @return ControllerEvent
      */
-    public function createEvent(MutexRequest $annotation)
+    public function createEvent(MutexRequest $annotation): ControllerEvent
     {
         $request = Request::create('/homepage');
         $request->attributes->set('_ixarlie_mutex_request', [$annotation]);
 
         // _ixarlie_mutex_locks
 
-        $http    = $this->getMockBuilder(HttpKernelInterface::class)->getMock();
-        $event   = new FilterControllerEvent(
+        $http  = $this->getMockBuilder(HttpKernelInterface::class)->getMock();
+        $event = new ControllerEvent(
             $http,
             function () {
             },

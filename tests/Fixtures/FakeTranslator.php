@@ -2,42 +2,20 @@
 
 namespace Tests\Fixtures;
 
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Class FakeTranslator.
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class FakeTranslator implements TranslatorInterface
+final class FakeTranslator implements TranslatorInterface
 {
     /**
      * @inheritdoc
      */
-    public function trans($id, array $parameters = array(), $domain = null, $locale = null)
+    public function trans(string $id, array $parameters = [], string $domain = null, string $locale = null)
     {
-        return '[trans]'.$id.'[/trans]';
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function transChoice($id, $number, array $parameters = array(), $domain = null, $locale = null)
-    {
-        return '[trans]'.$id.'[/trans]';
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setLocale($locale)
-    {
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getLocale()
-    {
+        return '[trans]' . $id . '[/trans]';
     }
 }

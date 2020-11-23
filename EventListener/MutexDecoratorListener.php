@@ -5,7 +5,7 @@ namespace IXarlie\MutexBundle\EventListener;
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use IXarlie\MutexBundle\Exception\MutexConfigurationException;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
@@ -22,7 +22,8 @@ class MutexDecoratorListener
 
     /**
      * MutexDecoratorListener constructor.
-     * @param TokenStorageInterface $tokenStorage
+     *
+     * @param TokenStorageInterface|null $tokenStorage
      */
     public function __construct(TokenStorageInterface $tokenStorage = null)
     {
@@ -30,12 +31,12 @@ class MutexDecoratorListener
     }
 
     /**
-     * @param FilterControllerEvent $event
+     * @param ControllerEvent $event
      */
-    public function onKernelController(FilterControllerEvent $event)
+    public function onKernelController(ControllerEvent $event): void
     {
-        $request          = $event->getRequest();
-        $configurations   = $request->attributes->get('_ixarlie_mutex_request', []);
+        $request        = $event->getRequest();
+        $configurations = $request->attributes->get('_ixarlie_mutex_request', []);
 
         /** @var MutexRequest $configuration */
         foreach ($configurations as $configuration) {
@@ -48,7 +49,7 @@ class MutexDecoratorListener
      * @param Request      $request
      * @param MutexRequest $configuration
      */
-    protected function decorateName(Request $request, MutexRequest $configuration)
+    protected function decorateName(Request $request, MutexRequest $configuration): void
     {
         if ($configuration->isEmptyName()) {
             $name = $this->createDefaultName($request);
@@ -60,14 +61,14 @@ class MutexDecoratorListener
             $name = $name . '_' . $this->getIsolatedName();
         }
 
-        // Use a hash in order that file lockers could work properly.
+        // Use a hash in order flock stores can work properly.
         $configuration->setName('ixarlie_mutex_' . md5($name));
     }
 
     /**
      * @param MutexRequest $configuration
      */
-    protected function decorateService(MutexRequest $configuration)
+    protected function decorateService(MutexRequest $configuration): void
     {
         $service = $configuration->getService();
         if ($configuration->isEmptyService()) {
@@ -89,7 +90,7 @@ class MutexDecoratorListener
      * @return string
      * @throws MutexConfigurationException
      */
-    private function getIsolatedName()
+    private function getIsolatedName(): string
     {
         if (null !== $this->tokenStorage) {
             $token = $this->tokenStorage->getToken();
@@ -110,7 +111,7 @@ class MutexDecoratorListener
      *
      * @return string
      */
-    private function createDefaultName(Request $request)
+    private function createDefaultName(Request $request): string
     {
         return sprintf(
             '%s_%s',
@@ -125,7 +126,7 @@ class MutexDecoratorListener
      *
      * @return string
      */
-    private function createCustomName(Request $request, MutexRequest $configuration)
+    private function createCustomName(Request $request, MutexRequest $configuration): string
     {
         $name = $configuration->getName();
         preg_match_all('|\{([^\{\}]+)\}|', $name, $matches);

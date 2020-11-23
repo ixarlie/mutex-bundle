@@ -8,37 +8,38 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Class ControllerListenerPassTest
  */
-class ControllerListenerPassTest extends TestCase
+final class ControllerListenerPassTest extends TestCase
 {
-    public function testInstanceOf()
+    public function testInstanceOf(): void
     {
         $pass = new ControllerListenerPass();
 
         static::assertInstanceOf(CompilerPassInterface::class, $pass);
     }
 
-    /**
-     * @expectedException \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
-     */
-    public function testMissingSensioControllerListener()
+    public function testMissingSensioControllerListener(): void
     {
         $pass      = new ControllerListenerPass();
         $container = $this->createContainerBuilder(1, false);
+
+        $this->expectException(ServiceNotFoundException::class);
 
         $pass->process($container);
     }
 
     /**
      * @dataProvider dataPriorityProvider
+     *
      * @param int $priority
      * @param int $expectedPriority
      */
-    public function testProcess($priority, $expectedPriority)
+    public function testProcess(int $priority, int $expectedPriority): void
     {
         $pass      = new ControllerListenerPass();
         $container = $this->createContainerBuilder($priority, true);
@@ -80,9 +81,9 @@ class ControllerListenerPassTest extends TestCase
      *
      * @return ContainerBuilder
      */
-    private function createContainerBuilder($priority, $withSensio)
+    private function createContainerBuilder(int $priority, bool $withSensio)
     {
-        $container  = new ContainerBuilder();
+        $container = new ContainerBuilder();
 
         $definition = new Definition();
         $definition->addTag('kernel.event_listener', ['priority' => $priority]);

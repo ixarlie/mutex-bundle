@@ -2,27 +2,29 @@
 
 namespace Tests\DependencyInjection\Definition;
 
+use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\RedisDefinition;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Lock\Store\RedisStore;
 
 /**
  * Class RedisDefinitionTest
  */
-class RedisDefinitionTest extends StoreDefinitionTestCase
+final class RedisDefinitionTest extends StoreDefinitionTestCase
 {
     /**
      * @inheritdoc
      */
-    protected function getClassName()
+    protected function getClassName(): string
     {
-        return '%ixarlie_mutex.redis_store.class%';
+        return RedisStore::class;
     }
 
     /**
      * @inheritdoc
      */
-    protected function getDefinitionInstance()
+    protected function getDefinitionInstance(): LockDefinition
     {
         return new RedisDefinition();
     }
@@ -30,7 +32,7 @@ class RedisDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    protected function getDefinitionName()
+    protected function getDefinitionName(): string
     {
         return 'redis';
     }
@@ -38,7 +40,7 @@ class RedisDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    protected function assertStore(Definition $definition, array $configuration)
+    protected function assertStore(Definition $definition, array $configuration): void
     {
         static::assertCount(2, $definition->getArguments());
 
@@ -53,29 +55,29 @@ class RedisDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    public function getDefinitionProvider()
+    public function dataDefinitionProvider(): \Generator
     {
         yield [
             [
                 'default'     => 'foo.bar',
                 'client'      => 'redis_client',
                 'default_ttl' => 500,
-            ]
+            ],
         ];
         yield [
             [
                 'default'     => 'foo.bar',
                 'client'      => 'redis_client',
                 'default_ttl' => 500,
-                'logger'      => 'monolog.logger'
-            ]
+                'logger'      => 'monolog.logger',
+            ],
         ];
         yield [
             [
                 'default'     => 'redis.default',
                 'client'      => 'redis_client',
                 'default_ttl' => 500,
-            ]
+            ],
         ];
         yield [
             [
@@ -85,42 +87,44 @@ class RedisDefinitionTest extends StoreDefinitionTestCase
                 'blocking'    => [
                     'retry_count' => 500,
                     'retry_sleep' => 1000,
-                ]
-            ]
+                ],
+            ],
         ];
     }
 
     /**
      * @inheritdoc
      */
-    public function getConfigurationProvider()
+    public function dataConfigurationProvider(): \Generator
     {
         yield [
             [
                 'foo' => [
                     'client' => 'redis_client',
-                ]
+                ],
             ],
             [
                 'foo' => [
                     'client'      => 'redis_client',
                     'default_ttl' => 300,
-                ]
-            ]
+                ],
+            ],
         ];
         yield [
             [
                 'foo' => [
                     'client'      => 'redis_client',
                     'default_ttl' => 500,
-                ]
+                    'logger'      => 'monolog.logger',
+                ],
             ],
             [
                 'foo' => [
                     'client'      => 'redis_client',
                     'default_ttl' => 500,
-                ]
-            ]
+                    'logger'      => 'monolog.logger',
+                ],
+            ],
         ];
         yield [
             [
@@ -128,7 +132,7 @@ class RedisDefinitionTest extends StoreDefinitionTestCase
                     'client'      => 'redis_client',
                     'default_ttl' => 500,
                     'blocking'    => [],
-                ]
+                ],
             ],
             [
                 'foo' => [
@@ -136,10 +140,10 @@ class RedisDefinitionTest extends StoreDefinitionTestCase
                     'default_ttl' => 500,
                     'blocking'    => [
                         'retry_sleep' => 100,
-                        'retry_count' => PHP_INT_MAX
+                        'retry_count' => PHP_INT_MAX,
                     ],
-                ]
-            ]
+                ],
+            ],
         ];
         yield [
             [
@@ -148,9 +152,9 @@ class RedisDefinitionTest extends StoreDefinitionTestCase
                     'default_ttl' => 500,
                     'blocking'    => [
                         'retry_sleep' => 200,
-                        'retry_count' => 3
+                        'retry_count' => 3,
                     ],
-                ]
+                ],
             ],
             [
                 'foo' => [
@@ -158,10 +162,10 @@ class RedisDefinitionTest extends StoreDefinitionTestCase
                     'default_ttl' => 500,
                     'blocking'    => [
                         'retry_sleep' => 200,
-                        'retry_count' => 3
+                        'retry_count' => 3,
                     ],
-                ]
-            ]
+                ],
+            ],
         ];
     }
 }

@@ -4,9 +4,8 @@
  * Copyright (c) 2020, Surex Ltd.
  */
 
-namespace DependencyInjection\Definition;
+namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
-use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -42,7 +41,10 @@ class PdoDefinition extends LockDefinition
                 ->scalarNode('db_id_col')->defaultValue('key_id')->end()
                 ->scalarNode('db_token_col')->defaultValue('key_token')->end()
                 ->scalarNode('db_expiration_col')->defaultValue('key_expiration')->end()
-                ->arrayNode('db_connection_options')->defaultValue([])->end()
+                ->arrayNode('db_connection_options')
+                    ->useAttributeAsKey('option')
+                    ->scalarPrototype()->end()
+                ->end()
                 ->append($this->addBlockConfiguration())
                 ->scalarNode('logger')->end()
             ->end()

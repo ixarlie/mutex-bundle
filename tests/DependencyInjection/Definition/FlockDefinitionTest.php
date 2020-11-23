@@ -3,25 +3,27 @@
 namespace Tests\DependencyInjection\Definition;
 
 use IXarlie\MutexBundle\DependencyInjection\Definition\FlockDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\Lock\Store\FlockStore;
 
 /**
  * Class FlockDefinitionTest
  */
-class FlockDefinitionTest extends StoreDefinitionTestCase
+final class FlockDefinitionTest extends StoreDefinitionTestCase
 {
     /**
      * @inheritdoc
      */
-    protected function getClassName()
+    protected function getClassName(): string
     {
-        return '%ixarlie_mutex.flock_store.class%';
+        return FlockStore::class;
     }
 
     /**
      * @inheritdoc
      */
-    protected function getDefinitionInstance()
+    protected function getDefinitionInstance(): LockDefinition
     {
         return new FlockDefinition();
     }
@@ -29,7 +31,7 @@ class FlockDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    protected function getDefinitionName()
+    protected function getDefinitionName(): string
     {
         return 'flock';
     }
@@ -37,119 +39,71 @@ class FlockDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    protected function assertStore(Definition $definition, array $configuration)
+    protected function assertStore(Definition $definition, array $configuration): void
     {
         static::assertCount(1, $definition->getArguments());
         $path = $definition->getArgument(0);
 
-        static::assertInternalType('string', $path);
+        static::assertIsString($path);
     }
 
     /**
      * @inheritdoc
      */
-    public function getDefinitionProvider()
+    public function dataDefinitionProvider(): \Generator
     {
         yield [
             [
-                'default'   => 'foo.bar',
+                'default'  => 'foo.bar',
                 'lock_dir' => '/tmp/locks',
-            ]
+            ],
         ];
         yield [
             [
-                'default'   => 'foo.bar',
-                'lock_dir' => '/tmp/locks',
-                'logger'    => 'monolog.logger'
-            ]
-        ];
-        yield [
-            [
-                'default'   => 'flock.default',
-                'lock_dir' => '/tmp/locks',
-                'logger'    => 'monolog.logger'
-            ]
-        ];
-        yield [
-            [
-                'default'   => 'flock.default',
+                'default'  => 'foo.bar',
                 'lock_dir' => '/tmp/locks',
                 'logger'   => 'monolog.logger',
-                'blocking' => [
-                    'retry_count' => 500,
-                    'retry_sleep' => 1000,
-                ]
-            ]
+            ],
+        ];
+        yield [
+            [
+                'default'  => 'flock.default',
+                'lock_dir' => '/tmp/locks',
+                'logger'   => 'monolog.logger',
+            ],
         ];
     }
 
     /**
      * @inheritdoc
      */
-    public function getConfigurationProvider()
+    public function dataConfigurationProvider(): \Generator
     {
         yield [
             [
                 'foo' => [
-                    'lock_dir' => '/tmp/flock'
-                ]
+                    'lock_dir' => '/tmp/flock',
+                ],
             ],
             [
                 'foo' => [
-                    'lock_dir' => '/tmp/flock'
-                ]
-            ]
+                    'lock_dir' => '/tmp/flock',
+                ],
+            ],
         ];
         yield [
             [
                 'foo' => [
                     'lock_dir' => '/tmp/flock',
-                    'logger'    => 'monolog.logger'
-                ]
+                    'logger'   => 'monolog.logger',
+                ],
             ],
             [
                 'foo' => [
                     'lock_dir' => '/tmp/flock',
-                    'logger'    => 'monolog.logger'
-                ]
-            ]
-        ];
-        yield [
-            [
-                'foo' => [
-                    'lock_dir' => '/tmp/flock',
-                    'blocking'  => []
-                ]
+                    'logger'   => 'monolog.logger',
+                ],
             ],
-            [
-                'foo' => [
-                    'lock_dir' => '/tmp/flock',
-                    'blocking'  => [
-                        'retry_sleep' => 100,
-                        'retry_count' => PHP_INT_MAX,
-                    ]
-                ]
-            ]
-        ];
-        yield [
-            [
-                'foo' => [
-                    'lock_dir' => '/tmp/flock',
-                    'blocking'  => [
-                        'retry_sleep' => 5,
-                        'retry_count' => 10,
-                    ]
-                ]
-            ],
-            [
-                'foo' => [
-                    'lock_dir' => '/tmp/flock',
-                    'blocking'  => [
-                        'retry_sleep' => 5,
-                        'retry_count' => 10,
-                    ]
-                ]
-            ]
         ];
     }
 }

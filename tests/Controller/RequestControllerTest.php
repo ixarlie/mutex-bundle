@@ -8,30 +8,30 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Class RequestControllerTest.
  */
-class RequestControllerTest extends WebTestCase
+final class RequestControllerTest extends WebTestCase
 {
-    public function testCheck()
+    public function testCheck(): void
     {
         $response = $this->request('/test-check');
 
         static::assertInstanceOf(Response::class, $response);
     }
 
-    public function testBlock()
+    public function testBlock(): void
     {
         $response = $this->request('/test-block');
 
         static::assertInstanceOf(Response::class, $response);
     }
 
-    public function testForce()
+    public function testForce(): void
     {
         $response = $this->request('/test-force');
 
         static::assertInstanceOf(Response::class, $response);
     }
 
-    public function testQueue()
+    public function testQueue(): void
     {
         $response = $this->request('/test-queue');
 
@@ -43,12 +43,12 @@ class RequestControllerTest extends WebTestCase
      *
      * @return Response
      */
-    protected function request($path)
+    protected function request(string $path): Response
     {
         $client = static::createClient(
             [
                 'environment' => 'test',
-                'debug'       => false
+                'debug'       => false,
             ]
         );
 

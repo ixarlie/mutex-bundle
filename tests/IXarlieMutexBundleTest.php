@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 /**
  * Class IXarlieMutexBundleTest
  */
-class IXarlieMutexBundleTest extends TestCase
+final class IXarlieMutexBundleTest extends TestCase
 {
     public function testInstanceOf()
     {

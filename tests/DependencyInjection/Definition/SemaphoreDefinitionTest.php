@@ -2,26 +2,28 @@
 
 namespace Tests\DependencyInjection\Definition;
 
+use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\SemaphoreDefinition;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\Lock\Store\SemaphoreStore;
 
 /**
  * Class SemaphoreDefinitionTest
  */
-class SemaphoreDefinitionTest extends StoreDefinitionTestCase
+final class SemaphoreDefinitionTest extends StoreDefinitionTestCase
 {
     /**
      * @inheritdoc
      */
-    protected function getClassName()
+    protected function getClassName(): string
     {
-        return '%ixarlie_mutex.semaphore_store.class%';
+        return SemaphoreStore::class;
     }
 
     /**
      * @inheritdoc
      */
-    protected function getDefinitionInstance()
+    protected function getDefinitionInstance(): LockDefinition
     {
         return new SemaphoreDefinition();
     }
@@ -29,7 +31,7 @@ class SemaphoreDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    protected function getDefinitionName()
+    protected function getDefinitionName(): string
     {
         return 'semaphore';
     }
@@ -37,7 +39,7 @@ class SemaphoreDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    protected function assertStore(Definition $definition, array $configuration)
+    protected function assertStore(Definition $definition, array $configuration): void
     {
         static::assertCount(0, $definition->getArguments());
         static::assertCount(0, $definition->getMethodCalls());
@@ -46,103 +48,60 @@ class SemaphoreDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    public function getDefinitionProvider()
+    public function dataDefinitionProvider(): \Generator
     {
         yield [
             [
                 'default' => 'foo.bar',
-            ]
+            ],
         ];
         yield [
             [
                 'default'     => 'foo.bar',
                 'default_ttl' => 500,
-            ]
+            ],
         ];
         yield [
             [
                 'default'     => 'foo.bar',
                 'default_ttl' => 500,
-                'logger'      => 'monolog.logger'
-            ]
+                'logger'      => 'monolog.logger',
+            ],
         ];
         yield [
             [
                 'default'     => 'semaphore.default',
                 'default_ttl' => 500,
-            ]
-        ];
-        yield [
-            [
-                'default'     => 'semaphore.default',
-                'default_ttl' => 500,
-                'blocking'    => [
-                    'retry_count' => 500,
-                    'retry_sleep' => 1000,
-                ]
-            ]
+            ],
         ];
     }
 
     /**
      * @inheritdoc
      */
-    public function getConfigurationProvider()
+    public function dataConfigurationProvider(): \Generator
     {
         yield [
             [
                 'foo' => null,
-                'bar' => null
+                'bar' => null,
             ],
             [
                 'foo' => [],
                 'bar' => [],
-            ]
+            ],
         ];
         yield [
             [
                 'foo' => [
-                    'logger' => 'monolog.logger'
-                ]
+                    'logger' => 'monolog.logger',
+                ],
             ],
             [
                 'foo' => [
-                    'logger' => 'monolog.logger'
-                ]
-            ]
-        ];
-        yield [
-            [
-                'foo' => [
-                    'blocking' => []
-                ]
+                    'logger' => 'monolog.logger',
+                ],
             ],
-            [
-                'foo' => [
-                    'blocking' => [
-                        'retry_sleep' => 100,
-                        'retry_count' => PHP_INT_MAX,
-                    ]
-                ]
-            ]
-        ];
-        yield [
-            [
-                'foo' => [
-                    'blocking' => [
-                        'retry_sleep' => 5,
-                        'retry_count' => 10,
-                    ]
-                ]
-            ],
-            [
-                'foo' => [
-                    'blocking' => [
-                        'retry_sleep' => 5,
-                        'retry_count' => 10,
-                    ]
-                ]
-            ]
         ];
     }
 }

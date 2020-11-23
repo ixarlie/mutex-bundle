@@ -10,14 +10,14 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Class SymfonyServicesPassTest.
  */
-class SymfonyServicesPassTest extends TestCase
+final class SymfonyServicesPassTest extends TestCase
 {
-    public function testProcess()
+    public function testProcess(): void
     {
         // Prepare container
         $container = new ContainerBuilder();

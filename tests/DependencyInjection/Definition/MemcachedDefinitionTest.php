@@ -2,27 +2,29 @@
 
 namespace Tests\DependencyInjection\Definition;
 
+use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\MemcachedDefinition;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Lock\Store\MemcachedStore;
 
 /**
  * Class MemcachedDefinitionTest
  */
-class MemcachedDefinitionTest extends StoreDefinitionTestCase
+final class MemcachedDefinitionTest extends StoreDefinitionTestCase
 {
     /**
      * @inheritdoc
      */
-    protected function getClassName()
+    protected function getClassName(): string
     {
-        return '%ixarlie_mutex.memcached_store.class%';
+        return MemcachedStore::class;
     }
 
     /**
      * @inheritdoc
      */
-    protected function getDefinitionInstance()
+    protected function getDefinitionInstance(): LockDefinition
     {
         return new MemcachedDefinition();
     }
@@ -30,7 +32,7 @@ class MemcachedDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    protected function getDefinitionName()
+    protected function getDefinitionName(): string
     {
         return 'memcached';
     }
@@ -38,7 +40,7 @@ class MemcachedDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    protected function assertStore(Definition $definition, array $configuration)
+    protected function assertStore(Definition $definition, array $configuration): void
     {
         static::assertCount(2, $definition->getArguments());
 
@@ -52,30 +54,30 @@ class MemcachedDefinitionTest extends StoreDefinitionTestCase
     /**
      * @inheritdoc
      */
-    public function getDefinitionProvider()
+    public function dataDefinitionProvider(): \Generator
     {
         yield [
             [
                 'default'     => 'foo.bar',
                 'client'      => 'memcached_client',
-                'default_ttl' => 500
-            ]
+                'default_ttl' => 500,
+            ],
         ];
         yield [
             [
                 'default'     => 'foo.bar',
                 'client'      => 'memcached_client',
                 'default_ttl' => 500,
-                'logger'      => 'monolog.logger'
-            ]
+                'logger'      => 'monolog.logger',
+            ],
         ];
         yield [
             [
                 'default'     => 'memcached.default',
                 'client'      => 'memcached_client',
                 'default_ttl' => 500,
-                'logger'      => 'monolog.logger'
-            ]
+                'logger'      => 'monolog.logger',
+            ],
         ];
         yield [
             [
@@ -86,64 +88,64 @@ class MemcachedDefinitionTest extends StoreDefinitionTestCase
                 'blocking'    => [
                     'retry_count' => 500,
                     'retry_sleep' => 1000,
-                ]
-            ]
+                ],
+            ],
         ];
     }
 
     /**
      * @inheritdoc
      */
-    public function getConfigurationProvider()
+    public function dataConfigurationProvider(): \Generator
     {
         yield [
             [
                 'foo' => [
                     'client' => 'memcached_client',
-                ]
-            ],
-            [
-                'foo' => [
-                    'client'      => 'memcached_client',
-                    'default_ttl' => 300
-                ]
-            ]
-        ];
-        yield [
-            [
-                'foo' => [
-                    'client'      => 'memcached_client',
-                    'default_ttl' => 900
-                ]
-            ],
-            [
-                'foo' => [
-                    'client'      => 'memcached_client',
-                    'default_ttl' => 900
-                ]
-            ]
-        ];
-        yield [
-            [
-                'foo' => [
-                    'client' => 'memcached_client',
-                    'logger' => 'monolog.logger'
-                ]
+                ],
             ],
             [
                 'foo' => [
                     'client'      => 'memcached_client',
                     'default_ttl' => 300,
-                    'logger'      => 'monolog.logger'
-                ]
-            ]
+                ],
+            ],
+        ];
+        yield [
+            [
+                'foo' => [
+                    'client'      => 'memcached_client',
+                    'default_ttl' => 900,
+                ],
+            ],
+            [
+                'foo' => [
+                    'client'      => 'memcached_client',
+                    'default_ttl' => 900,
+                ],
+            ],
+        ];
+        yield [
+            [
+                'foo' => [
+                    'client' => 'memcached_client',
+                    'logger' => 'monolog.logger',
+                ],
+            ],
+            [
+                'foo' => [
+                    'client'      => 'memcached_client',
+                    'default_ttl' => 300,
+                    'logger'      => 'monolog.logger',
+                ],
+            ],
         ];
         yield [
             [
                 'foo' => [
                     'client'   => 'memcached_client',
-                    'blocking' => []
-                ]
+                    'blocking' => [],
+                ],
             ],
             [
                 'foo' => [
@@ -152,9 +154,9 @@ class MemcachedDefinitionTest extends StoreDefinitionTestCase
                     'blocking'    => [
                         'retry_sleep' => 100,
                         'retry_count' => PHP_INT_MAX,
-                    ]
-                ]
-            ]
+                    ],
+                ],
+            ],
         ];
         yield [
             [
@@ -163,8 +165,8 @@ class MemcachedDefinitionTest extends StoreDefinitionTestCase
                     'blocking' => [
                         'retry_sleep' => 5,
                         'retry_count' => 10,
-                    ]
-                ]
+                    ],
+                ],
             ],
             [
                 'foo' => [
@@ -173,9 +175,9 @@ class MemcachedDefinitionTest extends StoreDefinitionTestCase
                     'blocking'    => [
                         'retry_sleep' => 5,
                         'retry_count' => 10,
-                    ]
-                ]
-            ]
+                    ],
+                ],
+            ],
         ];
     }
 }

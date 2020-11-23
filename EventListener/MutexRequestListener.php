@@ -5,8 +5,8 @@ namespace IXarlie\MutexBundle\EventListener;
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use IXarlie\MutexBundle\Exception\MutexException;
 use IXarlie\MutexBundle\Store\LockExecutor;
-use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
-use Symfony\Component\Lock\Factory;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
+use Symfony\Component\Lock\LockFactory;
 
 /**
  * Class MutexRequestListener
@@ -16,25 +16,25 @@ use Symfony\Component\Lock\Factory;
 class MutexRequestListener
 {
     /**
-     * @var Factory[]
+     * @var LockFactory[]
      */
     private $factories;
 
     /**
-     * @param string  $name
-     * @param Factory $factory
+     * @param string      $name
+     * @param LockFactory $factory
      */
-    public function addFactory($name, Factory $factory)
+    public function addFactory(string $name, LockFactory $factory): void
     {
         $this->factories[$name] = $factory;
     }
 
     /**
-     * @param FilterControllerEvent $event
+     * @param ControllerEvent $event
      *
      * @throws MutexException
      */
-    public function onKernelController(FilterControllerEvent $event)
+    public function onKernelController(ControllerEvent $event): void
     {
         if (false === $event->isMasterRequest()) {
             return;
@@ -46,7 +46,7 @@ class MutexRequestListener
 
         /** @var MutexRequest $configuration */
         foreach ($configurations as $configuration) {
-            $factory  = $this->getFactory($configuration);
+            $factory  = $this->getLockFactory($configuration);
             $executor = new LockExecutor($factory, $configuration);
             $lock     = $executor->execute();
             $locks[]  = $lock;
@@ -58,9 +58,9 @@ class MutexRequestListener
     /**
      * @param MutexRequest $configuration
      *
-     * @return Factory|null
+     * @return LockFactory
      */
-    private function getFactory(MutexRequest $configuration)
+    private function getLockFactory(MutexRequest $configuration): LockFactory
     {
         $id = $configuration->getService();
         if (!isset($this->factories[$id])) {

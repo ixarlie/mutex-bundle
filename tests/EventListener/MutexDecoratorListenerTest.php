@@ -4,10 +4,10 @@ namespace Tests\EventListener;
 
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use IXarlie\MutexBundle\EventListener\MutexDecoratorListener;
+use IXarlie\MutexBundle\Exception\MutexConfigurationException;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -15,15 +15,16 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 /**
  * Class MutexDecoratorListenerTest.
  */
-class MutexDecoratorListenerTest extends TestCase
+final class MutexDecoratorListenerTest extends TestCase
 {
     /**
      * @dataProvider dataNameProvider
-     * @param string $name
-     * @param bool   $isolated
-     * @param array  $placeholders
+     *
+     * @param string|null $name
+     * @param bool        $isolated
+     * @param array|null  $placeholders
      */
-    public function testDecorateName($name = null, $isolated = false, array $placeholders = null)
+    public function testDecorateName(string $name = null, bool $isolated = false, array $placeholders = null): void
     {
         $annotation = new MutexRequest([
             'name'          => $name,
@@ -64,7 +65,7 @@ class MutexDecoratorListenerTest extends TestCase
         static::assertStringStartsWith('ixarlie_mutex_', $annotation->getName());
     }
 
-    public function dataNameProvider()
+    public function dataNameProvider(): \Generator
     {
         yield [
             'mutex_name', // name
@@ -74,35 +75,31 @@ class MutexDecoratorListenerTest extends TestCase
         yield [
             'mutex_name',
             true,
-            null
+            null,
         ];
         yield [
             'mutex_name_{id1}_{id2}',
             false,
-            ['id1' => 25, 'id2' => 10]
+            ['id1' => 25, 'id2' => 10],
         ];
         yield [
             'mutex_name_{id1}_{id2}',
             true,
-            ['id1' => 25, 'id2' => 10]
+            ['id1' => 25, 'id2' => 10],
         ];
         yield [
             null,
             false,
-            null
+            null,
         ];
         yield [
             null,
             true,
-            null
+            null,
         ];
     }
 
-    /**
-     * @expectedException \IXarlie\MutexBundle\Exception\MutexConfigurationException
-     * @expectedExceptionMessage [MutexDecoratorListener] Cannot use isolation with missing "security.token_storage".
-     */
-    public function testDecorateNameIsolatedMisconfiguration()
+    public function testDecorateNameIsolatedMisconfiguration(): void
     {
         $annotation = new MutexRequest([
             'userIsolation' => true,
@@ -113,14 +110,13 @@ class MutexDecoratorListenerTest extends TestCase
 
         $listener = new MutexDecoratorListener();
 
+        $this->expectException(MutexConfigurationException::class);
+        $this->expectExceptionMessage('[MutexDecoratorListener] Cannot use isolation with missing "security.token_storage".');
+
         $listener->onKernelController($event);
     }
 
-    /**
-     * @expectedException \IXarlie\MutexBundle\Exception\MutexConfigurationException
-     * @expectedExceptionMessage [MutexDecoratorListener] Cannot find placeholder "id" in request for name "test_{id}"
-     */
-    public function testDecorateNameMissingPlaceholder()
+    public function testDecorateNameMissingPlaceholder(): void
     {
         $annotation = new MutexRequest(['name' => 'test_{id}']);
         $event      = $this->createEvent($annotation);
@@ -128,15 +124,19 @@ class MutexDecoratorListenerTest extends TestCase
 
         static::assertNotEmpty($annotation->getName());
 
+        $this->expectException(MutexConfigurationException::class);
+        $this->expectExceptionMessage('[MutexDecoratorListener] Cannot find placeholder "id" in request for name "test_{id}"');
+
         $listener->onKernelController($event);
     }
 
     /**
      * @dataProvider dataServiceProvider
-     * @param string $service
-     * @param string $expectedService
+     *
+     * @param string|null $service
+     * @param string      $expectedService
      */
-    public function testDecorateService($service = null, $expectedService)
+    public function testDecorateService(?string $service, string $expectedService): void
     {
         $annotation = new MutexRequest(['service' => $service]);
         $event      = $this->createEvent($annotation);
@@ -154,37 +154,37 @@ class MutexDecoratorListenerTest extends TestCase
     }
 
     /**
-     * @return array
+     * @return \Generator
      */
-    public function dataServiceProvider()
+    public function dataServiceProvider(): \Generator
     {
         yield [
             null,
-            'ixarlie_mutex.default_factory'
+            'ixarlie_mutex.default_factory',
         ];
         yield [
             'ixarlie_mutex.flock_factory.default',
-            'ixarlie_mutex.flock_factory.default'
+            'ixarlie_mutex.flock_factory.default',
         ];
         yield [
             'flock.default',
-            'ixarlie_mutex.flock_factory.default'
+            'ixarlie_mutex.flock_factory.default',
         ];
     }
 
     /**
      * @param MutexRequest $annotation
      *
-     * @return FilterControllerEvent
+     * @return ControllerEvent
      */
-    private function createEvent(MutexRequest $annotation)
+    private function createEvent(MutexRequest $annotation): ControllerEvent
     {
         $request = Request::create('/homepage');
         $request->attributes->set('_ixarlie_mutex_request', [$annotation]);
         $request->attributes->set('_controller', 'App\ControllerName:methodName');
 
-        $http    = $this->getMockBuilder(HttpKernelInterface::class)->getMock();
-        $event   = new FilterControllerEvent(
+        $http  = $this->getMockBuilder(HttpKernelInterface::class)->getMock();
+        $event = new ControllerEvent(
             $http,
             function () {
             },

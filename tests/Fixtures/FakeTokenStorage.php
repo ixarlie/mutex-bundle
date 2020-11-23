@@ -10,7 +10,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class FakeTokenStorage implements TokenStorageInterface
+final class FakeTokenStorage implements TokenStorageInterface
 {
     /**
      * @var TokenInterface

@@ -26,6 +26,9 @@ abstract class LockDefinition
      */
     final public function createFactory(ContainerBuilder $container, array $config, string $name): Definition
     {
+        $default = $config['default'];
+        unset($config['default']);
+
         // Get the store definition.
         $store = $this->createStore($container, $config);
 
@@ -50,7 +53,7 @@ abstract class LockDefinition
             $factory->addMethodCall('setLogger', [new Reference($config['logger'])]);
         }
 
-        [$storeName, $factoryName] = explode('.', $config['default']);
+        [$storeName, $factoryName] = explode('.', $default);
 
         if ($storeName === $this->getName() && $factoryName === $name) {
             $container->setAlias('ixarlie_mutex.default_factory', $factoryId);
@@ -90,8 +93,8 @@ abstract class LockDefinition
         $node = $tree->getRootNode();
         $node
             ->children()
-                ->integerNode('retry_sleep')->defaultValue(100)->end()
-                ->integerNode('retry_count')->defaultValue(PHP_INT_MAX)->end()
+            ->integerNode('retry_sleep')->defaultValue(100)->end()
+            ->integerNode('retry_count')->defaultValue(PHP_INT_MAX)->end()
             ->end()
         ;
 

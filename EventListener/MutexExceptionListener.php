@@ -5,9 +5,9 @@ namespace IXarlie\MutexBundle\EventListener;
 use IXarlie\MutexBundle\Configuration\MutexRequest;
 use IXarlie\MutexBundle\Exception\MutexException;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Class MutexExceptionListener.
@@ -23,7 +23,8 @@ class MutexExceptionListener
 
     /**
      * MutexExceptionListener constructor.
-     * @param TranslatorInterface $translator
+     *
+     * @param TranslatorInterface|null $translator
      */
     public function __construct(TranslatorInterface $translator = null)
     {
@@ -31,11 +32,11 @@ class MutexExceptionListener
     }
 
     /**
-     * @param GetResponseForExceptionEvent $event
+     * @param ExceptionEvent $event
      */
-    public function onKernelException(GetResponseForExceptionEvent $event)
+    public function onKernelException(ExceptionEvent $event): void
     {
-        $exception = $event->getException();
+        $exception = $event->getThrowable();
 
         if (!$exception instanceof MutexException) {
             return;
@@ -45,22 +46,22 @@ class MutexExceptionListener
 
         $this->decorateHttp($configuration);
 
-        $httpOptions   = $configuration->getHttp();
-        $exception     = new HttpException($httpOptions['code'], $httpOptions['message']);
+        $httpOptions = $configuration->getHttp();
+        $exception   = new HttpException($httpOptions['code'], $httpOptions['message']);
 
         // Replace exception with a HttpException instance.
-        $event->setException($exception);
+        $event->setThrowable($exception);
     }
 
     /**
      * @param MutexRequest $configuration
      */
-    private function decorateHttp(MutexRequest $configuration)
+    private function decorateHttp(MutexRequest $configuration): void
     {
         $defaults = [
             'code'    => Response::HTTP_LOCKED,
             'message' => 'Resource is not available at this moment.',
-            'domain'  => null
+            'domain'  => null,
         ];
 
         $http = $configuration->getHttp();
@@ -85,7 +86,7 @@ class MutexExceptionListener
      *
      * @return string
      */
-    protected function getTranslatedMessage($domain, $message)
+    protected function getTranslatedMessage(string $domain, string $message): string
     {
         if (null === $this->translator) {
             return $message;

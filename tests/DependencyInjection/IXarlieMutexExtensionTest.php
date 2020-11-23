@@ -11,21 +11,20 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Yaml\Yaml;
 
 /**
  * Class IXarlieMutexExtensionTest
  */
-class IXarlieMutexExtensionTest extends TestCase
+final class IXarlieMutexExtensionTest extends TestCase
 {
-    public function testInstance()
+    public function testInstance(): void
     {
         static::assertInstanceOf(ExtensionInterface::class, new IXarlieMutexExtension());
     }
 
-    public function testLoadStoreDefinitions()
+    public function testLoadStoreDefinitions(): void
     {
         $yaml      = Yaml::parse(file_get_contents(__DIR__ . '/../Fixtures/config/stores.yaml'));
         $container = new ContainerBuilder();
@@ -49,7 +48,7 @@ class IXarlieMutexExtensionTest extends TestCase
             }
         }
 
-        list($type, $name) = explode('.', $default);
+        [$type, $name] = explode('.', $default);
         static::assertTrue($container->hasAlias(sprintf('ixarlie_mutex.default_factory')));
         static::assertEquals(
             sprintf('ixarlie_mutex.%s_factory.%s', $type, $name),
@@ -57,10 +56,9 @@ class IXarlieMutexExtensionTest extends TestCase
         );
 
         static::assertCount($counter + 2, $container->getDefinitions(), 'Service container plus custom required ones');
-        static::assertCount(4, $container->getParameterBag()->all(), 'Symfony StoreInterface classes');
     }
 
-    public function testLoadRequestListenerDefinitions()
+    public function testLoadRequestListenerDefinitions(): void
     {
         $yaml      = Yaml::parse(file_get_contents(__DIR__ . '/../Fixtures/config/listener.yaml'));
         $container = new ContainerBuilder();
@@ -91,7 +89,7 @@ class IXarlieMutexExtensionTest extends TestCase
             [
                 'event'    => KernelEvents::CONTROLLER,
                 'method'   => 'onKernelController',
-                'priority' => $listener['priority']
+                'priority' => $listener['priority'],
             ],
             $tags[0]
         );
@@ -111,7 +109,7 @@ class IXarlieMutexExtensionTest extends TestCase
             [
                 'event'    => KernelEvents::CONTROLLER,
                 'method'   => 'onKernelController',
-                'priority' => $listener['priority'] + 1
+                'priority' => $listener['priority'] + 1,
             ],
             $tags[0]
         );
@@ -131,7 +129,7 @@ class IXarlieMutexExtensionTest extends TestCase
             [
                 'event'    => KernelEvents::EXCEPTION,
                 'method'   => 'onKernelException',
-                'priority' => 255
+                'priority' => 255,
             ],
             $tags[0]
         );
@@ -147,11 +145,9 @@ class IXarlieMutexExtensionTest extends TestCase
             [
                 'event'    => KernelEvents::TERMINATE,
                 'method'   => 'onKernelTerminate',
-                'priority' => -255
+                'priority' => -255,
             ],
             $tags[0]
         );
-
-        static::assertCount(4, $container->getParameterBag()->all(), 'Symfony StoreInterface classes');
     }
 }

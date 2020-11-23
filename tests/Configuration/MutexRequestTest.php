@@ -10,15 +10,15 @@ use Symfony\Component\PropertyAccess\PropertyAccessor;
 /**
  * Class MutexRequestTest
  */
-class MutexRequestTest extends TestCase
+final class MutexRequestTest extends TestCase
 {
-    public function testInstanceOf()
+    public function testInstanceOf(): void
     {
         $annotation = new MutexRequest([]);
         static::assertInstanceOf(ConfigurationAnnotation::class, $annotation);
     }
 
-    public function testProperties()
+    public function testProperties(): void
     {
         $params = [
             'name'          => 'my-mutex',
@@ -41,14 +41,13 @@ class MutexRequestTest extends TestCase
         }
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
-    public function testInvalidProperties()
+    public function testInvalidProperties(): void
     {
         $params = [
             'foo' => 'bar'
         ];
+
+        $this->expectException(\RuntimeException::class);
 
         $annotation = new MutexRequest($params);
     }

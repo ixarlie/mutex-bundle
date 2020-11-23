@@ -25,15 +25,16 @@ class MutexException extends \Exception
 
     /**
      * MutexException constructor.
-     * @param LockInterface      $lock
-     * @param MutexRequest       $configuration
-     * @param ExceptionInterface $e
+     *
+     * @param LockInterface           $lock
+     * @param MutexRequest            $configuration
+     * @param ExceptionInterface|null $e
      */
     public function __construct(LockInterface $lock, MutexRequest $configuration, ExceptionInterface $e = null)
     {
         parent::__construct('', 0, $e);
 
-        $this->lock         = $lock;
+        $this->lock          = $lock;
         $this->configuration = $configuration;
     }
 

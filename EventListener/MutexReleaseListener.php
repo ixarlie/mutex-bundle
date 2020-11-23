@@ -2,7 +2,7 @@
 
 namespace IXarlie\MutexBundle\EventListener;
 
-use Symfony\Component\HttpKernel\Event\PostResponseEvent;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\Lock\LockInterface;
 
 /**
@@ -13,9 +13,9 @@ use Symfony\Component\Lock\LockInterface;
 class MutexReleaseListener
 {
     /**
-     * @param PostResponseEvent $event
+     * @param TerminateEvent $event
      */
-    public function onKernelTerminate(PostResponseEvent $event)
+    public function onKernelTerminate(TerminateEvent $event)
     {
         $request = $event->getRequest();
         $locks   = $request->attributes->get('_ixarlie_mutex_locks', null);

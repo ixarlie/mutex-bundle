@@ -9,7 +9,7 @@ use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\Lock\Factory;
+use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\Store\RetryTillSaveStore;
 
 /**
@@ -17,14 +17,14 @@ use Symfony\Component\Lock\Store\RetryTillSaveStore;
  */
 abstract class StoreDefinitionTestCase extends TestCase
 {
-    public function testInstance()
+    public function testInstance(): void
     {
         $instance = $this->getDefinitionInstance();
 
         static::assertInstanceOf(LockDefinition::class, $instance);
     }
 
-    public function testGetName()
+    public function testGetName(): void
     {
         $instance = $this->getDefinitionInstance();
 
@@ -32,11 +32,11 @@ abstract class StoreDefinitionTestCase extends TestCase
     }
 
     /**
-     * @dataProvider getDefinitionProvider
+     * @dataProvider dataDefinitionProvider
      *
      * @param array $configuration
      */
-    public function testCreateFactory(array $configuration)
+    public function testCreateFactory(array $configuration): void
     {
         $instance  = $this->getDefinitionInstance();
         $container = new ContainerBuilder();
@@ -49,7 +49,7 @@ abstract class StoreDefinitionTestCase extends TestCase
 
         // Factory assertions
         static::assertInstanceOf(Definition::class, $factory);
-        static::assertEquals(Factory::class, $factory->getClass());
+        static::assertEquals(LockFactory::class, $factory->getClass());
         static::assertCount(1, $factory->getArguments());
         static::assertCount(1, $factory->getTags());
         static::assertCount(1, $factory->getTag('ixarlie_factory'));
@@ -79,7 +79,7 @@ abstract class StoreDefinitionTestCase extends TestCase
             $store = $store->getArgument(0);
         }
 
-        list($storeName, $factoryName) = explode('.', $configuration['default']);
+        [$storeName, $factoryName] = explode('.', $configuration['default']);
         if ($storeName === $instance->getName() && $factoryName === $name) {
             static::assertTrue($container->hasAlias('ixarlie_mutex.default_factory'));
             static::assertEquals($factoryId, $container->getAlias('ixarlie_mutex.default_factory'));
@@ -97,7 +97,7 @@ abstract class StoreDefinitionTestCase extends TestCase
 
             $calls = $factory->getMethodCalls();
 
-            list($methodName, $methodArgs) = $calls[0];
+            [$methodName, $methodArgs] = $calls[0];
 
             static::assertEquals('setLogger', $methodName);
             static::assertCount(1, $methodArgs);
@@ -109,15 +109,16 @@ abstract class StoreDefinitionTestCase extends TestCase
     }
 
     /**
-     * @dataProvider getConfigurationProvider
+     * @dataProvider dataConfigurationProvider
+     *
      * @param array $configuration
      * @param array $expected
      */
     public function testConfiguration(array $configuration, array $expected)
     {
-        $tree = new TreeBuilder();
+        $tree = new TreeBuilder('i_xarlie_mutex');
         $tree
-            ->root('i_xarlie_mutex')
+            ->getRootNode()
             ->append($this->getDefinitionInstance()->addConfiguration())
         ;
 
@@ -126,8 +127,8 @@ abstract class StoreDefinitionTestCase extends TestCase
             $tree->buildTree(),
             [
                 'i_xarlie_mutex' => [
-                    $this->getDefinitionName() => $configuration
-                ]
+                    $this->getDefinitionName() => $configuration,
+                ],
             ]
         );
 
@@ -139,7 +140,7 @@ abstract class StoreDefinitionTestCase extends TestCase
      * @param string           $name
      * @param array            $configuration
      */
-    protected function preConfigureContainer(ContainerBuilder $container, $name, array $configuration)
+    protected function preConfigureContainer(ContainerBuilder $container, string $name, array $configuration): void
     {
         // Implemented by child definitions.
     }
@@ -147,31 +148,31 @@ abstract class StoreDefinitionTestCase extends TestCase
     /**
      * @return string
      */
-    abstract protected function getClassName();
+    abstract protected function getClassName(): string;
 
     /**
      * @param Definition $definition
      * @param array      $configuration
      */
-    abstract protected function assertStore(Definition $definition, array $configuration);
+    abstract protected function assertStore(Definition $definition, array $configuration): void;
 
     /**
      * @return LockDefinition
      */
-    abstract protected function getDefinitionInstance();
+    abstract protected function getDefinitionInstance(): LockDefinition;
 
     /**
      * @return string
      */
-    abstract protected function getDefinitionName();
+    abstract protected function getDefinitionName(): string;
 
     /**
-     * @return array
+     * @return \Generator
      */
-    abstract public function getDefinitionProvider();
+    abstract public function dataDefinitionProvider(): \Generator;
 
     /**
-     * @return array
+     * @return \Generator
      */
-    abstract public function getConfigurationProvider();
+    abstract public function dataConfigurationProvider(): \Generator;
 }

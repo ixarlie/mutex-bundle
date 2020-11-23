@@ -4,9 +4,8 @@
  * Copyright (c) 2020, Surex Ltd.
  */
 
-namespace DependencyInjection\Definition;
+namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
-use IXarlie\MutexBundle\DependencyInjection\Definition\LockDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -25,7 +24,7 @@ class ZookepperDefinition extends LockDefinition
      */
     public function getName(): string
     {
-        return 'zookepper';
+        return 'zookeeper';
     }
 
     /**

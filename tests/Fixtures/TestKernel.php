@@ -16,7 +16,7 @@ use Symfony\Component\Routing\RouteCollectionBuilder;
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class TestKernel extends Kernel
+final class TestKernel extends Kernel
 {
     use MicroKernelTrait;
 
@@ -35,7 +35,7 @@ class TestKernel extends Kernel
      */
     public function getCacheDir()
     {
-        return __DIR__ . '/../var/cache/'.$this->environment;
+        return __DIR__ . '/../var/cache/' . $this->environment;
     }
 
     /**
@@ -43,7 +43,7 @@ class TestKernel extends Kernel
      */
     public function getLogDir()
     {
-        return __DIR__ . '/../var/logs/'.$this->environment;
+        return __DIR__ . '/../var/log/' . $this->environment;
     }
 
     /**

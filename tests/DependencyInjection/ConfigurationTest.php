@@ -10,15 +10,15 @@ use Symfony\Component\Yaml\Yaml;
 /**
  * Class ConfigurationTest
  */
-class ConfigurationTest extends TestCase
+final class ConfigurationTest extends TestCase
 {
-    public function testDefaults()
+    public function testDefaults(): void
     {
         $options  = [
             'i_xarlie_mutex' => [
                 'default'          => 'none',
-                'request_listener' => null
-            ]
+                'request_listener' => null,
+            ],
         ];
         $result   = $this->processConfiguration($options);
         $expected = [
@@ -26,7 +26,7 @@ class ConfigurationTest extends TestCase
             'request_listener' => [
                 'enabled'     => false,
                 'priority'    => 255,
-                'autorelease' => true
+                'autorelease' => true,
             ],
             'flock'            => [],
             'semaphore'        => [],
@@ -34,47 +34,45 @@ class ConfigurationTest extends TestCase
             'memcached'        => [],
             'combined'         => [],
             'custom'           => [],
+            'pdo'              => [],
+            'zookeeper'        => [],
         ];
 
         static::assertEquals($expected, $result);
     }
 
-    public function testStoresConfiguration()
+    public function testStoresConfiguration(): void
     {
-        $yaml      = Yaml::parse(file_get_contents(__DIR__ . '/../Fixtures/config/stores.yaml'));
-        $result    = $this->processConfiguration($yaml);
+        $yaml     = Yaml::parse(file_get_contents(__DIR__ . '/../Fixtures/config/stores.yaml'));
+        $result   = $this->processConfiguration($yaml);
         $expected = [
-            'default' => 'flock.default',
-            'flock' => [
+            'default'          => 'flock.default',
+            'flock'            => [
                 'default' => [
-                    'lock_dir' => '%kernel.cache_dir%'
+                    'lock_dir' => '%kernel.cache_dir%',
                 ],
-                'flock1' => [
+                'flock1'  => [
                     'lock_dir' => '/tmp/flock',
-                    'blocking'  => [
-                        'retry_count' => 3,
-                        'retry_sleep' => 100
-                    ],
-                    'logger' => 'monolog.logger'
+                    'logger'   => 'monolog.logger',
                 ],
             ],
-            'redis' => [
+            'redis'            => [
                 'default' => [
                     'client'      => 'redis_client_1',
                     'default_ttl' => 300,
                 ],
-                'redis1' => [
+                'redis1'  => [
                     'client'      => 'redis_client_1',
                     'default_ttl' => 1000,
                     'blocking'    => [
                         'retry_count' => 3,
-                        'retry_sleep' => 100
+                        'retry_sleep' => 100,
                     ],
                     'logger'      => 'monolog.logger',
-                ]
+                ],
             ],
-            'memcached' => [
-                'default' => [
+            'memcached'        => [
+                'default'    => [
                     'client'      => 'memcached_client_1',
                     'default_ttl' => 300,
                 ],
@@ -83,66 +81,88 @@ class ConfigurationTest extends TestCase
                     'default_ttl' => 1000,
                     'blocking'    => [
                         'retry_count' => 3,
-                        'retry_sleep' => 100
+                        'retry_sleep' => 100,
                     ],
                     'logger'      => 'monolog.logger',
-                ]
+                ],
             ],
-            'semaphore' => [
+            'semaphore'        => [
                 'default'    => [],
                 'semaphore1' => [
-                    'blocking'    => [
-                        'retry_count' => 3,
-                        'retry_sleep' => 100
-                    ],
-                    'logger'      => 'monolog.logger',
-                ]
+                    'logger' => 'monolog.logger',
+                ],
             ],
-            'combined' => [
-                'default'    => [
-                    'stores' => [
+            'combined'         => [
+                'default'   => [
+                    'stores'   => [
                         'ixarlie_mutex.semaphore_store.default',
-                        'ixarlie_mutex.flock_store.default'
+                        'ixarlie_mutex.flock_store.default',
                     ],
-                    'strategy' => 'unanimous'
+                    'strategy' => 'unanimous',
                 ],
                 'combined1' => [
                     'stores'   => [
                         'ixarlie_mutex.semaphore_store.default',
-                        'ixarlie_mutex.flock_store.default'
+                        'ixarlie_mutex.flock_store.default',
                     ],
                     'strategy' => 'unanimous',
                     'blocking' => [
                         'retry_count' => 3,
-                        'retry_sleep' => 100
+                        'retry_sleep' => 100,
                     ],
                     'logger'   => 'monolog.logger',
-                ]
+                ],
             ],
-            'custom' => [
+            'custom'           => [
                 'default' => [
-                    'service'  => 'my_custom_implementation',
+                    'service' => 'my_custom_implementation',
                 ],
                 'custom1' => [
-                    'service'  => 'my_custom_implementation',
-                    'blocking' => [
-                        'retry_count' => 3,
-                        'retry_sleep' => 100
+                    'service' => 'my_custom_implementation',
+                    'logger'  => 'monolog.logger',
+                ],
+            ],
+            'pdo'              => [
+                'default' => [
+                    'dsn'                   => 'mysql:host=127.0.0.1;dbname=lock',
+                    'db_table'              => 'lock_keys',
+                    'db_id_col'             => 'key_id',
+                    'db_token_col'          => 'key_token',
+                    'db_expiration_col'     => 'key_expiration',
+                    'db_connection_options' => [],
+                ],
+                'pdo1'    => [
+                    'dsn'                   => 'mysql:host=127.0.0.1;dbname=lock',
+                    'db_table'              => 'my_table',
+                    'db_id_col'             => 'my_id_col',
+                    'db_token_col'          => 'my_token_col',
+                    'db_expiration_col'     => 'my_expiration_col',
+                    'logger'                => 'monolog.logger',
+                    'db_connection_options' => [
+                        'foo' => 'bar',
                     ],
-                    'logger'   => 'monolog.logger',
-                ]
+                ],
+            ],
+            'zookeeper'        => [
+                'default'    => [
+                    'client' => 'my_custom_implementation',
+                ],
+                'zookeeper1' => [
+                    'client' => 'my_custom_implementation',
+                    'logger' => 'monolog.logger',
+                ],
             ],
             'request_listener' => [
                 'enabled'     => false,
                 'priority'    => 255,
-                'autorelease' => true
+                'autorelease' => true,
             ],
         ];
 
         static::assertEquals($expected, $result);
     }
 
-    public function testRequestListenerConfiguration()
+    public function testRequestListenerConfiguration(): void
     {
         $yaml     = Yaml::parse(file_get_contents(__DIR__ . '/../Fixtures/config/listener.yaml'));
         $result   = $this->processConfiguration($yaml);
@@ -159,6 +179,8 @@ class ConfigurationTest extends TestCase
             'semaphore'        => [],
             'combined'         => [],
             'custom'           => [],
+            'pdo'              => [],
+            'zookeeper'        => [],
         ];
 
         static::assertEquals($expected, $result);
@@ -169,7 +191,7 @@ class ConfigurationTest extends TestCase
      *
      * @return array
      */
-    private function processConfiguration(array $options)
+    private function processConfiguration(array $options): array
     {
         $processor     = new Processor();
         $configuration = new Configuration();

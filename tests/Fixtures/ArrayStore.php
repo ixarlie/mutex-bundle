@@ -2,15 +2,15 @@
 
 namespace Tests\Fixtures;
 
+use Symfony\Component\Lock\BlockingStoreInterface;
 use Symfony\Component\Lock\Key;
-use Symfony\Component\Lock\StoreInterface;
 
 /**
  * Class ArrayStore.
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class ArrayStore implements StoreInterface
+final class ArrayStore implements BlockingStoreInterface
 {
     /**
      * @inheritdoc
@@ -26,18 +26,6 @@ class ArrayStore implements StoreInterface
     public function waitAndSave(Key $key)
     {
         $this->lock($key, true);
-    }
-
-    private function lock(Key $key, $blocking)
-    {
-        // The lock is maybe already acquired.
-        if ($key->hasState(__CLASS__)) {
-            return;
-        }
-
-        $keyName = sprintf('sf.%s.lock', preg_replace('/[^a-z0-9\._-]+/i', '-', $key));
-
-        $key->setState(__CLASS__, $keyName);
     }
 
     /**
@@ -67,5 +55,21 @@ class ArrayStore implements StoreInterface
     public function exists(Key $key)
     {
         return $key->hasState(__CLASS__);
+    }
+
+    /**
+     * @param Key  $key
+     * @param bool $blocking
+     */
+    private function lock(Key $key, bool $blocking): void
+    {
+        // The lock is maybe already acquired.
+        if ($key->hasState(__CLASS__)) {
+            return;
+        }
+
+        $keyName = sprintf('sf.%s.lock', preg_replace('/[^a-z0-9\._-]+/i', '-', $key));
+
+        $key->setState(__CLASS__, $keyName);
     }
 }

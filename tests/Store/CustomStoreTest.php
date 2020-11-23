@@ -4,12 +4,13 @@ namespace Tests\Store;
 
 use IXarlie\MutexBundle\Store\CustomStore;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Lock\BlockingStoreInterface;
 use Symfony\Component\Lock\Key;
-use Symfony\Component\Lock\StoreInterface;
+use Symfony\Component\Lock\PersistingStoreInterface;
 
-class CustomStoreTest extends TestCase
+final class CustomStoreTest extends TestCase
 {
-    public function testSave()
+    public function testSave(): void
     {
         $store = $this->createStore('save');
 
@@ -18,16 +19,7 @@ class CustomStoreTest extends TestCase
         static::assertTrue(true);
     }
 
-    public function testWaitAndSave()
-    {
-        $store = $this->createStore('waitAndSave');
-
-        $store->waitAndSave(new Key(''));
-
-        static::assertTrue(true);
-    }
-
-    public function testPutOffExpiration()
+    public function testPutOffExpiration(): void
     {
         $store = $this->createStore('putOffExpiration');
 
@@ -36,7 +28,7 @@ class CustomStoreTest extends TestCase
         static::assertTrue(true);
     }
 
-    public function testDelete()
+    public function testDelete(): void
     {
         $store = $this->createStore('delete');
 
@@ -45,14 +37,27 @@ class CustomStoreTest extends TestCase
         static::assertTrue(true);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function testExists()
+    public function testExists(): void
     {
         $store = $this->createStore('exists');
 
         $store->exists(new Key(''));
+
+        static::assertTrue(true);
+    }
+
+    public function testWaitAndSaveForBlockingStores(): void
+    {
+        $store = $this->getMockBuilder(BlockingStoreInterface::class)->getMock();
+
+        $store
+            ->expects(static::once())
+            ->method('waitAndSave')
+        ;
+
+        $store = new CustomStore($store);
+
+        $store->waitAndSave(new Key(''));
 
         static::assertTrue(true);
     }
@@ -62,9 +67,9 @@ class CustomStoreTest extends TestCase
      *
      * @return CustomStore
      */
-    private function createStore($methodName)
+    private function createStore(string $methodName): CustomStore
     {
-        $store = $this->getMockBuilder(StoreInterface::class)->getMock();
+        $store = $this->getMockBuilder(PersistingStoreInterface::class)->getMock();
 
         $store
             ->expects(static::once())

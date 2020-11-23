@@ -2,14 +2,14 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection;
 
-use DependencyInjection\Definition\PdoDefinition;
-use DependencyInjection\Definition\ZookepperDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\CombinedDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\CustomDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\FlockDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\MemcachedDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\PdoDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\RedisDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\SemaphoreDefinition;
+use IXarlie\MutexBundle\DependencyInjection\Definition\ZookepperDefinition;
 use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
