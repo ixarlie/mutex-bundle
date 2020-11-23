@@ -8,7 +8,7 @@ use Symfony\Component\Lock\Exception\LockAcquiringException;
 use Symfony\Component\Lock\Exception\LockConflictedException;
 use Symfony\Component\Lock\Exception\LockExpiredException;
 use Symfony\Component\Lock\Exception\LockReleasingException;
-use Symfony\Component\Lock\Factory;
+use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\LockInterface;
 
 /**
@@ -19,7 +19,7 @@ use Symfony\Component\Lock\LockInterface;
 class LockExecutor
 {
     /**
-     * @var Factory
+     * @var LockFactory
      */
     private $factory;
 
@@ -30,10 +30,11 @@ class LockExecutor
 
     /**
      * LockExecutor constructor.
-     * @param Factory      $factory
+     *
+     * @param LockFactory  $factory
      * @param MutexRequest $configuration
      */
-    public function __construct(Factory $factory, MutexRequest $configuration)
+    public function __construct(LockFactory $factory, MutexRequest $configuration)
     {
         $this->factory       = $factory;
         $this->configuration = $configuration;

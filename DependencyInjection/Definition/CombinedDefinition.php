@@ -2,6 +2,7 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
+use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -20,48 +21,18 @@ class CombinedDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    protected function createStore(ContainerBuilder $container, array $config)
+    public function getName(): string
     {
-        $stores = [];
-        foreach ($config['stores'] as $store) {
-            $stores[] = new Reference($store);
-        }
-
-        $strategy = $this->createStrategy($config['strategy']);
-        $combined = new Definition(CombinedStore::class, [$stores, $strategy]);
-
-        return $combined;
-    }
-
-    /**
-     * @param string $strategy
-     *
-     * @return Definition|Reference
-     */
-    private function createStrategy($strategy)
-    {
-        switch ($strategy) {
-            case 'consensus':
-                $strategy = new Definition(ConsensusStrategy::class);
-                break;
-            case 'unanimous':
-                $strategy = new Definition(UnanimousStrategy::class);
-                break;
-            default:
-                $strategy = new Reference($strategy);
-                break;
-        }
-
-        return $strategy;
+        return 'combined';
     }
 
     /**
      * @inheritdoc
      */
-    public function addConfiguration()
+    public function addConfiguration(): NodeDefinition
     {
-        $tree = new TreeBuilder();
-        $node = $tree->root($this->getName());
+        $tree = new TreeBuilder($this->getName());
+        $node = $tree->getRootNode();
         $node
             ->requiresAtLeastOneElement()
             ->useAttributeAsKey('name')
@@ -95,8 +66,37 @@ class CombinedDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    public function getName()
+    protected function createStore(ContainerBuilder $container, array $config): Definition
     {
-        return 'combined';
+        $stores = [];
+        foreach ($config['stores'] as $store) {
+            $stores[] = new Reference($store);
+        }
+
+        $strategy = $this->createStrategy($config['strategy']);
+
+        return new Definition(CombinedStore::class, [$stores, $strategy]);
+    }
+
+    /**
+     * @param string $strategy
+     *
+     * @return Definition|Reference
+     */
+    private function createStrategy(string $strategy)
+    {
+        switch ($strategy) {
+            case 'consensus':
+                $strategy = new Definition(ConsensusStrategy::class);
+                break;
+            case 'unanimous':
+                $strategy = new Definition(UnanimousStrategy::class);
+                break;
+            default:
+                $strategy = new Reference($strategy);
+                break;
+        }
+
+        return $strategy;
     }
 }

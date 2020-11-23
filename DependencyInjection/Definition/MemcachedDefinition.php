@@ -2,10 +2,12 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
+use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Lock\Store\MemcachedStore;
 
 /**
  * Class MemcachedDefinition
@@ -17,24 +19,18 @@ class MemcachedDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    protected function createStore(ContainerBuilder $container, array $config)
+    public function getName(): string
     {
-        $store  = new Definition('%ixarlie_mutex.memcached_store.class%');
-        $client = new Reference($config['client']);
-
-        $store->addArgument($client);
-        $store->addArgument($config['default_ttl']);
-
-        return $store;
+        return 'memcached';
     }
 
     /**
      * @inheritdoc
      */
-    public function addConfiguration()
+    public function addConfiguration(): NodeDefinition
     {
-        $tree = new TreeBuilder();
-        $node = $tree->root($this->getName());
+        $tree = new TreeBuilder($this->getName());
+        $node = $tree->getRootNode();
         $node
             ->requiresAtLeastOneElement()
             ->useAttributeAsKey('name')
@@ -53,8 +49,14 @@ class MemcachedDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    public function getName()
+    protected function createStore(ContainerBuilder $container, array $config): Definition
     {
-        return 'memcached';
+        $store  = new Definition(MemcachedStore::class);
+        $client = new Reference($config['client']);
+
+        $store->addArgument($client);
+        $store->addArgument($config['default_ttl']);
+
+        return $store;
     }
 }

@@ -3,6 +3,7 @@
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
 use IXarlie\MutexBundle\Store\CustomStore;
+use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -18,28 +19,24 @@ class CustomDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    protected function createStore(ContainerBuilder $container, array $config)
+    public function getName(): string
     {
-        $store = new Definition(CustomStore::class);
-        $store->addArgument(new Reference($config['service']));
-
-        return $store;
+        return 'custom';
     }
 
     /**
      * @inheritdoc
      */
-    public function addConfiguration()
+    public function addConfiguration(): NodeDefinition
     {
-        $tree = new TreeBuilder();
-        $node = $tree->root($this->getName());
+        $tree = new TreeBuilder($this->getName());
+        $node = $tree->getRootNode();
         $node
             ->requiresAtLeastOneElement()
             ->useAttributeAsKey('name')
             ->arrayPrototype()
             ->children()
                 ->scalarNode('service')->isRequired()->cannotBeEmpty()->end()
-                ->append($this->addBlockConfiguration())
                 ->scalarNode('logger')->end()
             ->end()
         ;
@@ -50,8 +47,11 @@ class CustomDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    public function getName()
+    protected function createStore(ContainerBuilder $container, array $config): Definition
     {
-        return 'custom';
+        $store = new Definition(CustomStore::class);
+        $store->addArgument(new Reference($config['service']));
+
+        return $store;
     }
 }

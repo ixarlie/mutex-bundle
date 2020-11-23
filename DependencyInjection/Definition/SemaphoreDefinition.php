@@ -2,9 +2,11 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
+use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\Lock\Store\SemaphoreStore;
 
 /**
  * Class SemaphoreDefinition.
@@ -16,26 +18,23 @@ class SemaphoreDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    protected function createStore(ContainerBuilder $container, array $config)
+    public function getName(): string
     {
-        $store = new Definition('%ixarlie_mutex.semaphore_store.class%');
-
-        return $store;
+        return 'semaphore';
     }
 
     /**
      * @inheritdoc
      */
-    public function addConfiguration()
+    public function addConfiguration(): NodeDefinition
     {
-        $tree = new TreeBuilder();
-        $node = $tree->root($this->getName());
+        $tree = new TreeBuilder($this->getName());
+        $node = $tree->getRootNode();
         $node
             ->requiresAtLeastOneElement()
             ->useAttributeAsKey('name')
             ->arrayPrototype()
             ->children()
-                ->append($this->addBlockConfiguration())
                 ->scalarNode('logger')->end()
             ->end()
         ;
@@ -46,8 +45,8 @@ class SemaphoreDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    public function getName()
+    protected function createStore(ContainerBuilder $container, array $config): Definition
     {
-        return 'semaphore';
+        return new Definition(SemaphoreStore::class);
     }
 }

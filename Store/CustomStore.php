@@ -2,26 +2,27 @@
 
 namespace IXarlie\MutexBundle\Store;
 
+use Symfony\Component\Lock\BlockingStoreInterface;
 use Symfony\Component\Lock\Key;
-use Symfony\Component\Lock\StoreInterface;
 
 /**
  * Class CustomStore.
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class CustomStore implements StoreInterface
+class CustomStore implements BlockingStoreInterface
 {
     /**
-     * @var StoreInterface
+     * @var BlockingStoreInterface
      */
     private $store;
 
     /**
      * CustomStore constructor.
-     * @param $store
+     *
+     * @param BlockingStoreInterface $store
      */
-    public function __construct(StoreInterface $store)
+    public function __construct(BlockingStoreInterface $store)
     {
         $this->store = $store;
     }

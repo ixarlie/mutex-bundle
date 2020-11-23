@@ -12,7 +12,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ConfigurationAnnotation;
  * @Annotation
  * @Target({"METHOD"})
  */
-class MutexRequest extends ConfigurationAnnotation
+final class MutexRequest extends ConfigurationAnnotation
 {
     /**
      * Attempt to acquire the mutex, in case is locked an exception is thrown.

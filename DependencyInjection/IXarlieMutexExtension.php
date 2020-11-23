@@ -2,6 +2,8 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection;
 
+use DependencyInjection\Definition\PdoDefinition;
+use DependencyInjection\Definition\ZookepperDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\CombinedDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\CustomDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\FlockDefinition;
@@ -19,10 +21,6 @@ use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\Lock\Store\FlockStore;
-use Symfony\Component\Lock\Store\MemcachedStore;
-use Symfony\Component\Lock\Store\RedisStore;
-use Symfony\Component\Lock\Store\SemaphoreStore;
 
 /**
  * Class IXarlieMutexExtension
@@ -47,6 +45,8 @@ class IXarlieMutexExtension extends Extension
             new MemcachedDefinition(),
             new RedisDefinition(),
             new CombinedDefinition(),
+            new PdoDefinition(),
+            new ZookepperDefinition(),
             new CustomDefinition(),
         ];
         /** @var LockDefinition $definition */
@@ -60,12 +60,6 @@ class IXarlieMutexExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container)
     {
-        // Load parameters
-        $container->setParameter('ixarlie_mutex.flock_store.class', FlockStore::class);
-        $container->setParameter('ixarlie_mutex.semaphore_store.class', SemaphoreStore::class);
-        $container->setParameter('ixarlie_mutex.memcached_store.class', MemcachedStore::class);
-        $container->setParameter('ixarlie_mutex.redis_store.class', RedisStore::class);
-
         $configuration = new Configuration();
         $config        = $this->processConfiguration($configuration, $configs);
 
@@ -91,7 +85,7 @@ class IXarlieMutexExtension extends Extension
                     throw new \RuntimeException('Cannot find definition class for type ' . $type);
                 }
 
-                // Register factory and createFactory its store using its decorator definition
+                // Register factory
                 $this->definitions[$type]->createFactory($container, $config, $name);
                 $factories++;
             }
@@ -147,7 +141,7 @@ class IXarlieMutexExtension extends Extension
             [
                 'event'    => KernelEvents::CONTROLLER,
                 'method'   => 'onKernelController',
-                'priority' => $config['priority'] + 1
+                'priority' => $config['priority'] + 1,
             ]
         );
         $container->setDefinition(MutexDecoratorListener::class, $decoratorListener);

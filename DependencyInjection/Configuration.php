@@ -2,6 +2,8 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection;
 
+use DependencyInjection\Definition\PdoDefinition;
+use DependencyInjection\Definition\ZookepperDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\CombinedDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\CustomDefinition;
 use IXarlie\MutexBundle\DependencyInjection\Definition\FlockDefinition;
@@ -24,8 +26,9 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $tree = new TreeBuilder();
-        $tree->root('i_xarlie_mutex')
+        $tree = new TreeBuilder('i_xarlie_mutex');
+        $node = $tree->getRootNode();
+        $node
             ->addDefaultsIfNotSet()
             ->children()
                 ->scalarNode('default')->isRequired()->cannotBeEmpty()->end()
@@ -34,6 +37,8 @@ class Configuration implements ConfigurationInterface
                 ->append((new RedisDefinition())->addConfiguration())
                 ->append((new MemcachedDefinition())->addConfiguration())
                 ->append((new CombinedDefinition())->addConfiguration())
+                ->append((new PdoDefinition())->addConfiguration())
+                ->append((new ZookepperDefinition())->addConfiguration())
                 ->append((new CustomDefinition())->addConfiguration())
                 ->append($this->addListenerConfiguration())
             ->end()
@@ -47,8 +52,8 @@ class Configuration implements ConfigurationInterface
      */
     private function addListenerConfiguration()
     {
-        $tree = new TreeBuilder();
-        $node = $tree->root('request_listener');
+        $tree = new TreeBuilder('request_listener');
+        $node = $tree->getRootNode();
         $node
             ->isRequired()
             ->canBeEnabled()

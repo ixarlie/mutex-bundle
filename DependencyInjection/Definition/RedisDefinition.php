@@ -2,10 +2,12 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection\Definition;
 
+use Symfony\Component\Config\Definition\Builder\NodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Lock\Store\RedisStore;
 
 /**
  * Class RedisDefinition
@@ -17,24 +19,18 @@ class RedisDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    protected function createStore(ContainerBuilder $container, array $config)
+    public function getName(): string
     {
-        $store  = new Definition('%ixarlie_mutex.redis_store.class%');
-        $client = new Reference($config['client']);
-
-        $store->addArgument($client);
-        $store->addArgument($config['default_ttl']);
-
-        return $store;
+        return 'redis';
     }
 
     /**
      * @inheritdoc
      */
-    public function addConfiguration()
+    public function addConfiguration(): NodeDefinition
     {
-        $tree = new TreeBuilder();
-        $node = $tree->root($this->getName());
+        $tree = new TreeBuilder($this->getName());
+        $node = $tree->getRootNode();
         $node
             ->requiresAtLeastOneElement()
             ->useAttributeAsKey('name')
@@ -42,8 +38,8 @@ class RedisDefinition extends LockDefinition
             ->children()
                 ->scalarNode('client')->isRequired()->cannotBeEmpty()->end()
                 ->scalarNode('default_ttl')->defaultValue(300)->end()
-                ->scalarNode('logger')->end()
                 ->append($this->addBlockConfiguration())
+                ->scalarNode('logger')->end()
             ->end()
         ;
 
@@ -53,8 +49,14 @@ class RedisDefinition extends LockDefinition
     /**
      * @inheritdoc
      */
-    public function getName()
+    protected function createStore(ContainerBuilder $container, array $config): Definition
     {
-        return 'redis';
+        $store  = new Definition(RedisStore::class);
+        $client = new Reference($config['client']);
+
+        $store->addArgument($client);
+        $store->addArgument($config['default_ttl']);
+
+        return $store;
     }
 }
