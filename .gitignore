@@ -1,4 +1,4 @@
-
+/composer.lock
 vendor/
 !tests/var/.gitkeep
 !tests/var/flock/.gitkeep
