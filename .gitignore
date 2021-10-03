@@ -1,4 +1,3 @@
-
-.idea/
 vendor/
-Tests/Fixtures/cache/*
+.phpunit.result.cache
+composer.lock

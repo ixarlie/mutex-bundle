@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="ixarlie_mutex.lock_executor" class="IXarlie\MutexBundle\LockExecutor">
+        </service>
+
+        <!-- naming strategies -->
+        <service id="ixarlie_mutex.naming_strategy" alias="ixarlie_mutex.naming_strategy.default"/>
+        <service id="ixarlie_mutex.naming_strategy.default"
+                 class="IXarlie\MutexBundle\NamingStrategy\DefaultNamingStrategy"/>
+        <service id="ixarlie_mutex.naming_strategy.user_isolation"
+                 class="IXarlie\MutexBundle\NamingStrategy\UserIsolationNamingStrategy"
+                 decorates="ixarlie_mutex.naming_strategy.default">
+            <argument type="service" id="ixarlie_mutex.naming_strategy.user_isolation.inner"/>
+        </service>
+
+        <!-- locking strategies -->
+        <service id="ixarlie_mutex.lock_strategy.check"
+                 class="IXarlie\MutexBundle\LockingStrategy\CheckLockingStrategy">
+            <tag name="ixarlie_mutex.strategy"/>
+        </service>
+        <service id="ixarlie_mutex.lock_strategy.block"
+                 class="IXarlie\MutexBundle\LockingStrategy\BlockLockingStrategy">
+            <tag name="ixarlie_mutex.strategy"/>
+        </service>
+        <service id="ixarlie_mutex.lock_strategy.queue"
+                 class="IXarlie\MutexBundle\LockingStrategy\QueueLockingStrategy">
+            <tag name="ixarlie_mutex.strategy"/>
+        </service>
+        <service id="ixarlie_mutex.lock_strategy.force"
+                 class="IXarlie\MutexBundle\LockingStrategy\ForceLockingStrategy">
+            <tag name="ixarlie_mutex.strategy"/>
+        </service>
+    </services>
+</container>

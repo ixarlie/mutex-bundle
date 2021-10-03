@@ -2,7 +2,22 @@
   "name": "ixarlie/mutex-bundle",
   "type": "symfony-bundle",
   "description": "A Symfony bundle for Mutex implementation for PHP",
-  "keywords": ["Symfony2", "bundle", "semaphore", "mutex", "locking", "lock", "atomicity", "atom", "acquire", "release", "redis", "memcached", "sem", "flock"],
+  "keywords": [
+    "symfony",
+    "bundle",
+    "semaphore",
+    "mutex",
+    "locking",
+    "lock",
+    "atomicity",
+    "atom",
+    "acquire",
+    "release",
+    "redis",
+    "memcached",
+    "sem",
+    "flock"
+  ],
   "homepage": "https://github.com/ixarlie/mutex-bundle",
   "license": "MIT",
   "authors": [
@@ -12,29 +27,31 @@
     }
   ],
   "require": {
-    "php": ">=7.1",
-    "symfony/dependency-injection": "^3.4.26|^4.4",
-    "symfony/config": "^3.4|^4.4",
-    "arvenil/ninja-mutex": "~0.6",
-    "doctrine/common": "^2.8",
-    "symfony/http-kernel": "^3.4|^4.4",
-    "symfony/yaml": "^3.4|^4.4",
-    "symfony/translation": "^3.4|^4.4",
-    "symfony/security": "^3.4|^4.4",
-    "symfony/contracts": "^1.0"
+    "php": "^7.1.13 || ^8.0",
+    "doctrine/annotations": "^1.13",
+    "symfony/framework-bundle": "^4.4 || ^5.0",
+    "symfony/lock": "^4.4 || ^5.0",
+    "symfony/event-dispatcher": "^4.4 || ^5.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^8.5"
+    "phpunit/phpunit": "^7.5 || ^8.5 || ^9.5",
+    "symfony/security-core": "^4.4 || ^5.0"
   },
   "suggest": {
-    "doctrine/common": "In order to use controller annotations, make sure you have it in your project's dependencies",
-    "symfony/monolog-bundle": "Allows more advanced logging of the application flow"
   },
   "autoload": {
-    "psr-0": { "IXarlie\\MutexBundle": "" }
+    "psr-4": {
+      "IXarlie\\MutexBundle\\": "src/"
+    }
   },
-  "target-dir": "IXarlie/MutexBundle",
-  "minimum-stability": "stable",
+  "autoload-dev": {
+    "psr-4": {
+      "IXarlie\\MutexBundle\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
   "extra": {
     "branch-alias": {
       "dev-master": "1.0.x-dev"

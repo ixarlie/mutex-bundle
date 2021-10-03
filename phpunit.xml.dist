@@ -8,19 +8,13 @@
          convertWarningsToExceptions="true"
          processIsolation="false"
          stopOnFailure="false"
-         cacheResult="false"
-         bootstrap="Tests/bootstrap.php"
+         bootstrap="./vendor/autoload.php"
 >
     <testsuites>
         <testsuite name="IXarlieMutexBundle Test Suite">
-            <directory>./Tests/</directory>
+            <directory>./tests/</directory>
         </testsuite>
     </testsuites>
-
-    <php>
-        <!-- <server name="SYMFONY" value="/path/to/symfony/src" /> -->
-        <!-- <server name="SYMFONY_TESTS" value="/path/to/symfony/tests" /> -->
-    </php>
 
     <filter>
         <whitelist>
