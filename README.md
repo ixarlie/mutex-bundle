@@ -1,5 +1,9 @@
 # IXarlie Mutex Bundle
 
+[![GitHub Actions][GA Image]][GA Link]
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/c867ebceca884f43ae1fdb4b2f087573)](https://www.codacy.com/gh/ixarlie/mutex-bundle/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ixarlie/mutex-bundle&amp;utm_campaign=Badge_Grade)
+[![Packagist][Packagist Image]][Packagist Link]
+
 This bundle integrates the `symfony/lock` capabilities into `kernel.controller` events.
 
 For previous releases with `arvenil/ninja-mutex` dependency follow the [version 1](https://github.com/ixarlie/mutex-bundle/tree/v1.0.4)
@@ -220,7 +224,7 @@ class MyController {
      *     strategy="block",
      *     name="action_name",
      *     userIsolation=true,
-     *     message="Wait!"
+     *     message="Busy!"
      *     ttl=20.0 
      * )
      */
@@ -230,3 +234,8 @@ class MyController {
     }
 }
 ```
+
+[GA Image]: https://github.com/ixarlie/mutex-bundle/workflows/CI/badge.svg
+[GA Link]: https://github.com/ixarlie/mutex-bundle/actions?query=workflow%3A%22CI%22+branch%3Amaster
+[Packagist Image]: https://img.shields.io/packagist/v/ixarlie/mutex-bundle.svg
+[Packagist Link]: https://packagist.org/packages/ixarlie/mutex-bundle
