@@ -51,7 +51,7 @@ class IXarlieMutexExtension extends Extension
     {
         $definition = $container->getDefinition('ixarlie_mutex.lock_executor');
         foreach ($config['factories'] as $serviceId) {
-            $definition->addMethodCall('addLockFactory', [new Reference($serviceId)]);
+            $definition->addMethodCall('addLockFactory', [$serviceId, new Reference($serviceId)]);
         }
     }
 }
