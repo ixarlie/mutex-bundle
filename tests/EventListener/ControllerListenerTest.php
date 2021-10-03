@@ -122,7 +122,7 @@ final class ControllerListenerTest extends TestCase
             ->method('createName')
             ->withConsecutive(
                 [$this->isInstanceOf(MutexRequest::class), $request],
-                [$this->isInstanceOf(MutexRequest::class), $request],
+                [$this->isInstanceOf(MutexRequest::class), $request]
             )
             ->willReturnOnConsecutiveCalls(
                 'lock_name_1',
