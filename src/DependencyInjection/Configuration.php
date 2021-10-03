@@ -2,7 +2,7 @@
 
 namespace IXarlie\MutexBundle\DependencyInjection;
 
-use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+    use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
@@ -19,13 +19,8 @@ class Configuration implements ConfigurationInterface
     {
         $builder = new TreeBuilder('ixarlie_mutex');
 
-        if (method_exists(TreeBuilder::class, 'getRootNode')) {
-            $root = $builder->getRootNode();
-        } else {
-            $root = $builder->root('ixarlie_mutex');
-        }
-
-        $root
+        $builder
+            ->getRootNode()
             ->children()
                 ->arrayNode('factories')
                     ->defaultValue([])
