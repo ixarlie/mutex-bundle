@@ -21,7 +21,7 @@ final class IXarlieMutexExtensionTest extends TestCase
     {
         $container = new ContainerBuilder();
         $extension = new IXarlieMutexExtension();
-        $extension->load(['ixarlie_mutex' => []], $container);
+        $extension->load(['i_xarlie_mutex' => []], $container);
 
         self::assertTrue($container->hasDefinition('ixarlie_mutex.controller.listener'));
         self::assertTrue($container->hasDefinition('ixarlie_mutex.terminate.listener'));
@@ -42,7 +42,7 @@ final class IXarlieMutexExtensionTest extends TestCase
     {
         $container = new ContainerBuilder();
         $extension = new IXarlieMutexExtension();
-        $extension->load(['ixarlie_mutex' => [
+        $extension->load(['i_xarlie_mutex' => [
             'factories' => [
                 'lock.default.factory',
             ],

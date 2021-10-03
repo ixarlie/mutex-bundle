@@ -41,7 +41,7 @@ framework:
 ```
 
 ```yaml
-ixarlie_mutex:
+i_xarlie_mutex:
     # Add the Symfony lock factories services id
     factories:
         - 'lock.default.factory'
@@ -137,7 +137,7 @@ Examples:
 framework:
     lock: semaphore
 
-ixarlie_mutex:
+i_xarlie_mutex:
     factories:
         - 'lock.default.factory'
 ```
@@ -151,7 +151,7 @@ framework:
         main_lock: flock
         secondary_lock: semaphore
 
-ixarlie_mutex:
+i_xarlie_mutex:
     factories:
         - 'lock.main_lock.factory'
 ```

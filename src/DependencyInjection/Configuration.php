@@ -17,7 +17,7 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $builder = new TreeBuilder('ixarlie_mutex');
+        $builder = new TreeBuilder('i_xarlie_mutex');
 
         $builder
             ->getRootNode()
