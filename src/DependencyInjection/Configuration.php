@@ -17,9 +17,15 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $tree = new TreeBuilder('ixarlie_mutex');
+        $builder = new TreeBuilder('ixarlie_mutex');
 
-        $tree->getRootNode()
+        if (method_exists(TreeBuilder::class, 'getRootNode')) {
+            $root = $builder->getRootNode();
+        } else {
+            $root = $builder->root('ixarlie_mutex');
+        }
+
+        $root
             ->children()
                 ->arrayNode('factories')
                     ->defaultValue([])
@@ -28,6 +34,6 @@ class Configuration implements ConfigurationInterface
             ->end()
         ;
 
-        return $tree;
+        return $builder;
     }
 }

@@ -14,7 +14,7 @@ final class ConfigurationTest extends TestCase
     public function testDefaults(): void
     {
         $options  = [
-            'i_xarlie_mutex' => [],
+            'ixarlie_mutex' => [],
         ];
         $result   = $this->processConfiguration($options);
         $expected = [
@@ -27,7 +27,7 @@ final class ConfigurationTest extends TestCase
     public function testFactories(): void
     {
         $options  = [
-            'i_xarlie_mutex' => [
+            'ixarlie_mutex' => [
                 'factories' => [
                     'lock.main.factory',
                     'lock.alt.factory',

@@ -14,6 +14,8 @@ Please, read [Symfony/Lock](https://symfony.com/doc/current/components/lock.html
     All the previous configuration is no longer valid. You should convert your _lockers_ definitions to an equivalent
  [Symfony Lock](https://symfony.com/doc/current/components/lock.html#available-stores).
 
+    The root node should be changed from `i_xarlie_mutex` to `ixarlie_mutex`.
+
 
 - Namespace Changes
 

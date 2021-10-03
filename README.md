@@ -37,7 +37,7 @@ framework:
 ```
 
 ```yaml
-i_xarlie_mutex:
+ixarlie_mutex:
     # Add the Symfony lock factories services id
     factories:
         - 'lock.default.factory'
