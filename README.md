@@ -220,7 +220,7 @@ class MyController {
      *     strategy="block",
      *     name="action_name",
      *     userIsolation=true,
-     *     message="Wait!"
+     *     message="Busy!"
      *     ttl=20.0 
      * )
      */
