@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="ixarlie_mutex.controller.listener" class="IXarlie\MutexBundle\EventListener\ControllerListener">
+            <tag name="kernel.event_subscriber"/>
+            <argument type="service" id="ixarlie_mutex.lock_executor"/>
+            <argument type="service" id="ixarlie_mutex.naming_strategy"/>
+            <argument type="service" id="annotation_reader"/>
+        </service>
+
+        <service id="ixarlie_mutex.terminate.listener" class="IXarlie\MutexBundle\EventListener\TerminateListener">
+            <tag name="kernel.event_subscriber"/>
+        </service>
+    </services>
+</container>

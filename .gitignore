@@ -1,5 +1,2 @@
-
 vendor/
-!tests/var/.gitkeep
-!tests/var/flock/.gitkeep
-tests/var/
+.phpunit.result.cache

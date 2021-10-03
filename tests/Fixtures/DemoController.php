@@ -1,8 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
-namespace Tests\Fixtures;
+namespace IXarlie\MutexBundle\Tests\Fixtures;
 
-use IXarlie\MutexBundle\Configuration\MutexRequest;
+use IXarlie\MutexBundle\MutexRequest;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -13,41 +13,52 @@ use Symfony\Component\HttpFoundation\Response;
 class DemoController
 {
     /**
-     * @MutexRequest(mode="queue")
+     * @MutexRequest(strategy="queue")
      *
      * @return Response
      */
-    public function queueAction()
+    public function queue(): Response
     {
         return new Response('It works!');
     }
 
     /**
-     * @MutexRequest(mode="block")
+     * @MutexRequest(strategy="block")
      *
      * @return Response
      */
-    public function blockAction()
+    public function block(): Response
     {
         return new Response('It works!');
     }
 
     /**
-     * @MutexRequest(mode="check")
+     * @MutexRequest(strategy="check")
      *
      * @return Response
      */
-    public function checkAction()
+    public function check(): Response
     {
         return new Response('It works!');
     }
 
     /**
-     * @MutexRequest(mode="force")
+     * @MutexRequest(strategy="force")
      *
      * @return Response
      */
-    public function forceAction()
+    public function force(): Response
+    {
+        return new Response('It works!');
+    }
+
+    /**
+     * @MutexRequest("lock.default.factory", strategy="force")
+     * @MutexRequest("lock.default.factory", strategy="force")
+     *
+     * @return Response
+     */
+    public function double(): Response
     {
         return new Response('It works!');
     }

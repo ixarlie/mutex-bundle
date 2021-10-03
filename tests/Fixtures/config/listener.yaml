@@ -1,6 +1,0 @@
-i_xarlie_mutex:
-    default: 'none'
-    request_listener:
-        enabled: true
-        priority: 1000
-        autorelease: true

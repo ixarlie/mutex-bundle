@@ -16,12 +16,6 @@
         </testsuite>
     </testsuites>
 
-    <php>
-        <!-- <server name="SYMFONY" value="/path/to/symfony/src" /> -->
-        <!-- <server name="SYMFONY_TESTS" value="/path/to/symfony/tests" /> -->
-        <env name="KERNEL_CLASS" value="Tests\Fixtures\TestKernel" />
-    </php>
-
     <filter>
         <whitelist>
             <directory>./</directory>
