@@ -55,7 +55,7 @@ final class LockExecutorTest extends TestCase
 
     public function testExecute(): void
     {
-        $config   = new MutexRequest(['name' => 'foo', 'service' => 'lock.default.factory', 'strategy' => 'check']);
+        $config   = new MutexRequest(['name' => 'foo', 'service' => 'lock.default.factory', 'strategy' => 'block']);
         $factory  = $this->createMock(LockFactory::class);
         $lock     = $this->createMock(LockInterface::class);
         $strategy = $this->createMock(LockingStrategy::class);
@@ -70,7 +70,7 @@ final class LockExecutorTest extends TestCase
         $strategy
             ->expects(self::once())
             ->method('getName')
-            ->willReturn('check')
+            ->willReturn('block')
         ;
         $strategy
             ->expects(self::once())
@@ -91,7 +91,7 @@ final class LockExecutorTest extends TestCase
     {
         $this->expectException(MutexException::class);
 
-        $config   = new MutexRequest(['name' => 'foo', 'service' => 'lock.default.factory', 'strategy' => 'check']);
+        $config   = new MutexRequest(['name' => 'foo', 'service' => 'lock.default.factory', 'strategy' => 'block']);
         $factory  = $this->createMock(LockFactory::class);
         $lock     = $this->createMock(LockInterface::class);
         $strategy = $this->createMock(LockingStrategy::class);
@@ -106,7 +106,7 @@ final class LockExecutorTest extends TestCase
         $strategy
             ->expects(self::once())
             ->method('getName')
-            ->willReturn('check')
+            ->willReturn('block')
         ;
         $strategy
             ->expects(self::once())

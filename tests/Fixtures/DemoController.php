@@ -33,16 +33,6 @@ final class DemoController
     }
 
     /**
-     * @MutexRequest(strategy="check")
-     *
-     * @return Response
-     */
-    public function check(): Response
-    {
-        return new Response('It works!');
-    }
-
-    /**
      * @MutexRequest(strategy="force")
      *
      * @return Response

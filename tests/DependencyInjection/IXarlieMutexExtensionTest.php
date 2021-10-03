@@ -29,13 +29,12 @@ final class IXarlieMutexExtensionTest extends TestCase
         self::assertTrue($container->hasDefinition('ixarlie_mutex.naming_strategy.default'));
         self::assertTrue($container->hasDefinition('ixarlie_mutex.naming_strategy.user_isolation'));
         self::assertTrue($container->hasDefinition('ixarlie_mutex.lock_strategy.block'));
-        self::assertTrue($container->hasDefinition('ixarlie_mutex.lock_strategy.check'));
         self::assertTrue($container->hasDefinition('ixarlie_mutex.lock_strategy.queue'));
         self::assertTrue($container->hasDefinition('ixarlie_mutex.lock_strategy.force'));
         self::assertTrue($container->hasAlias('ixarlie_mutex.naming_strategy'));
 
         $definition = $container->getDefinition('ixarlie_mutex.lock_executor');
-        self::assertCount(4, $definition->getMethodCalls());
+        self::assertCount(3, $definition->getMethodCalls());
     }
 
     public function testLoadWithFactories(): void
@@ -54,12 +53,11 @@ final class IXarlieMutexExtensionTest extends TestCase
         self::assertTrue($container->hasDefinition('ixarlie_mutex.naming_strategy.default'));
         self::assertTrue($container->hasDefinition('ixarlie_mutex.naming_strategy.user_isolation'));
         self::assertTrue($container->hasDefinition('ixarlie_mutex.lock_strategy.block'));
-        self::assertTrue($container->hasDefinition('ixarlie_mutex.lock_strategy.check'));
         self::assertTrue($container->hasDefinition('ixarlie_mutex.lock_strategy.queue'));
         self::assertTrue($container->hasDefinition('ixarlie_mutex.lock_strategy.force'));
         self::assertTrue($container->hasAlias('ixarlie_mutex.naming_strategy'));
 
         $definition = $container->getDefinition('ixarlie_mutex.lock_executor');
-        self::assertCount(5, $definition->getMethodCalls());
+        self::assertCount(4, $definition->getMethodCalls());
     }
 }
