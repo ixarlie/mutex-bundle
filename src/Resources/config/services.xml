@@ -19,10 +19,6 @@
         </service>
 
         <!-- locking strategies -->
-        <service id="ixarlie_mutex.lock_strategy.check"
-                 class="IXarlie\MutexBundle\LockingStrategy\CheckLockingStrategy">
-            <tag name="ixarlie_mutex.strategy"/>
-        </service>
         <service id="ixarlie_mutex.lock_strategy.block"
                  class="IXarlie\MutexBundle\LockingStrategy\BlockLockingStrategy">
             <tag name="ixarlie_mutex.strategy"/>

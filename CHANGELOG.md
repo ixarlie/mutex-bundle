@@ -35,3 +35,4 @@ and `IXarlie\MutexBundle\EventListener\TerminateListener`
 - `IXarlie\MutexBundle\Lock\RedisLock`
 - `IXarlie\MutexBundle\Manager\LockManagerInterface`
 - `IXarlie\MutexBundle\Manager\LockManager`
+- The `check` mode/strategy was removed. Use `block` instead.

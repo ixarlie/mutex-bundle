@@ -4,7 +4,6 @@ namespace IXarlie\MutexBundle\Tests\LockingStrategy;
 
 use IXarlie\MutexBundle\LockingStrategy\ForceLockingStrategy;
 use IXarlie\MutexBundle\LockingStrategy\LockingStrategy;
-use IXarlie\MutexBundle\Tests\Fixtures\TestLock;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Lock\LockInterface;
 
@@ -32,17 +31,13 @@ final class ForceLockingStrategyTest extends TestCase
 
         $lock
             ->expects(self::once())
-            ->method('isAcquired')
-            ->willReturn(true)
-        ;
-        $lock
-            ->expects(self::once())
             ->method('release')
         ;
         $lock
-            ->expects(self::once())
+            ->expects(self::exactly(2))
             ->method('acquire')
-            ->with(false)
+            ->withConsecutive([false], [false])
+            ->willReturnOnConsecutiveCalls(false, true)
         ;
 
         $strategy->execute($lock);
@@ -54,11 +49,6 @@ final class ForceLockingStrategyTest extends TestCase
         $lock     = $this->createMock(LockInterface::class);
 
         $lock
-            ->expects(self::once())
-            ->method('isAcquired')
-            ->willReturn(false)
-        ;
-        $lock
             ->expects(self::never())
             ->method('release')
         ;
@@ -66,6 +56,7 @@ final class ForceLockingStrategyTest extends TestCase
             ->expects(self::once())
             ->method('acquire')
             ->with(false)
+            ->willReturn(true)
         ;
 
         $strategy->execute($lock);

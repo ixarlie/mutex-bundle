@@ -17,11 +17,10 @@ class ForceLockingStrategy implements LockingStrategy
      */
     public function execute(LockInterface $lock): void
     {
-        if ($lock->isAcquired()) {
+        if (false === $lock->acquire(false)) {
             $lock->release();
+            $lock->acquire(false);
         }
-
-        $lock->acquire(false);
     }
 
     /**

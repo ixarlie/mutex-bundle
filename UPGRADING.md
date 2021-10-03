@@ -50,6 +50,7 @@ Please, read [Symfony/Lock](https://symfony.com/doc/current/components/lock.html
     - The `name` option no longer support requests attributes placeholders.
     - The `service` option is now mandatory. Use any registered Symfony lock factory service.
     - The `mode` option was renamed to `strategy`. Remains as mandatory.
+    - The `check` mode was removed. Use `block` instead.
     - The `httpCode` option was removed. The default status code is `423`. Use the `kernel.exception` event to decorate
       the response.
     - The `messageDomain` option was removed. Use the `kernel.exception` event to decorate the response.

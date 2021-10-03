@@ -52,12 +52,7 @@ i_xarlie_mutex:
 
 ## Locking Strategy
 
-This bundle ships 4 different locking strategies:
-
-- `check` (`CheckLockingStrategy`)
-
-    Check the lock's status. Whether the lock is acquired then an exception is thrown. This strategy does not attempt
-    to acquire the lock.
+This bundle ships 3 different locking strategies:
 
 - `block` (`BlockLockingStrategy`)
 
@@ -166,7 +161,6 @@ One of the registered locking strategies. Read the `Locking Strategy` section.
 Examples:
 ```
 @MutexRequest(service="lock.default.factory", strategy="block")
-@MutexRequest(service="lock.default.factory", strategy="check")
 @MutexRequest(service="lock.default.factory", strategy="queue")
 @MutexRequest(service="lock.default.factory", strategy="force") 
 ```

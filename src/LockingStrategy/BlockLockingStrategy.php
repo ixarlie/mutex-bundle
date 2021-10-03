@@ -2,6 +2,7 @@
 
 namespace IXarlie\MutexBundle\LockingStrategy;
 
+use Symfony\Component\Lock\Exception\LockAcquiringException;
 use Symfony\Component\Lock\LockInterface;
 
 /**
@@ -12,15 +13,16 @@ use Symfony\Component\Lock\LockInterface;
  * @author Carlos Dominguez <ixarlie@gmail.com>
  * @final
  */
-class BlockLockingStrategy extends CheckLockingStrategy
+class BlockLockingStrategy implements LockingStrategy
 {
     /**
      * @inheritDoc
      */
     public function execute(LockInterface $lock): void
     {
-        parent::execute($lock);
-        $lock->acquire(false);
+        if (false === $lock->acquire(false)) {
+            throw new LockAcquiringException('Lock is already acquired.');
+        }
     }
 
     /**
