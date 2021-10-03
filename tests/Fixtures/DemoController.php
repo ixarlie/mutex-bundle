@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class DemoController
+final class DemoController
 {
     /**
      * @MutexRequest(strategy="queue")
