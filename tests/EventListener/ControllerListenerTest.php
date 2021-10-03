@@ -126,7 +126,7 @@ final class ControllerListenerTest extends TestCase
             )
             ->willReturnOnConsecutiveCalls(
                 'lock_name_1',
-                'lock_name_2',
+                'lock_name_2'
             )
         ;
 
