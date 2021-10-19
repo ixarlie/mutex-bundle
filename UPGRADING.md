@@ -47,7 +47,7 @@ Please, read [Symfony/Lock](https://symfony.com/doc/current/components/lock.html
 - Annotation changes
 
     - The annotation cannot target classes anymore. Add the necessary annotations on every method instead.
-    - The `name` option no longer support requests attributes placeholders.
+    - The `name` option no longer supports request attribute placeholders.
     - The `service` option is now mandatory. Use any registered Symfony lock factory service.
     - The `mode` option was renamed to `strategy`. Remains as mandatory.
     - The `check` mode was removed. Use `block` instead.

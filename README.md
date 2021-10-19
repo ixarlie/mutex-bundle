@@ -172,9 +172,9 @@ The lock's name. If no name is provided, the name will be generated using the re
 
 Note: Read `userIsolation` option to know how it affects to the name.
 
-Note: The prefix `ixarlie_mutex_` is prepended to every locker.
+Note: The prefix `ixarlie_mutex_` is prefixed to the name.
 
-Note: The naming strategy output is md5 hashed to avoid any issue with some storage implementations.
+Note: The naming strategy output is md5 hashed to avoid any issue with some _PersistingStoreInterface_ implementations.
 
 Examples:
 ```
@@ -218,7 +218,7 @@ class MyController {
      *     strategy="block",
      *     name="action_name",
      *     userIsolation=true,
-     *     message="Busy!"
+     *     message="Busy!",
      *     ttl=20.0 
      * )
      */
