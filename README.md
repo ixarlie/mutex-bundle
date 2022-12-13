@@ -17,7 +17,7 @@ Before continuing, please read the following links for more information.
 ## Install
 
 ```sh
-composer require ixarlie/mutex-bundle "^2.0"
+composer require ixarlie/mutex-bundle "^2.1"
 ```
 
 Add the bundle in the kernel class:
@@ -136,8 +136,8 @@ i_xarlie_mutex:
     factories:
         - 'lock.default.factory'
 ```
-```
-@MutexRequest(service="lock.default.factory")
+```php
+#[MutexRequest(service: 'lock.default.factory')]
 ```
 
 ```yaml
@@ -150,8 +150,8 @@ i_xarlie_mutex:
     factories:
         - 'lock.main_lock.factory'
 ```
-```
-@MutexRequest(service="lock.main_lock.factory")
+```php
+#[MutexRequest(service: 'lock.main_lock.factory')]
 ```
 
 - `strategy` (required)
@@ -159,10 +159,10 @@ i_xarlie_mutex:
 One of the registered locking strategies. Read the `Locking Strategy` section.
 
 Examples:
-```
-@MutexRequest(service="lock.default.factory", strategy="block")
-@MutexRequest(service="lock.default.factory", strategy="queue")
-@MutexRequest(service="lock.default.factory", strategy="force") 
+```php
+#[MutexRequest(service: 'lock.default.factory', strategy: 'block')]
+#[MutexRequest(service: 'lock.default.factory', strategy: 'queue')]
+#[MutexRequest(service: 'lock.default.factory', strategy: 'force')]
 ```
 
 - `name` (optional)
@@ -177,9 +177,9 @@ Note: The prefix `ixarlie_mutex_` is prefixed to the name.
 Note: The naming strategy output is md5 hashed to avoid any issue with some _PersistingStoreInterface_ implementations.
 
 Examples:
-```
-@MutexRequest(service="lock.default.factory", strategy="block")
-@MutexRequest(service="lock.default.factory", strategy="block", name="lock_name")
+```php
+#[MutexRequest(service: 'lock.default.factory', strategy: 'block')]
+#[MutexRequest(service: 'lock.default.factory', strategy: 'block', name: 'lock_name')]
 ```
 
 - `message` (optional)
@@ -187,8 +187,8 @@ Examples:
 This is a custom message for the exception in case the lock cannot be acquired.
 
 Examples:
-```
-@MutexRequest(service="lock.default.factory", strategy="block", message="Busy!")
+```php
+#[MutexRequest(service: 'lock.default.factory', strategy: 'block', message: 'Busy!')]
 ```
 
 - `userIsolation` (optional, default: false)
@@ -196,8 +196,8 @@ Examples:
 This option will add token user context to the `name` option in order to have isolated locks for different users.
 
 Example:
-```
-@MutexRequest(service="lock.default.factory", strategy="block", userIsolation=true)
+```php
+#[MutexRequest(service: 'lock.default.factory', strategy: 'block', userIsolation: true)]
 ```
 
 Note: If `security.token_storage` is not available and `userIsolation` is set to true, an exception will be thrown.
@@ -210,18 +210,18 @@ Maximum expected lock duration in seconds.
 
 Example:
 ```php
+use IXarlie\MutexBundle\MutexRequest;
+
 class MyController {
 
-    /**
-     * @MutexRequest(
-     *     service="lock.default.factory,
-     *     strategy="block",
-     *     name="action_name",
-     *     userIsolation=true,
-     *     message="Busy!",
-     *     ttl=20.0 
-     * )
-     */
+    #[MutexRequest(
+        service: 'lock.default.factory',
+        strategy: 'block',
+        name: 'action_name',
+        userIsolation: true,
+        message: 'Busy!',
+        ttl: 20.0
+    )]
     public function foo()
     {
         return [];

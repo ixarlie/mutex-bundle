@@ -22,7 +22,7 @@ final class DefaultNamingStrategyTest extends TestCase
     public function testEmptyName(): void
     {
         $request  = Request::create('/test');
-        $config   = new MutexRequest(['name' => '']);
+        $config   = new MutexRequest(service: 'test', strategy: 'test', name: '');
         $strategy = new DefaultNamingStrategy();
 
         $request->attributes->set('_controller', DemoController::class . '::' . 'block');
@@ -37,7 +37,7 @@ final class DefaultNamingStrategyTest extends TestCase
     public function testNullName(): void
     {
         $request  = Request::create('/test');
-        $config   = new MutexRequest(['name' => null]);
+        $config   = new MutexRequest(service: 'test', strategy: 'test');
         $strategy = new DefaultNamingStrategy();
 
         $request->attributes->set('_controller', DemoController::class . '::' . 'block');
@@ -52,7 +52,7 @@ final class DefaultNamingStrategyTest extends TestCase
     public function testNameNeitherNullNorEmpty(): void
     {
         $request  = Request::create('/test');
-        $config   = new MutexRequest(['name' => 'foobar']);
+        $config   = new MutexRequest(service: 'test', strategy: 'test', name: 'foobar');
         $strategy = new DefaultNamingStrategy();
 
         $request->attributes->set('_controller', DemoController::class . '::' . 'block');

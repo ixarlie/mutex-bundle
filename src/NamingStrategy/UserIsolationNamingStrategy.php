@@ -15,23 +15,13 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 class UserIsolationNamingStrategy implements NamingStrategy
 {
     /**
-     * @var NamingStrategy
-     */
-    private $inner;
-
-    /**
-     * @var TokenStorageInterface|null
-     */
-    private $tokenStorage;
-
-    /**
      * @param NamingStrategy             $inner
      * @param TokenStorageInterface|null $tokenStorage
      */
-    public function __construct(NamingStrategy $inner, ?TokenStorageInterface $tokenStorage = null)
-    {
-        $this->inner        = $inner;
-        $this->tokenStorage = $tokenStorage;
+    public function __construct(
+        private readonly NamingStrategy $inner,
+        private readonly ?TokenStorageInterface $tokenStorage = null
+    ) {
     }
 
     /**
@@ -61,6 +51,6 @@ class UserIsolationNamingStrategy implements NamingStrategy
 
         $token = $this->tokenStorage->getToken();
 
-        return $token ? md5($token->serialize()) : '';
+        return $token ? md5(serialize($token)) : '';
     }
 }

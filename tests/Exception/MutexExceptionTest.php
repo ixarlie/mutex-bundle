@@ -14,14 +14,14 @@ final class MutexExceptionTest extends TestCase
 {
     public function testInstance(): void
     {
-        $config = new MutexRequest([]);
+        $config = new MutexRequest(service: 'foo', strategy: 'block');
 
         self::assertInstanceOf(\Exception::class, new MutexException($config));
     }
 
     public function testStatusCode(): void
     {
-        $config    = new MutexRequest([]);
+        $config    = new MutexRequest(service: 'foo', strategy: 'block');
         $exception = new MutexException($config);
 
         self::assertSame(Response::HTTP_LOCKED, $exception->getStatusCode());
@@ -29,7 +29,7 @@ final class MutexExceptionTest extends TestCase
 
     public function testMessage(): void
     {
-        $config    = new MutexRequest([]);
+        $config    = new MutexRequest(service: 'foo', strategy: 'block');
         $exception = new MutexException($config);
 
         self::assertSame('Resource is not available at this moment.', $exception->getMessage());
@@ -37,7 +37,7 @@ final class MutexExceptionTest extends TestCase
 
     public function testCustomMessage(): void
     {
-        $config    = new MutexRequest(['message' => 'foo']);
+        $config    = new MutexRequest(service: 'foo', strategy: 'block', message: 'foo');
         $exception = new MutexException($config);
 
         self::assertSame('foo', $exception->getMessage());
@@ -45,9 +45,9 @@ final class MutexExceptionTest extends TestCase
 
     public function testGetConfig(): void
     {
-        $config    = new MutexRequest([]);
+        $config    = new MutexRequest(service: 'foo', strategy: 'block');
         $exception = new MutexException($config);
 
-        self::assertSame($config, $exception->getConfig());
+        self::assertSame($config, $exception->config);
     }
 }

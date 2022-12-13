@@ -19,12 +19,12 @@ class LockExecutor
     /**
      * @var LockFactory[]
      */
-    private $factories = [];
+    private array $factories = [];
 
     /**
      * @var LockingStrategy[]
      */
-    private $strategies = [];
+    private array $strategies = [];
 
     /**
      * @param string      $id

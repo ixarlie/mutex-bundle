@@ -2,8 +2,6 @@
 
 namespace IXarlie\MutexBundle\Tests\EventListener;
 
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\Reader;
 use IXarlie\MutexBundle\EventListener\ControllerListener;
 use IXarlie\MutexBundle\LockExecutor;
 use IXarlie\MutexBundle\MutexRequest;
@@ -26,8 +24,7 @@ final class ControllerListenerTest extends TestCase
     {
         $listener = new ControllerListener(
             $this->createMock(LockExecutor::class),
-            $this->createMock(NamingStrategy::class),
-            $this->createMock(Reader::class)
+            $this->createMock(NamingStrategy::class)
         );
 
         self::assertInstanceOf(EventSubscriberInterface::class, $listener);
@@ -48,7 +45,7 @@ final class ControllerListenerTest extends TestCase
         $request    = Request::create('');
         $controller = [new DemoController(), 'block'];
         $kernel     = $this->createMock(HttpKernelInterface::class);
-        $event      = new ControllerEvent($kernel, $controller, $request, 2);
+        $event      = new ControllerEvent($kernel, $controller, $request, HttpKernelInterface::SUB_REQUEST);
 
         $executor = $this->createMock(LockExecutor::class);
         $executor
@@ -62,7 +59,7 @@ final class ControllerListenerTest extends TestCase
             ->method('createName')
         ;
 
-        $listener = new ControllerListener($executor, $naming, new AnnotationReader());
+        $listener = new ControllerListener($executor, $naming);
         $listener->onKernelController($event);
 
 
@@ -74,7 +71,7 @@ final class ControllerListenerTest extends TestCase
         $request    = Request::create('');
         $controller = [new DemoController(), 'block'];
         $kernel     = $this->createMock(HttpKernelInterface::class);
-        $event      = new ControllerEvent($kernel, $controller, $request, 1);
+        $event      = new ControllerEvent($kernel, $controller, $request, HttpKernelInterface::MAIN_REQUEST);
 
         $lock     = $this->createMock(LockInterface::class);
         $executor = $this->createMock(LockExecutor::class);
@@ -93,7 +90,7 @@ final class ControllerListenerTest extends TestCase
             ->willReturn('lock_name')
         ;
 
-        $listener = new ControllerListener($executor, $naming, new AnnotationReader());
+        $listener = new ControllerListener($executor, $naming);
         $listener->onKernelController($event);
 
 
@@ -105,7 +102,7 @@ final class ControllerListenerTest extends TestCase
         $request    = Request::create('');
         $controller = [new DemoController(), 'double'];
         $kernel     = $this->createMock(HttpKernelInterface::class);
-        $event      = new ControllerEvent($kernel, $controller, $request, 1);
+        $event      = new ControllerEvent($kernel, $controller, $request, HttpKernelInterface::MAIN_REQUEST);
 
         $lock     = $this->createMock(LockInterface::class);
         $executor = $this->createMock(LockExecutor::class);
@@ -130,7 +127,7 @@ final class ControllerListenerTest extends TestCase
             )
         ;
 
-        $listener = new ControllerListener($executor, $naming, new AnnotationReader());
+        $listener = new ControllerListener($executor, $naming);
         $listener->onKernelController($event);
 
 
