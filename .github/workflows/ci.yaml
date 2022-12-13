@@ -21,9 +21,10 @@ jobs:
                     - "8.2"
                 dependencies:
                     - "highest"
-                include:
-                    - php-version: "8.1"
-                      dependencies: "lowest"
+                    - "lowest"
+                symfony-require:
+                    - "5.4.*"
+                    - "^6.0"
 
         steps:
             - name: "Checkout"
@@ -35,13 +36,17 @@ jobs:
               uses: "shivammathur/setup-php@v2"
               with:
                   php-version: "${{ matrix.php-version }}"
-                  coverage: "xdebug"
+                  coverage: "pcov"
                   ini-values: "zend.assertions=1"
+                  tools: "flex"
 
             - name: "Install dependencies with Composer"
               uses: "ramsey/composer-install@v1"
+              env:
+                  SYMFONY_REQUIRE: "${{ matrix.symfony-require }}"
               with:
                   dependency-versions: "${{ matrix.dependencies }}"
+                  composer-options: "${{ matrix.composer-options }}"
 
             - name: "Run PHPUnit"
-              run: "vendor/bin/phpunit"
+              run: "vendor/bin/phpunit --coverage-text"
