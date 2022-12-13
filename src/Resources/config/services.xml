@@ -16,6 +16,7 @@
                  class="IXarlie\MutexBundle\NamingStrategy\UserIsolationNamingStrategy"
                  decorates="ixarlie_mutex.naming_strategy.default">
             <argument type="service" id="ixarlie_mutex.naming_strategy.user_isolation.inner"/>
+            <argument type="service" id="security.token_storage" on-invalid="ignore"/>
         </service>
 
         <!-- locking strategies -->

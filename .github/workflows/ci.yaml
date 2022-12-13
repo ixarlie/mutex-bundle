@@ -15,13 +15,15 @@ jobs:
         runs-on: "ubuntu-20.04"
 
         strategy:
+            fail-fast: false
             matrix:
+                experimental: [ false ]
+                composer-options: [ "--prefer-stable" ]
                 php-version:
                     - "8.1"
                     - "8.2"
                 dependencies:
                     - "highest"
-                    - "lowest"
                 symfony-require:
                     - "5.4.*"
                     - "^6.0"
@@ -36,7 +38,7 @@ jobs:
               uses: "shivammathur/setup-php@v2"
               with:
                   php-version: "${{ matrix.php-version }}"
-                  coverage: "pcov"
+                  coverage: "xdebug"
                   ini-values: "zend.assertions=1"
                   tools: "flex"
 
@@ -49,4 +51,4 @@ jobs:
                   composer-options: "${{ matrix.composer-options }}"
 
             - name: "Run PHPUnit"
-              run: "vendor/bin/phpunit --coverage-text"
+              run: "vendor/bin/phpunit"
