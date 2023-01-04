@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2022-12-14
+### Added
+- Symfony 6.x support
+
+### Changed
+- **Breaking:** `MutexRequest` is now a PHP Attribute and does no longer support Doctrine annotations.
+
+### Removed
+- **Breaking:** Drop PHP 7.4 and 8.0 support.
+- **Breaking:** Drop Symfony 4.4 support.
+- Drop `doctrine/annotations` dependency.
+
 ## [2.0.0] - 2021-10-12
 ### Added
 - `IXarlie\MutexBundle\Exception\MutexException` as a new `HttpException` with `423` http status code

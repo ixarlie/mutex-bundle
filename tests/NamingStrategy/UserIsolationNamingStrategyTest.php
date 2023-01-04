@@ -7,8 +7,9 @@ use IXarlie\MutexBundle\NamingStrategy\NamingStrategy;
 use IXarlie\MutexBundle\NamingStrategy\UserIsolationNamingStrategy;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\User\InMemoryUser;
 
 /**
  * Class UserIsolationNamingStrategyTest.
@@ -27,7 +28,7 @@ final class UserIsolationNamingStrategyTest extends TestCase
     public function testUserIsolationNotEnabled(): void
     {
         $request  = Request::create('/test');
-        $config   = new MutexRequest(['name' => '']);
+        $config   = new MutexRequest(service: 'test', strategy: 'test', name: '');
         $inner    = $this->createMock(NamingStrategy::class);
         $strategy = new UserIsolationNamingStrategy($inner);
 
@@ -50,7 +51,7 @@ final class UserIsolationNamingStrategyTest extends TestCase
         $this->expectExceptionMessage('Cannot use user isolation with missing "security.token_storage".');
 
         $request  = Request::create('/test');
-        $config   = new MutexRequest(['name' => '', 'userIsolation' => true]);
+        $config   = new MutexRequest(service: 'test', strategy: 'test', name: '', userIsolation: true);
         $inner    = $this->createMock(NamingStrategy::class);
         $strategy = new UserIsolationNamingStrategy($inner);
 
@@ -70,7 +71,7 @@ final class UserIsolationNamingStrategyTest extends TestCase
     public function testUserIsolationEnabled(): void
     {
         $request      = Request::create('/test');
-        $config       = new MutexRequest(['name' => '', 'userIsolation' => true]);
+        $config       = new MutexRequest(service: 'test', strategy: 'test', name: '', userIsolation: true);
         $inner        = $this->createMock(NamingStrategy::class);
         $tokenStorage = new TokenStorage();
         $strategy     = new UserIsolationNamingStrategy($inner, $tokenStorage);
@@ -83,11 +84,11 @@ final class UserIsolationNamingStrategyTest extends TestCase
             ->willReturn('test_name')
         ;
 
-        $token = new AnonymousToken('secret', 'anon');
+        $token = new UsernamePasswordToken(new InMemoryUser('user', 'password'), 'main', []);
         $tokenStorage->setToken($token);
 
         $name = $strategy->createName($config, $request);
 
-        self::assertSame('test_name' . md5($token->serialize()), $name);
+        self::assertSame('test_name' . md5(serialize($token)), $name);
     }
 }

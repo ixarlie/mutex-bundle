@@ -32,9 +32,6 @@ class IXarlieMutexExtension extends Extension
         $this->registerFactories($container, $config);
     }
 
-    /**
-     * @param ContainerBuilder $container
-     */
     private function registerStrategies(ContainerBuilder $container): void
     {
         $definition = $container->getDefinition('ixarlie_mutex.lock_executor');
@@ -43,10 +40,6 @@ class IXarlieMutexExtension extends Extension
         }
     }
 
-    /**
-     * @param ContainerBuilder $container
-     * @param array            $config
-     */
     private function registerFactories(ContainerBuilder $container, array $config): void
     {
         $definition = $container->getDefinition('ixarlie_mutex.lock_executor');

@@ -15,18 +15,18 @@ jobs:
         runs-on: "ubuntu-20.04"
 
         strategy:
+            fail-fast: false
             matrix:
+                experimental: [ false ]
+                composer-options: [ "--prefer-stable" ]
                 php-version:
-                    - "7.1"
-                    - "7.2"
-                    - "7.3"
-                    - "7.4"
-                    - "8.0"
+                    - "8.1"
+                    - "8.2"
                 dependencies:
                     - "highest"
-                include:
-                    - php-version: "7.1"
-                      dependencies: "lowest"
+                symfony-require:
+                    - "5.4.*"
+                    - "^6.0"
 
         steps:
             - name: "Checkout"
@@ -40,11 +40,15 @@ jobs:
                   php-version: "${{ matrix.php-version }}"
                   coverage: "xdebug"
                   ini-values: "zend.assertions=1"
+                  tools: "flex"
 
             - name: "Install dependencies with Composer"
               uses: "ramsey/composer-install@v1"
+              env:
+                  SYMFONY_REQUIRE: "${{ matrix.symfony-require }}"
               with:
                   dependency-versions: "${{ matrix.dependencies }}"
+                  composer-options: "${{ matrix.composer-options }}"
 
             - name: "Run PHPUnit"
               run: "vendor/bin/phpunit"

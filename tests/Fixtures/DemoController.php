@@ -12,42 +12,26 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class DemoController
 {
-    /**
-     * @MutexRequest(strategy="queue")
-     *
-     * @return Response
-     */
+    #[MutexRequest(service: 'lock.default.factory', strategy: 'queue')]
     public function queue(): Response
     {
         return new Response('It works!');
     }
 
-    /**
-     * @MutexRequest(strategy="block")
-     *
-     * @return Response
-     */
+    #[MutexRequest(service: 'lock.default.factory', strategy: 'block')]
     public function block(): Response
     {
         return new Response('It works!');
     }
 
-    /**
-     * @MutexRequest(strategy="force")
-     *
-     * @return Response
-     */
+    #[MutexRequest(service: 'lock.default.factory', strategy: 'force')]
     public function force(): Response
     {
         return new Response('It works!');
     }
 
-    /**
-     * @MutexRequest("lock.default.factory", strategy="force")
-     * @MutexRequest("lock.default.factory", strategy="force")
-     *
-     * @return Response
-     */
+    #[MutexRequest(service: 'lock.default.factory', strategy: 'force')]
+    #[MutexRequest(service: 'lock.default.factory', strategy: 'force')]
     public function double(): Response
     {
         return new Response('It works!');

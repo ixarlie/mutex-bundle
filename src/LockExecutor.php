@@ -19,25 +19,18 @@ class LockExecutor
     /**
      * @var LockFactory[]
      */
-    private $factories = [];
+    private array $factories = [];
 
     /**
      * @var LockingStrategy[]
      */
-    private $strategies = [];
+    private array $strategies = [];
 
-    /**
-     * @param string      $id
-     * @param LockFactory $factory
-     */
     public function addLockFactory(string $id, LockFactory $factory): void
     {
         $this->factories[$id] = $factory;
     }
 
-    /**
-     * @param LockingStrategy $strategy
-     */
     public function addLockStrategy(LockingStrategy $strategy): void
     {
         $name = $strategy->getName();
@@ -49,9 +42,6 @@ class LockExecutor
     }
 
     /**
-     * @param MutexRequest $config
-     *
-     * @return LockInterface
      * @throws MutexException
      */
     public function execute(MutexRequest $config): LockInterface

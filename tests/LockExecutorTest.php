@@ -21,7 +21,7 @@ final class LockExecutorTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Configuration must have a name.');
 
-        $config = new MutexRequest([]);
+        $config = new MutexRequest(service: 'foo', strategy: 'block');
 
         self::assertEmpty($config->name);
 
@@ -34,7 +34,7 @@ final class LockExecutorTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Cannot find the "test" service.');
 
-        $config = new MutexRequest(['name' => 'foo', 'service' => 'test']);
+        $config = new MutexRequest(service: 'test', strategy: 'block', name: 'foo');
 
         $executor = new LockExecutor();
         $executor->execute($config);
@@ -45,7 +45,7 @@ final class LockExecutorTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Cannot find the "test" strategy.');
 
-        $config = new MutexRequest(['name' => 'foo', 'service' => 'lock.default.factory', 'strategy' => 'test']);
+        $config = new MutexRequest(service: 'lock.default.factory', strategy: 'test', name: 'foo');
 
         $executor = new LockExecutor();
         $executor->addLockFactory('lock.default.factory', $this->createMock(LockFactory::class));
@@ -55,7 +55,7 @@ final class LockExecutorTest extends TestCase
 
     public function testExecute(): void
     {
-        $config   = new MutexRequest(['name' => 'foo', 'service' => 'lock.default.factory', 'strategy' => 'block']);
+        $config   = new MutexRequest(service: 'lock.default.factory', strategy: 'block', name: 'foo');
         $factory  = $this->createMock(LockFactory::class);
         $lock     = $this->createMock(LockInterface::class);
         $strategy = $this->createMock(LockingStrategy::class);
@@ -91,7 +91,7 @@ final class LockExecutorTest extends TestCase
     {
         $this->expectException(MutexException::class);
 
-        $config   = new MutexRequest(['name' => 'foo', 'service' => 'lock.default.factory', 'strategy' => 'block']);
+        $config   = new MutexRequest(service: 'lock.default.factory', strategy: 'block', name: 'foo');
         $factory  = $this->createMock(LockFactory::class);
         $lock     = $this->createMock(LockInterface::class);
         $strategy = $this->createMock(LockingStrategy::class);

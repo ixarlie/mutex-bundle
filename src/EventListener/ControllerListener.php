@@ -2,7 +2,6 @@
 
 namespace IXarlie\MutexBundle\EventListener;
 
-use Doctrine\Common\Annotations\Reader;
 use IXarlie\MutexBundle\LockExecutor;
 use IXarlie\MutexBundle\MutexRequest;
 use IXarlie\MutexBundle\NamingStrategy\NamingStrategy;
@@ -17,31 +16,10 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 class ControllerListener implements EventSubscriberInterface
 {
-    /**
-     * @var LockExecutor
-     */
-    private $executor;
-
-    /**
-     * @var NamingStrategy
-     */
-    private $namingStrategy;
-
-    /**
-     * @var Reader
-     */
-    private $reader;
-
-    /**
-     * @param LockExecutor   $executor
-     * @param NamingStrategy $namingStrategy
-     * @param Reader         $reader
-     */
-    public function __construct(LockExecutor $executor, NamingStrategy $namingStrategy, Reader $reader)
-    {
-        $this->executor       = $executor;
-        $this->namingStrategy = $namingStrategy;
-        $this->reader         = $reader;
+    public function __construct(
+        private readonly LockExecutor   $executor,
+        private readonly NamingStrategy $namingStrategy,
+    ) {
     }
 
     /**
@@ -55,86 +33,73 @@ class ControllerListener implements EventSubscriberInterface
     }
 
     /**
-     * @param ControllerEvent $event
-     *
      * @throws \ReflectionException
      */
     public function onKernelController(ControllerEvent $event): void
     {
-        if (false === $this->isMainRequest($event)) {
+        if (false === $event->isMainRequest()) {
             return;
+        }
+
+        $attributes = $this->getAttributes($event)[MutexRequest::class] ?? null;
+        if (empty($attributes)) {
+            return;
+        }
+
+        $locks = [];
+
+        foreach ($attributes as $attribute) {
+            // Use a hash in order that any kind of locker can work properly.
+            $name            = $this->namingStrategy->createName($attribute, $event->getRequest());
+            $attribute->name = 'ixarlie_mutex_' . md5($name);
+            $locks[]         = $this->executor->execute($attribute);
+        }
+
+        $event->getRequest()->attributes->set(MutexRequest::ATTRIBUTE, $locks);
+    }
+
+    /**
+     * Backport for versions prior to 6.2
+     *
+     * @param ControllerEvent $event
+     *
+     * @return array
+     * @throws \ReflectionException
+     */
+    private function getAttributes(ControllerEvent $event): array
+    {
+        if (method_exists($event, 'getAttributes')) {
+            return $event->getAttributes();
         }
 
         $controller = $event->getController();
 
-        if (!is_array($controller) && method_exists($controller, '__invoke')) {
-            $controller = [$controller, '__invoke'];
+        if (\is_array($controller) && method_exists(...$controller)) {
+            $controllerReflector = new \ReflectionMethod(...$controller);
+        } else if (\is_string($controller) && str_contains($controller, '::')) {
+            $controllerReflector = new \ReflectionMethod($controller);
+        } else {
+            $controllerReflector = new \ReflectionFunction($controller(...));
         }
 
-        if (!is_array($controller)) {
-            return;
+        if (\is_array($controller) && method_exists(...$controller)) {
+            $class = new \ReflectionClass($controller[0]);
+        } else if (\is_string($controller) && false !== $i = strpos($controller, '::')) {
+            $class = new \ReflectionClass(substr($controller, 0, $i));
+        } else {
+            $class = str_contains(
+                $controllerReflector->name,
+                '{closure}'
+            ) ? null : $controllerReflector->getClosureScopeClass();
         }
+        $attributes = [];
 
-        $className      = self::getRealClass(\get_class($controller[0]));
-        $object         = new \ReflectionClass($className);
-        $method         = $object->getMethod($controller[1]);
-        $configurations = $this->getConfigurations($this->reader->getMethodAnnotations($method));
-
-        $locks = [];
-
-        foreach ($configurations as $configuration) {
-            // Use a hash in order that any kind of locker can work properly.
-            $name                = $this->namingStrategy->createName($configuration, $event->getRequest());
-            $configuration->name = 'ixarlie_mutex_' . md5($name);
-            $locks[]             = $this->executor->execute($configuration);
-        }
-
-        $event->getRequest()->attributes->set('_ixarlie_mutex_locks', $locks);
-    }
-
-    /**
-     * @param array $annotations
-     *
-     * @return MutexRequest[]
-     */
-    private function getConfigurations(array $annotations): array
-    {
-        $result = [];
-
-        foreach ($annotations as $configuration) {
-            if ($configuration instanceof MutexRequest) {
-                $result[] = $configuration;
+        foreach (array_merge($class?->getAttributes() ?? [], $controllerReflector->getAttributes()) as $attribute) {
+            if (class_exists($attribute->getName())) {
+                $attributes[$attribute->getName()][] = $attribute->newInstance();
             }
         }
 
-        return $result;
-    }
-
-    /**
-     * @param ControllerEvent $event
-     *
-     * @return bool
-     */
-    private function isMainRequest(ControllerEvent $event): bool
-    {
-        return method_exists($event, 'isMainRequest') ? $event->isMainRequest() : $event->isMasterRequest();
-    }
-
-    /**
-     * @param string $class
-     *
-     * @return string
-     */
-    private static function getRealClass(string $class): string
-    {
-        if (class_exists(Proxy::class)) {
-            if (false === $pos = strrpos($class, '\\' . Proxy::MARKER . '\\')) {
-                return $class;
-            }
-
-            return substr($class, $pos + Proxy::MARKER_LENGTH + 2);
-        }
-
-        return $class;
+        return $attributes;
     }
 }

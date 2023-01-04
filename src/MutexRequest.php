@@ -2,60 +2,27 @@
 
 namespace IXarlie\MutexBundle;
 
-use Doctrine\Common\Annotations\Annotation;
-use Doctrine\Common\Annotations\Annotation\Required;
+use Symfony\Contracts\Service\Attribute\Required;
 
 /**
  * Class MutexRequest
  *
  * @author Carlos Dominguez <ixarlie@gmail.com>
- *
- * @Annotation
- * @Target({"METHOD"})
  */
-final class MutexRequest extends Annotation
+#[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
+final class MutexRequest
 {
-    /**
-     * The Symfony locker service id.
-     *
-     * @var string
-     * @Required
-     */
-    public $service;
+    public const ATTRIBUTE = '_ixarlie_mutex_locks';
 
-    /**
-     * One of the registered locking strategy.
-     *
-     * @var string
-     * @Required
-     */
-    public $strategy;
-
-    /**
-     * Lock name. Otherwise, the naming strategy will generate one.
-     *
-     * @var string
-     */
-    public $name;
-
-    /**
-     * Some lockers implement a time-to-live option. This option is ignored for non compatible lockers.
-     *
-     * @var float
-     */
-    public $ttl = 300.0;
-
-    /**
-     * HTTP message if the lock throws an exception.
-     *
-     * @var string
-     */
-    public $message;
-
-    /**
-     * Append user information to the lock name to have isolated locks.
-     *
-     * @var bool
-     */
-    public $userIsolation = false;
+    public function __construct(
+        #[Required]
+        public readonly string  $service,
+        #[Required]
+        public readonly string  $strategy,
+        public ?string          $name = null,
+        public readonly ?string $message = null,
+        public readonly ?float  $ttl = 300.0,
+        public readonly bool    $userIsolation = false,
+    ) {
+    }
 }

@@ -9,7 +9,6 @@
             <tag name="kernel.event_subscriber"/>
             <argument type="service" id="ixarlie_mutex.lock_executor"/>
             <argument type="service" id="ixarlie_mutex.naming_strategy"/>
-            <argument type="service" id="annotation_reader"/>
         </service>
 
         <service id="ixarlie_mutex.terminate.listener" class="IXarlie\MutexBundle\EventListener\TerminateListener">
