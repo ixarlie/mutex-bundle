@@ -2,6 +2,7 @@
 
 namespace IXarlie\MutexBundle\EventListener;
 
+use IXarlie\MutexBundle\MutexRequest;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -14,6 +15,9 @@ use Symfony\Component\Lock\LockInterface;
  */
 class TerminateListener implements EventSubscriberInterface
 {
+    /**
+     * @inheritDoc
+     */
     public static function getSubscribedEvents()
     {
         return [
@@ -24,13 +28,13 @@ class TerminateListener implements EventSubscriberInterface
     public function onKernelTerminate(TerminateEvent $event): void
     {
         $request = $event->getRequest();
-        $locks   = $request->attributes->get('_ixarlie_mutex_locks', []);
+        $locks   = $request->attributes->get(MutexRequest::ATTRIBUTE, []);
 
         /** @var LockInterface $lock */
         foreach ($locks as $lock) {
             $lock->release();
         }
 
-        $request->attributes->remove('_ixarlie_mutex_locks');
+        $request->attributes->remove(MutexRequest::ATTRIBUTE);
     }
 }

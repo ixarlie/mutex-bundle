@@ -12,11 +12,5 @@ use Symfony\Component\HttpFoundation\Request;
  */
 interface NamingStrategy
 {
-    /**
-     * @param MutexRequest $config
-     * @param Request      $request
-     *
-     * @return string
-     */
     public function createName(MutexRequest $config, Request $request): string;
 }

@@ -13,9 +13,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class DefaultNamingStrategy implements NamingStrategy
 {
-    /**
-     * @inheritDoc
-     */
     public function createName(MutexRequest $config, Request $request): string
     {
         if (null !== $config->name && '' !== $config->name) {

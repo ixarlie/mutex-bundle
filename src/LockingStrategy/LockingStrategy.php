@@ -13,14 +13,12 @@ use Symfony\Component\Lock\LockInterface;
 interface LockingStrategy
 {
     /**
-     * @param LockInterface $lock
-     *
      * @throws ExceptionInterface
      */
     public function execute(LockInterface $lock): void;
 
     /**
-     * @return string
+     * Returns the name for the strategy.
      */
     public function getName(): string;
 }

@@ -33,9 +33,6 @@ class ControllerListener implements EventSubscriberInterface
     }
 
     /**
-     * @param ControllerEvent $event
-     *
-     * @return void
      * @throws \ReflectionException
      */
     public function onKernelController(ControllerEvent $event): void
@@ -58,7 +55,7 @@ class ControllerListener implements EventSubscriberInterface
             $locks[]         = $this->executor->execute($attribute);
         }
 
-        $event->getRequest()->attributes->set('_ixarlie_mutex_locks', $locks);
+        $event->getRequest()->attributes->set(MutexRequest::ATTRIBUTE, $locks);
     }
 
     /**

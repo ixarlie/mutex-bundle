@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Symfony 6.x support
 
 ### Changed
-- **Breaking:** `MutexRequest` is now a Attribute and does no longer support Doctrine annotations.
+- **Breaking:** `MutexRequest` is now a PHP Attribute and does no longer support Doctrine annotations.
 
 ### Removed
 - **Breaking:** Drop PHP 7.4 and 8.0 support.

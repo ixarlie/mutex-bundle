@@ -3,7 +3,7 @@ This document details the changes that you need to make to your code when upgrad
 Upgrading from 2.0 to 2.1
 =========================
 
-- Attributes
+- PHP Attributes
 
   The annotation based on Doctrine is no longer supported and it was replaced with a native PHP attribute.
 

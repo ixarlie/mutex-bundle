@@ -14,10 +14,6 @@ use Symfony\Component\Lock\Exception\ExceptionInterface;
  */
 class MutexException extends HttpException
 {
-    /**
-     * @param MutexRequest            $config
-     * @param ExceptionInterface|null $e
-     */
     public function __construct(
         public readonly MutexRequest $config,
         ExceptionInterface $e = null

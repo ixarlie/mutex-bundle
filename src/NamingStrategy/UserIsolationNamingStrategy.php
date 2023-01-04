@@ -14,10 +14,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  */
 class UserIsolationNamingStrategy implements NamingStrategy
 {
-    /**
-     * @param NamingStrategy             $inner
-     * @param TokenStorageInterface|null $tokenStorage
-     */
     public function __construct(
         private readonly NamingStrategy $inner,
         private readonly ?TokenStorageInterface $tokenStorage = null
@@ -25,7 +21,6 @@ class UserIsolationNamingStrategy implements NamingStrategy
     }
 
     /**
-     * @inheritDoc
      * @throws \Exception
      */
     public function createName(MutexRequest $config, Request $request): string
@@ -40,7 +35,6 @@ class UserIsolationNamingStrategy implements NamingStrategy
     }
 
     /**
-     * @return string
      * @throws \Exception
      */
     private function getToken(): string

@@ -12,6 +12,8 @@ use Symfony\Contracts\Service\Attribute\Required;
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 final class MutexRequest
 {
+    public const ATTRIBUTE = '_ixarlie_mutex_locks';
+
     public function __construct(
         #[Required]
         public readonly string $service,
