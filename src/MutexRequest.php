@@ -16,13 +16,13 @@ final class MutexRequest
 
     public function __construct(
         #[Required]
-        public readonly string $service,
+        public readonly string  $service,
         #[Required]
-        public readonly string $strategy,
-        public ?string $name = null,
+        public readonly string  $strategy,
+        public ?string          $name = null,
         public readonly ?string $message = null,
-        public readonly ?float $ttl = 300.0,
-        public readonly bool $userIsolation = false
+        public readonly ?float  $ttl = 300.0,
+        public readonly bool    $userIsolation = false,
     ) {
     }
 }

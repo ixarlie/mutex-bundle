@@ -17,8 +17,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 class ControllerListener implements EventSubscriberInterface
 {
     public function __construct(
-        private readonly LockExecutor $executor,
-        private readonly NamingStrategy $namingStrategy
+        private readonly LockExecutor   $executor,
+        private readonly NamingStrategy $namingStrategy,
     ) {
     }
 
@@ -76,7 +76,7 @@ class ControllerListener implements EventSubscriberInterface
 
         if (\is_array($controller) && method_exists(...$controller)) {
             $controllerReflector = new \ReflectionMethod(...$controller);
-        } elseif (\is_string($controller) && str_contains($controller, '::')) {
+        } else if (\is_string($controller) && str_contains($controller, '::')) {
             $controllerReflector = new \ReflectionMethod($controller);
         } else {
             $controllerReflector = new \ReflectionFunction($controller(...));
@@ -84,10 +84,13 @@ class ControllerListener implements EventSubscriberInterface
 
         if (\is_array($controller) && method_exists(...$controller)) {
             $class = new \ReflectionClass($controller[0]);
-        } elseif (\is_string($controller) && false !== $i = strpos($controller, '::')) {
+        } else if (\is_string($controller) && false !== $i = strpos($controller, '::')) {
             $class = new \ReflectionClass(substr($controller, 0, $i));
         } else {
-            $class = str_contains($controllerReflector->name, '{closure}') ? null : $controllerReflector->getClosureScopeClass();
+            $class = str_contains(
+                $controllerReflector->name,
+                '{closure}'
+            ) ? null : $controllerReflector->getClosureScopeClass();
         }
         $attributes = [];
 

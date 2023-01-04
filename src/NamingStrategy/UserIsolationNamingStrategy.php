@@ -15,8 +15,8 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 class UserIsolationNamingStrategy implements NamingStrategy
 {
     public function __construct(
-        private readonly NamingStrategy $inner,
-        private readonly ?TokenStorageInterface $tokenStorage = null
+        private readonly NamingStrategy         $inner,
+        private readonly ?TokenStorageInterface $tokenStorage = null,
     ) {
     }
 
