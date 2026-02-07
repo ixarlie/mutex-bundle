@@ -9,16 +9,14 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Lock\LockInterface;
 
 /**
- * Class TerminateListener.
- *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class TerminateListener implements EventSubscriberInterface
+final class TerminateListener implements EventSubscriberInterface
 {
     /**
      * @inheritDoc
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::TERMINATE => 'onKernelTerminate',

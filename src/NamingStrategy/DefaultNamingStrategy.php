@@ -6,12 +6,9 @@ use IXarlie\MutexBundle\MutexRequest;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Class DefaultNamingStrategy.
- *
  * @author Carlos Dominguez <ixarlie@gmail.com>
- * @final
  */
-class DefaultNamingStrategy implements NamingStrategy
+final class DefaultNamingStrategy implements NamingStrategy
 {
     public function createName(MutexRequest $config, Request $request): string
     {

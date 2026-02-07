@@ -1,0 +1,14 @@
+services:
+    ixarlie_mutex.controller.listener:
+        class: IXarlie\MutexBundle\EventListener\ControllerListener
+        arguments:
+            - '@ixarlie_mutex.lock_executor'
+            - '@ixarlie_mutex.naming_strategy'
+        tags:
+            - { name: kernel.event_subscriber }
+
+
+    ixarlie_mutex.terminate.listener:
+        class: IXarlie\MutexBundle\EventListener\TerminateListener
+        tags:
+            - { name: kernel.event_subscriber }

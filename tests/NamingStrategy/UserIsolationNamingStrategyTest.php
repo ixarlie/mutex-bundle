@@ -5,26 +5,16 @@ namespace IXarlie\MutexBundle\Tests\NamingStrategy;
 use IXarlie\MutexBundle\MutexRequest;
 use IXarlie\MutexBundle\NamingStrategy\NamingStrategy;
 use IXarlie\MutexBundle\NamingStrategy\UserIsolationNamingStrategy;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\InMemoryUser;
 
-/**
- * Class UserIsolationNamingStrategyTest.
- */
+#[CoversClass(UserIsolationNamingStrategy::class)]
 final class UserIsolationNamingStrategyTest extends TestCase
 {
-    public function testInstance(): void
-    {
-        $strategy = new UserIsolationNamingStrategy(
-            $this->createMock(NamingStrategy::class)
-        );
-
-        self::assertInstanceOf(NamingStrategy::class, $strategy);
-    }
-
     public function testUserIsolationNotEnabled(): void
     {
         $request  = Request::create('/test');

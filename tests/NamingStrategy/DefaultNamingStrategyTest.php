@@ -6,12 +6,11 @@ use IXarlie\MutexBundle\MutexRequest;
 use IXarlie\MutexBundle\NamingStrategy\DefaultNamingStrategy;
 use IXarlie\MutexBundle\NamingStrategy\NamingStrategy;
 use IXarlie\MutexBundle\Tests\Fixtures\DemoController;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
-/**
- * Class DefaultNamingStrategyTest.
- */
+#[CoversClass(DefaultNamingStrategy::class)]
 final class DefaultNamingStrategyTest extends TestCase
 {
     public function testInstance(): void

@@ -10,11 +10,9 @@ use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * Class ControllerListener.
- *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class ControllerListener implements EventSubscriberInterface
+final class ControllerListener implements EventSubscriberInterface
 {
     public function __construct(
         private readonly LockExecutor   $executor,
@@ -25,7 +23,7 @@ class ControllerListener implements EventSubscriberInterface
     /**
      * @inheritDoc
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::CONTROLLER => 'onKernelController',
@@ -41,13 +39,14 @@ class ControllerListener implements EventSubscriberInterface
             return;
         }
 
-        $attributes = $this->getAttributes($event)[MutexRequest::class] ?? null;
-        if (empty($attributes)) {
+        $attributes = $event->getAttributes()[MutexRequest::class] ?? null;
+        if (!is_array($attributes) || 0 === count($attributes)) {
             return;
         }
 
         $locks = [];
 
+        /** @var MutexRequest $attribute */
         foreach ($attributes as $attribute) {
             // Use a hash in order that any kind of locker can work properly.
             $name            = $this->namingStrategy->createName($attribute, $event->getRequest());
@@ -56,50 +55,5 @@ class ControllerListener implements EventSubscriberInterface
         }
 
         $event->getRequest()->attributes->set(MutexRequest::ATTRIBUTE, $locks);
-    }
-
-    /**
-     * Backport for versions prior to 6.2
-     *
-     * @param ControllerEvent $event
-     *
-     * @return array
-     * @throws \ReflectionException
-     */
-    private function getAttributes(ControllerEvent $event): array
-    {
-        if (method_exists($event, 'getAttributes')) {
-            return $event->getAttributes();
-        }
-
-        $controller = $event->getController();
-
-        if (\is_array($controller) && method_exists(...$controller)) {
-            $controllerReflector = new \ReflectionMethod(...$controller);
-        } else if (\is_string($controller) && str_contains($controller, '::')) {
-            $controllerReflector = new \ReflectionMethod($controller);
-        } else {
-            $controllerReflector = new \ReflectionFunction($controller(...));
-        }
-
-        if (\is_array($controller) && method_exists(...$controller)) {
-            $class = new \ReflectionClass($controller[0]);
-        } else if (\is_string($controller) && false !== $i = strpos($controller, '::')) {
-            $class = new \ReflectionClass(substr($controller, 0, $i));
-        } else {
-            $class = str_contains(
-                $controllerReflector->name,
-                '{closure}'
-            ) ? null : $controllerReflector->getClosureScopeClass();
-        }
-        $attributes = [];
-
-        foreach (array_merge($class?->getAttributes() ?? [], $controllerReflector->getAttributes()) as $attribute) {
-            if (class_exists($attribute->getName())) {
-                $attributes[$attribute->getName()][] = $attribute->newInstance();
-            }
-        }
-
-        return $attributes;
     }
 }

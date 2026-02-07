@@ -3,27 +3,13 @@
 namespace IXarlie\MutexBundle\Tests\LockingStrategy;
 
 use IXarlie\MutexBundle\LockingStrategy\ForceLockingStrategy;
-use IXarlie\MutexBundle\LockingStrategy\LockingStrategy;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Lock\LockInterface;
 
-/**
- * Class ForceLockingStrategyTest.
- */
+#[CoversClass(ForceLockingStrategy::class)]
 final class ForceLockingStrategyTest extends TestCase
 {
-    public function testInstance(): void
-    {
-        self::assertInstanceOf(LockingStrategy::class, new ForceLockingStrategy());
-    }
-
-    public function testGetName(): void
-    {
-        $strategy = new ForceLockingStrategy();
-
-        self::assertSame('force', $strategy->getName());
-    }
-
     public function testExecuteIsAcquired(): void
     {
         $strategy = new ForceLockingStrategy();
@@ -36,7 +22,16 @@ final class ForceLockingStrategyTest extends TestCase
         $lock
             ->expects(self::exactly(2))
             ->method('acquire')
-            ->withConsecutive([false], [false])
+            ->with(
+                self::callback(static function($arg) {
+                    static $i = 0;
+
+                    return match (++$i) {
+                        1, 2    => false === $arg,
+                        default => false,
+                    };
+                })
+            )
             ->willReturnOnConsecutiveCalls(false, true)
         ;
 

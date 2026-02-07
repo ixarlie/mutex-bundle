@@ -2,28 +2,14 @@
 
 namespace IXarlie\MutexBundle\Tests\LockingStrategy;
 
-use IXarlie\MutexBundle\LockingStrategy\LockingStrategy;
 use IXarlie\MutexBundle\LockingStrategy\QueueLockingStrategy;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Lock\LockInterface;
 
-/**
- * Class QueueLockingStrategyTest.
- */
+#[CoversClass(QueueLockingStrategy::class)]
 final class QueueLockingStrategyTest extends TestCase
 {
-    public function testInstance(): void
-    {
-        self::assertInstanceOf(LockingStrategy::class, new QueueLockingStrategy());
-    }
-
-    public function testGetName(): void
-    {
-        $strategy = new QueueLockingStrategy();
-
-        self::assertSame('queue', $strategy->getName());
-    }
-
     public function testExecuteIsAcquired(): void
     {
         $strategy = new QueueLockingStrategy();

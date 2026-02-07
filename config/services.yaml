@@ -1,0 +1,35 @@
+services:
+    ixarlie_mutex.lock_executor:
+        class: IXarlie\MutexBundle\LockExecutor
+        arguments:
+            - !tagged_iterator { tag: ixarlie_mutex.strategy, index_by: 'alias' }
+
+    # Naming strategies
+    ixarlie_mutex.naming_strategy:
+        alias: ixarlie_mutex.naming_strategy.default
+
+    ixarlie_mutex.naming_strategy.default:
+        class: IXarlie\MutexBundle\NamingStrategy\DefaultNamingStrategy
+
+    ixarlie_mutex.naming_strategy.user_isolation:
+        class: IXarlie\MutexBundle\NamingStrategy\UserIsolationNamingStrategy
+        decorates: ixarlie_mutex.naming_strategy.default
+        arguments:
+            - '@ixarlie_mutex.naming_strategy.user_isolation.inner'
+            - '@?security.token_storage'
+
+    # Locking strategies
+    ixarlie_mutex.lock_strategy.block:
+        class: IXarlie\MutexBundle\LockingStrategy\BlockLockingStrategy
+        tags:
+            - { name: 'ixarlie_mutex.strategy', alias: 'block' }
+
+    ixarlie_mutex.lock_strategy.queue:
+        class: IXarlie\MutexBundle\LockingStrategy\QueueLockingStrategy
+        tags:
+            - { name: 'ixarlie_mutex.strategy', alias: 'queue' }
+
+    ixarlie_mutex.lock_strategy.force:
+        class: IXarlie\MutexBundle\LockingStrategy\ForceLockingStrategy
+        tags:
+            - { name: 'ixarlie_mutex.strategy', alias: 'force' }

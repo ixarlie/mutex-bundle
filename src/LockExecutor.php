@@ -9,36 +9,33 @@ use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\LockInterface;
 
 /**
- * Class LockExecutor.
- *
  * @author Carlos Dominguez <ixarlie@gmail.com>
+ *
  * @final
  */
 class LockExecutor
 {
     /**
-     * @var LockFactory[]
+     * @var array<string, LockFactory>
      */
     private array $factories = [];
 
     /**
-     * @var LockingStrategy[]
+     * @var array<string, LockingStrategy>
      */
-    private array $strategies = [];
+    private array $strategies;
+
+    /**
+     * @param iterable<LockingStrategy> $strategies
+     */
+    public function __construct(iterable $strategies)
+    {
+        $this->strategies = $strategies instanceof \Traversable ? iterator_to_array($strategies) : $strategies;
+    }
 
     public function addLockFactory(string $id, LockFactory $factory): void
     {
         $this->factories[$id] = $factory;
-    }
-
-    public function addLockStrategy(LockingStrategy $strategy): void
-    {
-        $name = $strategy->getName();
-        if (array_key_exists($name, $this->strategies)) {
-            throw new \RuntimeException('Cannot register the same strategy more than once.');
-        }
-
-        $this->strategies[$name] = $strategy;
     }
 
     /**

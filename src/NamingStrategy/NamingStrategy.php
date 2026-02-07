@@ -6,8 +6,6 @@ use IXarlie\MutexBundle\MutexRequest;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Interface NamingStrategy
- *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
 interface NamingStrategy
