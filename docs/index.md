@@ -2,7 +2,7 @@
 
 This bundle integrates the `symfony/lock` capabilities into `kernel.controller` events.
 
-> [!INFO]
+> [!NOTE]
 > For previous releases with `arvenil/ninja-mutex` dependency follow
 > the [version 1](https://github.com/ixarlie/mutex-bundle/tree/v1.0.4)
 
