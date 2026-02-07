@@ -25,7 +25,7 @@ final class UserIsolationNamingStrategyTest extends TestCase
         self::assertFalse($config->userIsolation);
 
         $inner
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createName')
             ->willReturn('test_name')
         ;
@@ -48,7 +48,7 @@ final class UserIsolationNamingStrategyTest extends TestCase
         self::assertTrue($config->userIsolation);
 
         $inner
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createName')
             ->willReturn('test_name')
         ;
@@ -69,7 +69,7 @@ final class UserIsolationNamingStrategyTest extends TestCase
         self::assertTrue($config->userIsolation);
 
         $inner
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createName')
             ->willReturn('test_name')
         ;

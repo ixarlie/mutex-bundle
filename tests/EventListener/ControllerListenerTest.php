@@ -37,13 +37,13 @@ final class ControllerListenerTest extends TestCase
 
         $executor = $this->createMock(LockExecutor::class);
         $executor
-            ->expects($this->never())
+            ->expects(self::never())
             ->method('execute')
         ;
 
         $naming = $this->createMock(NamingStrategy::class);
         $naming
-            ->expects($this->never())
+            ->expects(self::never())
             ->method('createName')
         ;
 
@@ -63,7 +63,7 @@ final class ControllerListenerTest extends TestCase
         $lock     = self::createStub(LockInterface::class);
         $executor = $this->createMock(LockExecutor::class);
         $executor
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('execute')
             ->with(self::isInstanceOf(MutexRequest::class))
             ->willReturn($lock)
@@ -71,7 +71,7 @@ final class ControllerListenerTest extends TestCase
 
         $naming = $this->createMock(NamingStrategy::class);
         $naming
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createName')
             ->with(self::isInstanceOf(MutexRequest::class), $request)
             ->willReturn('lock_name')
@@ -93,7 +93,7 @@ final class ControllerListenerTest extends TestCase
         $lock     = self::createStub(LockInterface::class);
         $executor = $this->createMock(LockExecutor::class);
         $executor
-            ->expects($this->exactly(2))
+            ->expects(self::exactly(2))
             ->method('execute')
             ->with(self::isInstanceOf(MutexRequest::class))
             ->willReturn($lock)
@@ -101,7 +101,7 @@ final class ControllerListenerTest extends TestCase
 
         $naming = $this->createMock(NamingStrategy::class);
         $naming
-            ->expects($this->exactly(2))
+            ->expects(self::exactly(2))
             ->method('createName')
             ->with(
                 self::callback(static function($arg) {

@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Lock\Exception\LockAcquiringException;
 use Symfony\Component\Lock\LockFactory;
-use Symfony\Component\Lock\LockInterface;
+use Symfony\Component\Lock\SharedLockInterface;
 
 #[CoversClass(LockExecutor::class)]
 final class LockExecutorTest extends TestCase
@@ -56,17 +56,17 @@ final class LockExecutorTest extends TestCase
     {
         $config   = new MutexRequest(service: 'lock.default.factory', strategy: 'block', name: 'foo');
         $factory  = $this->createMock(LockFactory::class);
-        $lock     = self::createStub(LockInterface::class);
+        $lock     = self::createStub(SharedLockInterface::class);
         $strategy = $this->createMock(LockingStrategy::class);
 
         $factory
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createLock')
             ->with('foo', 300.0, true)
             ->willReturn($lock)
         ;
         $strategy
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('execute')
             ->with($lock)
         ;
@@ -85,17 +85,17 @@ final class LockExecutorTest extends TestCase
 
         $config   = new MutexRequest(service: 'lock.default.factory', strategy: 'block', name: 'foo');
         $factory  = $this->createMock(LockFactory::class);
-        $lock     = self::createStub(LockInterface::class);
+        $lock     = self::createStub(SharedLockInterface::class);
         $strategy = $this->createMock(LockingStrategy::class);
 
         $factory
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createLock')
             ->with('foo', 300.0, true)
             ->willReturn($lock)
         ;
         $strategy
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('execute')
             ->with($lock)
             ->willThrowException(new LockAcquiringException())

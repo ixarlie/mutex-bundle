@@ -16,11 +16,11 @@ final class ForceLockingStrategyTest extends TestCase
         $lock     = $this->createMock(LockInterface::class);
 
         $lock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('release')
         ;
         $lock
-            ->expects($this->exactly(2))
+            ->expects(self::exactly(2))
             ->method('acquire')
             ->with(
                 self::callback(static function($arg) {
@@ -44,11 +44,11 @@ final class ForceLockingStrategyTest extends TestCase
         $lock     = $this->createMock(LockInterface::class);
 
         $lock
-            ->expects($this->never())
+            ->expects(self::never())
             ->method('release')
         ;
         $lock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('acquire')
             ->with(false)
             ->willReturn(true)

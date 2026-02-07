@@ -16,7 +16,7 @@ final class QueueLockingStrategyTest extends TestCase
         $lock     = $this->createMock(LockInterface::class);
 
         $lock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('acquire')
             ->with(true)
         ;
@@ -30,7 +30,7 @@ final class QueueLockingStrategyTest extends TestCase
         $lock     = $this->createMock(LockInterface::class);
 
         $lock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('acquire')
             ->with(true)
         ;

@@ -20,7 +20,7 @@ final class BlockLockingStrategyTest extends TestCase
         $lock     = $this->createMock(LockInterface::class);
 
         $lock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('acquire')
             ->willReturn(false)
         ;
@@ -34,7 +34,7 @@ final class BlockLockingStrategyTest extends TestCase
         $lock     = $this->createMock(LockInterface::class);
 
         $lock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('acquire')
             ->with(false)
             ->willReturn(true)

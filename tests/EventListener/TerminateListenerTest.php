@@ -38,11 +38,11 @@ final class TerminateListenerTest extends TestCase
         $lock2 = $this->createMock(LockInterface::class);
 
         $lock1
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('release')
         ;
         $lock2
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('release')
         ;
 
