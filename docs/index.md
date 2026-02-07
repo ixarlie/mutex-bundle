@@ -32,7 +32,10 @@ This bundle ships 3 different locking strategies:
   Read `Blocking` section in [Symfony Docs](https://symfony.com/doc/current/components/lock.html#blocking-locks)
 
 You can implement your own `LockingStrategy` classes. Use the tag `ixarlie_mutex.strategy` in your services to register
-them in the `LockExecutor` service. Don't forget to set a unique `alias`.
+them in the `LockExecutor` service and set a unique `alias`.
+
+> [!IMPORTANT]
+> Using one of the aliases already registered by this bundle will cause your implementation to be ignored.
 
 ```yaml
 services:
