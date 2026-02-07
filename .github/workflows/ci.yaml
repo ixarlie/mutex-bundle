@@ -8,8 +8,8 @@ on:
 
 jobs:
     phpunit:
-        name: "PHPUnit"
-        runs-on: "ubuntu-22.04"
+        name: PHPUnit
+        runs-on: ubuntu-latest
 
         strategy:
             fail-fast: false
@@ -30,26 +30,26 @@ jobs:
                       symfony-require: "7.4.*"
 
         steps:
-            -   name: "Checkout"
-                uses: "actions/checkout@v2"
+            -   name: Checkout
+                uses: actions/checkout@v6
                 with:
                     fetch-depth: 2
 
-            -   name: "Install PHP"
-                uses: "shivammathur/setup-php@v2"
+            -   name: Install PHP
+                uses: shivammathur/setup-php@v2
                 with:
                     php-version: "${{ matrix.php-version }}"
                     coverage: "xdebug"
                     ini-values: "zend.assertions=1"
-                    tools: "flex"
+                    tools: "composer:v2"
 
-            -   name: "Install dependencies with Composer"
-                uses: "ramsey/composer-install@v1"
+            -   name: Install dependencies with Composer
+                uses: ramsey/composer-install@v3
                 env:
                     SYMFONY_REQUIRE: "${{ matrix.symfony-require }}"
                 with:
                     dependency-versions: "${{ matrix.dependencies }}"
                     composer-options: "--prefer-stable"
 
-            -   name: "Run PHPUnit"
-                run: "vendor/bin/phpunit"
+            -   name: Run PHPUnit
+                run: vendor/bin/phpunit
