@@ -43,7 +43,7 @@ return [
 ### Step 3: Configure the Bundle
 
 ```yaml
-# config/packages/i_xarlie_mutex.yml
+# config/packages/i_xarlie_mutex.yaml
 i_xarlie_mutex:
     # Add the Symfony lock factories services id
     factories:
