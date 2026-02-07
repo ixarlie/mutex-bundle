@@ -3,28 +3,14 @@
 namespace IXarlie\MutexBundle\Tests\LockingStrategy;
 
 use IXarlie\MutexBundle\LockingStrategy\BlockLockingStrategy;
-use IXarlie\MutexBundle\LockingStrategy\LockingStrategy;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Lock\Exception\LockAcquiringException;
 use Symfony\Component\Lock\LockInterface;
 
-/**
- * Class BlockLockingStrategyTest.
- */
+#[CoversClass(BlockLockingStrategy::class)]
 final class BlockLockingStrategyTest extends TestCase
 {
-    public function testInstance(): void
-    {
-        self::assertInstanceOf(LockingStrategy::class, new BlockLockingStrategy());
-    }
-
-    public function testGetName(): void
-    {
-        $strategy = new BlockLockingStrategy();
-
-        self::assertSame('block', $strategy->getName());
-    }
-
     public function testExecuteIsAcquired(): void
     {
         $this->expectException(LockAcquiringException::class);
@@ -34,7 +20,7 @@ final class BlockLockingStrategyTest extends TestCase
         $lock     = $this->createMock(LockInterface::class);
 
         $lock
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('acquire')
             ->willReturn(false)
         ;
@@ -48,7 +34,7 @@ final class BlockLockingStrategyTest extends TestCase
         $lock     = $this->createMock(LockInterface::class);
 
         $lock
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('acquire')
             ->with(false)
             ->willReturn(true)

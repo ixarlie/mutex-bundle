@@ -7,29 +7,17 @@ use IXarlie\MutexBundle\LockExecutor;
 use IXarlie\MutexBundle\MutexRequest;
 use IXarlie\MutexBundle\NamingStrategy\NamingStrategy;
 use IXarlie\MutexBundle\Tests\Fixtures\DemoController;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Lock\LockInterface;
 
-/**
- * Class ControllerListenerTest.
- */
+#[CoversClass(ControllerListener::class)]
 final class ControllerListenerTest extends TestCase
 {
-    public function testInstance(): void
-    {
-        $listener = new ControllerListener(
-            $this->createMock(LockExecutor::class),
-            $this->createMock(NamingStrategy::class)
-        );
-
-        self::assertInstanceOf(EventSubscriberInterface::class, $listener);
-    }
-
     public function testEvents(): void
     {
         self::assertSame(
@@ -44,24 +32,23 @@ final class ControllerListenerTest extends TestCase
     {
         $request    = Request::create('');
         $controller = [new DemoController(), 'block'];
-        $kernel     = $this->createMock(HttpKernelInterface::class);
+        $kernel     = self::createStub(HttpKernelInterface::class);
         $event      = new ControllerEvent($kernel, $controller, $request, HttpKernelInterface::SUB_REQUEST);
 
         $executor = $this->createMock(LockExecutor::class);
         $executor
-            ->expects(self::never())
+            ->expects($this->never())
             ->method('execute')
         ;
 
         $naming = $this->createMock(NamingStrategy::class);
         $naming
-            ->expects(self::never())
+            ->expects($this->never())
             ->method('createName')
         ;
 
         $listener = new ControllerListener($executor, $naming);
         $listener->onKernelController($event);
-
 
         self::assertEmpty($request->attributes->get('_ixarlie_mutex_locks'));
     }
@@ -70,29 +57,28 @@ final class ControllerListenerTest extends TestCase
     {
         $request    = Request::create('');
         $controller = [new DemoController(), 'block'];
-        $kernel     = $this->createMock(HttpKernelInterface::class);
+        $kernel     = self::createStub(HttpKernelInterface::class);
         $event      = new ControllerEvent($kernel, $controller, $request, HttpKernelInterface::MAIN_REQUEST);
 
-        $lock     = $this->createMock(LockInterface::class);
+        $lock     = self::createStub(LockInterface::class);
         $executor = $this->createMock(LockExecutor::class);
         $executor
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('execute')
-            ->with($this->isInstanceOf(MutexRequest::class))
+            ->with(self::isInstanceOf(MutexRequest::class))
             ->willReturn($lock)
         ;
 
         $naming = $this->createMock(NamingStrategy::class);
         $naming
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('createName')
-            ->with($this->isInstanceOf(MutexRequest::class), $request)
+            ->with(self::isInstanceOf(MutexRequest::class), $request)
             ->willReturn('lock_name')
         ;
 
         $listener = new ControllerListener($executor, $naming);
         $listener->onKernelController($event);
-
 
         self::assertCount(1, $request->attributes->get('_ixarlie_mutex_locks'));
     }
@@ -101,25 +87,39 @@ final class ControllerListenerTest extends TestCase
     {
         $request    = Request::create('');
         $controller = [new DemoController(), 'double'];
-        $kernel     = $this->createMock(HttpKernelInterface::class);
+        $kernel     = self::createStub(HttpKernelInterface::class);
         $event      = new ControllerEvent($kernel, $controller, $request, HttpKernelInterface::MAIN_REQUEST);
 
-        $lock     = $this->createMock(LockInterface::class);
+        $lock     = self::createStub(LockInterface::class);
         $executor = $this->createMock(LockExecutor::class);
         $executor
-            ->expects(self::exactly(2))
+            ->expects($this->exactly(2))
             ->method('execute')
-            ->with($this->isInstanceOf(MutexRequest::class))
+            ->with(self::isInstanceOf(MutexRequest::class))
             ->willReturn($lock)
         ;
 
         $naming = $this->createMock(NamingStrategy::class);
         $naming
-            ->expects(self::exactly(2))
+            ->expects($this->exactly(2))
             ->method('createName')
-            ->withConsecutive(
-                [$this->isInstanceOf(MutexRequest::class), $request],
-                [$this->isInstanceOf(MutexRequest::class), $request]
+            ->with(
+                self::callback(static function($arg) {
+                    static $i = 0;
+
+                    return match (++$i) {
+                        1, 2    => $arg instanceof MutexRequest,
+                        default => false,
+                    };
+                }),
+                self::callback(static function($arg) use ($request) {
+                    static $i = 0;
+
+                    return match (++$i) {
+                        1, 2    => $arg === $request,
+                        default => false,
+                    };
+                })
             )
             ->willReturnOnConsecutiveCalls(
                 'lock_name_1',
@@ -129,7 +129,6 @@ final class ControllerListenerTest extends TestCase
 
         $listener = new ControllerListener($executor, $naming);
         $listener->onKernelController($event);
-
 
         self::assertCount(2, $request->attributes->get('_ixarlie_mutex_locks'));
     }

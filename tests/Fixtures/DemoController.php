@@ -6,8 +6,6 @@ use IXarlie\MutexBundle\MutexRequest;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Class DemoController
- *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
 final class DemoController

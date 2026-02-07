@@ -4,12 +4,11 @@ namespace IXarlie\MutexBundle\Tests\Exception;
 
 use IXarlie\MutexBundle\Exception\MutexException;
 use IXarlie\MutexBundle\MutexRequest;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Class MutexExceptionTest.
- */
+#[CoversClass(MutexException::class)]
 final class MutexExceptionTest extends TestCase
 {
     public function testInstance(): void

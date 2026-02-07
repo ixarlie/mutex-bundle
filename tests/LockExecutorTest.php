@@ -6,14 +6,13 @@ use IXarlie\MutexBundle\Exception\MutexException;
 use IXarlie\MutexBundle\LockExecutor;
 use IXarlie\MutexBundle\LockingStrategy\LockingStrategy;
 use IXarlie\MutexBundle\MutexRequest;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Lock\Exception\LockAcquiringException;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\LockInterface;
 
-/**
- * Class LockExecutorTest.
- */
+#[CoversClass(LockExecutor::class)]
 final class LockExecutorTest extends TestCase
 {
     public function testConfigurationWithoutName(): void
@@ -25,7 +24,7 @@ final class LockExecutorTest extends TestCase
 
         self::assertEmpty($config->name);
 
-        $executor = new LockExecutor();
+        $executor = new LockExecutor([]);
         $executor->execute($config);
     }
 
@@ -36,7 +35,7 @@ final class LockExecutorTest extends TestCase
 
         $config = new MutexRequest(service: 'test', strategy: 'block', name: 'foo');
 
-        $executor = new LockExecutor();
+        $executor = new LockExecutor([]);
         $executor->execute($config);
     }
 
@@ -47,8 +46,8 @@ final class LockExecutorTest extends TestCase
 
         $config = new MutexRequest(service: 'lock.default.factory', strategy: 'test', name: 'foo');
 
-        $executor = new LockExecutor();
-        $executor->addLockFactory('lock.default.factory', $this->createMock(LockFactory::class));
+        $executor = new LockExecutor([]);
+        $executor->addLockFactory('lock.default.factory', self::createStub(LockFactory::class));
 
         $executor->execute($config);
     }
@@ -57,30 +56,23 @@ final class LockExecutorTest extends TestCase
     {
         $config   = new MutexRequest(service: 'lock.default.factory', strategy: 'block', name: 'foo');
         $factory  = $this->createMock(LockFactory::class);
-        $lock     = $this->createMock(LockInterface::class);
+        $lock     = self::createStub(LockInterface::class);
         $strategy = $this->createMock(LockingStrategy::class);
 
         $factory
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('createLock')
             ->with('foo', 300.0, true)
             ->willReturn($lock)
         ;
-
         $strategy
-            ->expects(self::once())
-            ->method('getName')
-            ->willReturn('block')
-        ;
-        $strategy
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('execute')
             ->with($lock)
         ;
 
-        $executor = new LockExecutor();
+        $executor = new LockExecutor(['block' => $strategy]);
         $executor->addLockFactory('lock.default.factory', $factory);
-        $executor->addLockStrategy($strategy);
 
         $result = $executor->execute($config);
 
@@ -93,31 +85,24 @@ final class LockExecutorTest extends TestCase
 
         $config   = new MutexRequest(service: 'lock.default.factory', strategy: 'block', name: 'foo');
         $factory  = $this->createMock(LockFactory::class);
-        $lock     = $this->createMock(LockInterface::class);
+        $lock     = self::createStub(LockInterface::class);
         $strategy = $this->createMock(LockingStrategy::class);
 
         $factory
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('createLock')
             ->with('foo', 300.0, true)
             ->willReturn($lock)
         ;
-
         $strategy
-            ->expects(self::once())
-            ->method('getName')
-            ->willReturn('block')
-        ;
-        $strategy
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('execute')
             ->with($lock)
             ->willThrowException(new LockAcquiringException())
         ;
 
-        $executor = new LockExecutor();
+        $executor = new LockExecutor(['block' => $strategy]);
         $executor->addLockFactory('lock.default.factory', $factory);
-        $executor->addLockStrategy($strategy);
 
         $executor->execute($config);
     }

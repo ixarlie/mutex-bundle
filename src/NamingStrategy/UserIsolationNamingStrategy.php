@@ -7,12 +7,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
- * Class UserIsolationNamingStrategy.
- *
  * @author Carlos Dominguez <ixarlie@gmail.com>
- * @final
  */
-class UserIsolationNamingStrategy implements NamingStrategy
+final class UserIsolationNamingStrategy implements NamingStrategy
 {
     public function __construct(
         private readonly NamingStrategy         $inner,
@@ -45,6 +42,6 @@ class UserIsolationNamingStrategy implements NamingStrategy
 
         $token = $this->tokenStorage->getToken();
 
-        return $token ? md5(serialize($token)) : '';
+        return null !== $token ? md5(serialize($token)) : '';
     }
 }

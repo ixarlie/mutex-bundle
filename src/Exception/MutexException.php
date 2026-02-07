@@ -8,15 +8,13 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Lock\Exception\ExceptionInterface;
 
 /**
- * Class MutexException.
- *
  * @author Carlos Dominguez <ixarlie@gmail.com>
  */
-class MutexException extends HttpException
+final class MutexException extends HttpException
 {
     public function __construct(
         public readonly MutexRequest $config,
-        ExceptionInterface           $e = null,
+        ?ExceptionInterface          $e = null,
     ) {
         parent::__construct(Response::HTTP_LOCKED, $config->message ?? 'Resource is not available at this moment.', $e);
     }
