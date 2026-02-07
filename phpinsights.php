@@ -56,7 +56,6 @@ return [
     'exclude' => [
         'src/IXarlieMutexBundle.php',
         'phpinsights.php',
-        'vendor',
         //  'path/to/directory-or-file'
     ],
 

@@ -2,9 +2,12 @@
 
 This bundle integrates the `symfony/lock` capabilities into `kernel.controller` events.
 
-For previous releases with `arvenil/ninja-mutex` dependency follow the [version 1](https://github.com/ixarlie/mutex-bundle/tree/v1.0.4)
+> [!INFO]
+> For previous releases with `arvenil/ninja-mutex` dependency follow
+> the [version 1](https://github.com/ixarlie/mutex-bundle/tree/v1.0.4)
 
 Before continuing, please read the following links for more information.
+
 - [Symfony/Lock](https://symfony.com/doc/current/components/lock.html)
 - [Concurrency with Locks](https://symfony.com/doc/current/lock.html)
 
@@ -28,18 +31,16 @@ This bundle ships 3 different locking strategies:
 
   Read `Blocking` section in [Symfony Docs](https://symfony.com/doc/current/components/lock.html#blocking-locks)
 
-
 You can implement your own `LockingStrategy` classes. Use the tag `ixarlie_mutex.strategy` in your services to register
-them in the `LockExecutor` service.
+them in the `LockExecutor` service. Don't forget to set a unique `alias`.
 
 ```yaml
 services:
     app.mutex_locking_strategy:
         class: App\Mutex\LockingStrategy
         tags:
-            - { name: ixarlie_mutex.strategy }
+            - { name: ixarlie_mutex.strategy, alias: 'demo' }
 ```
-
 
 ## Naming Strategy
 
@@ -55,16 +56,18 @@ This bundle ships 2 naming strategies:
 You can implement your own `NamingStrategy`.
 
 1. Decorating `ixarlie_mutex.naming_strategy` (recommended)
+
 ```yaml
 services:
     app.mutex_naming_strategy:
         class: App\Mutex\NamingStrategy
         decorates: 'ixarlie_mutex.naming_strategy'
-        arguments: ['app.mutex_naming_strategy.inner']
+        arguments: [ 'app.mutex_naming_strategy.inner' ]
 ```
 
 2. Replacing the alias definition `ixarlie_mutex.naming_strategy` with your own service id. This will execute only your
    logic.
+
 ```yaml
 services:
     app.mutex_naming_strategy:
@@ -73,7 +76,6 @@ services:
     ixarlie_mutex.naming_strategy:
         alias: app.mutex_naming_strategy
 ```
-
 
 ## Attribute
 
@@ -86,6 +88,7 @@ The `MutexRequest` attribute can be used only on controller methods.
 The lock factory service name. It should be one of the services listed in the `factories` setting.
 
 Examples:
+
 ```yaml
 framework:
     lock: semaphore
@@ -94,6 +97,7 @@ i_xarlie_mutex:
     factories:
         - 'lock.default.factory'
 ```
+
 ```php
 #[MutexRequest(service: 'lock.default.factory')]
 ```
@@ -108,6 +112,7 @@ i_xarlie_mutex:
     factories:
         - 'lock.main_lock.factory'
 ```
+
 ```php
 #[MutexRequest(service: 'lock.main_lock.factory')]
 ```
@@ -117,6 +122,7 @@ i_xarlie_mutex:
 One of the registered locking strategies. Read the `Locking Strategy` section.
 
 Examples:
+
 ```php
 #[MutexRequest(service: 'lock.default.factory', strategy: 'block')]
 #[MutexRequest(service: 'lock.default.factory', strategy: 'queue')]
@@ -127,7 +133,6 @@ Examples:
 
 The lock's name. If no name is provided, the name will be generated using the registered naming strategies.
 
-
 Note: Read `userIsolation` option to know how it affects to the name.
 
 Note: The prefix `ixarlie_mutex_` is prefixed to the name.
@@ -135,6 +140,7 @@ Note: The prefix `ixarlie_mutex_` is prefixed to the name.
 Note: The naming strategy output is md5 hashed to avoid any issue with some _PersistingStoreInterface_ implementations.
 
 Examples:
+
 ```php
 #[MutexRequest(service: 'lock.default.factory', strategy: 'block')]
 #[MutexRequest(service: 'lock.default.factory', strategy: 'block', name: 'lock_name')]
@@ -145,6 +151,7 @@ Examples:
 This is a custom message for the exception in case the lock cannot be acquired.
 
 Examples:
+
 ```php
 #[MutexRequest(service: 'lock.default.factory', strategy: 'block', message: 'Busy!')]
 ```
@@ -154,6 +161,7 @@ Examples:
 This option will add token user context to the `name` option in order to have isolated locks for different users.
 
 Example:
+
 ```php
 #[MutexRequest(service: 'lock.default.factory', strategy: 'block', userIsolation: true)]
 ```
@@ -167,6 +175,7 @@ Note: Be aware about using `userIsolation` in anonymous routes.
 Maximum expected lock duration in seconds.
 
 Example:
+
 ```php
 use IXarlie\MutexBundle\MutexRequest;
 
