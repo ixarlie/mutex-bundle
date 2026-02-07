@@ -2,8 +2,9 @@
 
 This bundle integrates the `symfony/lock` capabilities into `kernel.controller` events.
 
-[![GitHub Actions][GA Image]][GA Link]
-[![Packagist][Packagist Image]][Packagist Link]
+[![CI](https://github.com/ixarlie/mutex-bundle/actions/workflows/ci.yaml/badge.svg)](https://github.com/ixarlie/mutex-bundle/actions/workflows/ci.yaml)
+[![CI Code Quality](https://github.com/ixarlie/mutex-bundle/actions/workflows/code_quality.yaml/badge.svg)](https://github.com/ixarlie/mutex-bundle/actions/workflows/code_quality.yaml)
+[![Packagist](https://img.shields.io/packagist/v/ixarlie/mutex-bundle.svg)](https://packagist.org/packages/ixarlie/mutex-bundle)
 
 ## Prerequisites
 
@@ -51,14 +52,8 @@ i_xarlie_mutex:
 
 ## Documentation
 
-- [Examples](docs/index.md)
-- [Configuration](docs/configuration.md)
+- [Getting Started](docs/index.md)
 
 ## License
 
 This bundle is under the MIT license. See the complete license [in the bundle](LICENSE).
-
-[GA Image]: https://github.com/ixarlie/mutex-bundle/workflows/CI/badge.svg
-[GA Link]: https://github.com/ixarlie/mutex-bundle/actions?query=workflow%3A%22CI%22+branch%3Amaster
-[Packagist Image]: https://img.shields.io/packagist/v/ixarlie/mutex-bundle.svg
-[Packagist Link]: https://packagist.org/packages/ixarlie/mutex-bundle
